@@ -25,11 +25,11 @@ fi
 
 __CoreRT_ToolchainPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ILToNative.Development
 __CoreRT_ToolchainVer=1.0.0-prerelease
-__CoreRT_AppDepSdkPkg=Microsoft.DotNet.AppDep
+__CoreRT_AppDepSdkPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.AppDep
 __CoreRT_AppDepSdkVer=1.0.0-prerelease
-__CoreRT_ProtoJitPkg=Microsoft.DotNet.ProtoJit
+__CoreRT_ProtoJitPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ProtoJit
 __CoreRT_ProtoJitVer=1.0.0-prerelease
-__CoreRT_ObjWriterPkg=Microsoft.DotNet.ObjectWriter
+__CoreRT_ObjWriterPkg=toolchain.${__CoreRT_BuildOS,,}-${__CoreRT_BuildArch}.Microsoft.DotNet.ObjectWriter
 __CoreRT_ObjWriterVer=1.0.1-prerelease
 
 __ScriptDir=$(cd "$(dirname "$0")"; pwd -P)

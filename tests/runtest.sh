@@ -148,6 +148,8 @@ __TotalTests=0
 __PassedTests=0
 
 compiletest src/Simple/AsgAdd1 AsgAdd1
+compiletest src/Simple/Add1 Add1
+compiletest src/Simple/Hello Hello
 
 echo "TOTAL: ${__TotalTests} PASSED: ${__PassedTests}"
 
