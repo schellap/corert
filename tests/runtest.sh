@@ -27,7 +27,32 @@ compiletest()
     echo Compiling ILToNative ${__SourceFile}.exe
     # hack
     chmod +x ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh
-    ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh ${__BuildArch} ${__BuildType} -mode ${__CoreRT_TestCompileMode} -appdepsdk ${__CoreRT_AppDepSdkDir} -codegenpath ${__CoreRT_ProtoJitDir} -objgenpath ${__CoreRT_ObjWrtierDier} -logpath ${__CompileLogPath} -in ${__SourceFile}.exe -out ${__SourceFile}.compiled
+    #hack
+    cat <<'EOF'>> ${__SourceFile}.env.cpp
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+extern "C"
+int MultiByteToWideChar (uint32_t page, unsigned long flags, char *src, int srclen, wchar_t *dst, int dstlen)
+{
+        return 0;
+}
+EOF
+    #hack
+    cp ${__CoreRT_ToolchainDir}/System.Native.so ${__SourceFolder}
+    ${__CoreRT_ToolchainDir}/ILToNative ${__SourceFile}.exe -out ${__SourceFile}.o \
+        -r ${__CoreRT_AppDepSdkDir}/*.dll \
+        -r ${__CoreRT_ToolchainDir}/sdk/System.Private.Corelib.dll
+    clang-3.5 -g ${__SourceFile}.o -o ${__SourceFile}.native \
+        ${__SourceFile}.env.cpp \
+        ${__CoreRT_ToolchainDir}/sdk/libbootstrapper.a \
+        ${__CoreRT_ToolchainDir}/sdk/libRuntime.a \
+        ${__CoreRT_ToolchainDir}/sdk/libPortableRuntime.a \
+        ${__CoreRT_ToolchainDir}/sdk/libSystem.Private.CoreLib.Native.a \
+        ${__CoreRT_ToolchainDir}/System.Native.so \
+        -lstdc++ -lpthread -ldl -lm
+
 }
 
 __CoreRT_TestRoot=$(cd "$(dirname "$0")"; pwd -P)
