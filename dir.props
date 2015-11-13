@@ -118,11 +118,11 @@
     <NuPkgRuntimeJson Include="$(SourceDir).nuget\runtime.json" />
 
     <NuSpecSrcs Include="$(SourceDir).nuget\toolchain.$(BinDirOSGroup)-$(BinDirPlatform).Microsoft.DotNet.ILToNative.nuspec" />
-    <NuSpecSrcs Condition="'$(OSGroup)' == 'Windows_NT'" Include="$(SourceDir).nuget\toolchain.$(BinDirOSGroup)-$(BinDirPlatform).Microsoft.DotNet.ILToNative.Development.nuspec" />
+    <NuSpecSrcs Include="$(SourceDir).nuget\toolchain.$(BinDirOSGroup)-$(BinDirPlatform).Microsoft.DotNet.ILToNative.Development.nuspec" />
 
     <NuSpecs Include="$(ProductPackageDir)Microsoft.DotNet.ILToNative.nuspec" />
     <NuSpecs Include="$(ProductPackageDir)toolchain.$(BinDirOSGroup)-$(BinDirPlatform).Microsoft.DotNet.ILToNative.nuspec" />
-    <NuSpecs Condition="'$(OSGroup)' == 'Windows_NT'" Include="$(ProductPackageDir)toolchain.$(BinDirOSGroup)-$(BinDirPlatform).Microsoft.DotNet.ILToNative.Development.nuspec" />
+    <NuSpecs Include="$(ProductPackageDir)toolchain.$(BinDirOSGroup)-$(BinDirPlatform).Microsoft.DotNet.ILToNative.Development.nuspec" />
   </ItemGroup>
 
   <!-- Common nuget properties -->
