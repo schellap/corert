@@ -119,6 +119,10 @@ fi
 cp ${__BuiltNuPkgPath} ${__NuPkgUnpackDir}
 echo "<packages><package id=\"${__CoreRT_ToolchainPkg}\" version=\"${__CoreRT_ToolchainVer}\"/></packages>" > ${__NuPkgUnpackDir}/packages.config
 mono ${__NuGetExeDir}/NuGet.exe install "${__NuPkgUnpackDir}/packages.config" -Source "${__NuPkgUnpackDir}" -OutputDir "${__NuPkgInstallDir}" -prerelease ${__NuGetOptions}
+# the .nupkg doesn't currently keep the +x bit
+chmod +x ${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}/ILToNative
+# horrible hack -- System.Console in appdep doesn't match what we're building
+cp ${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}/System.Console.dll ${__NuPkgInstallDir}/${__CoreRT_AppDepSdkPkg}.${__CoreRT_AppDepSdkVer}
 rm -rf ${__NuPkgUnpackDir}
 
 export __CoreRT_AppDepSdkDir=${__NuPkgInstallDir}/${__CoreRT_AppDepSdkPkg}.${__CoreRT_AppDepSdkVer}
