@@ -14,7 +14,7 @@ using Internal.TypeSystem.Ecma;
 
 using Internal.IL;
 
-using ILToNative;
+using ILCompiler;
 
 namespace Internal.JitInterface
 {
@@ -54,6 +54,12 @@ namespace Internal.JitInterface
             }
         }
 
+        struct SequencePoint
+        {
+            public string Document;
+            public int LineNumber;
+        }
+
         public MethodCode CompileMethod(MethodDesc method)
         {
             try
@@ -65,7 +71,23 @@ namespace Internal.JitInterface
                     CorJitFlag.CORJIT_FLG_SKIP_VERIFICATION |
                     CorJitFlag.CORJIT_FLG_READYTORUN |
                     CorJitFlag.CORJIT_FLG_RELOC |
+                    CorJitFlag.CORJIT_FLG_DEBUG_INFO |
                     CorJitFlag.CORJIT_FLG_PREJIT);
+
+                if (!_compilation.Options.NoLineNumbers)
+                {
+                    CompilerTypeSystemContext typeSystemContext = _compilation.TypeSystemContext;
+                    IEnumerable<ILSequencePoint> ilSequencePoints = typeSystemContext.GetSequencePointsForMethod(method);
+                    if (ilSequencePoints != null)
+                    {
+                        Dictionary<int, SequencePoint> sequencePoints = new Dictionary<int, SequencePoint>();
+                        foreach (var point in ilSequencePoints)
+                        {
+                            sequencePoints.Add(point.Offset, new SequencePoint() { Document = point.Document, LineNumber = point.LineNumber });
+                        }
+                        _sequencePoints = sequencePoints;
+                    }
+                }
 
                 IntPtr nativeEntry;
                 uint codeSize;
@@ -84,7 +106,8 @@ namespace Internal.JitInterface
 
                     Relocs = (_relocs != null) ? _relocs.ToArray() : null,
 
-                    FrameInfos = _frameInfos
+                    FrameInfos = _frameInfos,
+                    DebugLocInfos = _debugLocInfos
                 };
             }
             finally
@@ -131,6 +154,9 @@ namespace Internal.JitInterface
             _numFrameInfos = 0;
             _usedFrameInfos = 0;
             _frameInfos = null;
+
+            _sequencePoints = null;
+            _debugLocInfos = null;
         }
 
         Dictionary<Object, IntPtr> _objectToHandle = new Dictionary<Object, IntPtr>();
@@ -200,7 +226,7 @@ namespace Internal.JitInterface
 
             CorInfoType corInfoRetType = asCorInfoType(signature.ReturnType, out sig.retTypeClass);
             sig._retType = (byte)corInfoRetType;
-            sig.retTypeSigClass = sig.retTypeClass; // The difference between the two is not relevant for ILToNative
+            sig.retTypeSigClass = sig.retTypeClass; // The difference between the two is not relevant for ILCompiler
 
             sig.flags = 0;    // used by IL stubs code
 
@@ -330,80 +356,62 @@ namespace Internal.JitInterface
         {
             CorInfoFlag result = 0;
 
-            EcmaMethod ecmaMethod = method.GetTypicalMethodDefinition() as EcmaMethod;
-            if (ecmaMethod != null)
+            // CORINFO_FLG_PROTECTED - verification only
+
+            if (method.Signature.IsStatic)
+                result |= CorInfoFlag.CORINFO_FLG_STATIC;
+
+            // TODO: if (pMD->IsSynchronized())
+            //    result |= CORINFO_FLG_SYNCH;
+
+            if (method.IsIntrinsic)
+                result |= CorInfoFlag.CORINFO_FLG_INTRINSIC;
+            if (method.IsVirtual)
+                result |= CorInfoFlag.CORINFO_FLG_VIRTUAL;
+            if (method.IsAbstract)
+                result |= CorInfoFlag.CORINFO_FLG_ABSTRACT;
+            if (method.IsConstructor || method.IsStaticConstructor)
+                result |= CorInfoFlag.CORINFO_FLG_CONSTRUCTOR;
+
+            //
+            // See if we need to embed a .cctor call at the head of the
+            // method body.
+            //
+
+            var owningType = method.OwningType;
+            var owningMetadataType = owningType as MetadataType;
+
+            // method or class might have the final bit
+            if (method.IsFinal || (owningMetadataType != null && owningMetadataType.IsSealed))
+                result |= CorInfoFlag.CORINFO_FLG_FINAL;
+
+            // TODO: Generics
+            // if (pMD->IsSharedByGenericInstantiations())
+            //     result |= CORINFO_FLG_SHAREDINST;
+
+            // TODO: PInvoke
+            // if ((attribs & MethodAttributes.PinvokeImpl) != 0)
+            //    result |= CorInfoFlag.CORINFO_FLG_PINVOKE;
+
+            // TODO: Cache inlining hits
+            // Check for an inlining directive.
+
+            if (method.IsNoInlining)
             {
-                var attribs = ecmaMethod.Attributes;
-
-                // CORINFO_FLG_PROTECTED - verification only
-
-                if ((attribs & MethodAttributes.Static) != 0)
-                    result |= CorInfoFlag.CORINFO_FLG_STATIC;
-
-                // TODO: if (pMD->IsSynchronized())
-                //    result |= CORINFO_FLG_SYNCH;
-
-                if (ecmaMethod.IsIntrinsic)
-                    result |= CorInfoFlag.CORINFO_FLG_INTRINSIC;
-
-                if ((attribs & MethodAttributes.Virtual) != 0)
-                    result |= CorInfoFlag.CORINFO_FLG_VIRTUAL;
-                if ((attribs & MethodAttributes.Abstract) != 0)
-                    result |= CorInfoFlag.CORINFO_FLG_ABSTRACT;
-                if ((attribs & MethodAttributes.SpecialName) != 0)
-                {
-                    string name = method.Name;
-                    if (name == ".ctor" || name == ".cctor")
-                        result |= CorInfoFlag.CORINFO_FLG_CONSTRUCTOR;
-                }
-
-                //
-                // See if we need to embed a .cctor call at the head of the
-                // method body.
-                //
-
-                var owningType = method.OwningType;
-
-                var typeAttribs = ((EcmaType)owningType.GetTypeDefinition()).Attributes;
-
-                // method or class might have the final bit
-                if ((attribs & MethodAttributes.Final) != 0 || (typeAttribs & TypeAttributes.Sealed) != 0)
-                    result |= CorInfoFlag.CORINFO_FLG_FINAL;
-
-                // TODO: Generics
-                // if (pMD->IsSharedByGenericInstantiations())
-                //     result |= CORINFO_FLG_SHAREDINST;
-
-                // TODO: PInvoke
-                // if ((attribs & MethodAttributes.PinvokeImpl) != 0)
-                //    result |= CorInfoFlag.CORINFO_FLG_PINVOKE;
-
-                // TODO: Cache inlining hits
-                // Check for an inlining directive.
-
-                var implAttribs = ecmaMethod.ImplAttributes;
-                if ((implAttribs & MethodImplAttributes.NoInlining) != 0)
-                {
-                    /* Function marked as not inlineable */
-                    result |= CorInfoFlag.CORINFO_FLG_DONT_INLINE;
-                }
-                else if ((implAttribs & MethodImplAttributes.AggressiveInlining) != 0)
-                {
-                    result |= CorInfoFlag.CORINFO_FLG_FORCEINLINE;
-                }
-
-                if (owningType.IsDelegate)
-                {
-                    if (method.Name == "Invoke")
-                        // This is now used to emit efficient invoke code for any delegate invoke,
-                        // including multicast.
-                        result |= CorInfoFlag.CORINFO_FLG_DELEGATE_INVOKE;
-                }
+                /* Function marked as not inlineable */
+                result |= CorInfoFlag.CORINFO_FLG_DONT_INLINE;
             }
-            else
+            else if (method.IsAggressiveInlining)
             {
-                if (method.Signature.IsStatic)
-                    result |= CorInfoFlag.CORINFO_FLG_STATIC;
+                result |= CorInfoFlag.CORINFO_FLG_FORCEINLINE;
+            }
+
+            if (owningType.IsDelegate)
+            {
+                if (method.Name == "Invoke")
+                    // This is now used to emit efficient invoke code for any delegate invoke,
+                    // including multicast.
+                    result |= CorInfoFlag.CORINFO_FLG_DELEGATE_INVOKE;
             }
 
             result |= CorInfoFlag.CORINFO_FLG_NOSECURITYWRAP;
@@ -1198,10 +1206,49 @@ namespace Internal.JitInterface
             pILOffsets = null;
             *implicitBoundaries = BoundaryTypes.DEFAULT_BOUNDARIES;
         }
+
+        // Create a DebugLocInfo which is a table from native offset to sourece line.
+        // using native to il offset (pMap) and il to source line (_sequencePoints).
         void setBoundaries(IntPtr _this, CORINFO_METHOD_STRUCT_* ftn, uint cMap, OffsetMapping* pMap)
         {
-            // TODO: Debugging
+            Debug.Assert(_debugLocInfos == null);
+            // No interest if sequencePoints is not populated before.
+            if (_sequencePoints == null)
+            {
+                return;
+            }
+
+            List<DebugLocInfo> debugLocInfos = new List<DebugLocInfo>();
+            for (int i = 0; i < cMap; i++)
+            {
+                SequencePoint s;
+                if (_sequencePoints.TryGetValue((int)pMap[i].ilOffset, out s))
+                {
+                    Debug.Assert(!string.IsNullOrEmpty(s.Document));
+                    int nativeOffset = (int)pMap[i].nativeOffset;
+                    DebugLocInfo loc = new DebugLocInfo(nativeOffset, s.Document, s.LineNumber);
+
+                    // We often miss line number at 0 offset, which prevents debugger from
+                    // stepping into callee.
+                    // Synthesize a location info at 0 offset assuming line number is minus one
+                    // from the first entry.
+                    if (debugLocInfos.Count == 0 && nativeOffset != 0)
+                    {
+                        DebugLocInfo firstLoc = loc;
+                        firstLoc.NativeOffset = 0;
+                        firstLoc.LineNumber--;
+                        debugLocInfos.Add(firstLoc);
+                    }
+
+                    debugLocInfos.Add(loc);
+                }
+            }
+
+            if (debugLocInfos.Count > 0) {
+                _debugLocInfos = debugLocInfos.ToArray();
+            }
         }
+
         void getVars(IntPtr _this, CORINFO_METHOD_STRUCT_* ftn, ref uint cVars, ILVarInfo** vars, [MarshalAs(UnmanagedType.U1)] ref bool extendOthers)
         {
             // TODO: Debugging
@@ -1286,8 +1333,7 @@ namespace Internal.JitInterface
 
         int FilterException(IntPtr _this, _EXCEPTION_POINTERS* pExceptionPointers)
         {
-            Debug.Assert(false);
-            throw new NotImplementedException();
+            return 0; // EXCEPTION_CONTINUE_SEARCH
         }
 
         void HandleException(IntPtr _this, _EXCEPTION_POINTERS* pExceptionPointers)
@@ -1838,6 +1884,9 @@ namespace Internal.JitInterface
         int _numFrameInfos;
         int _usedFrameInfos;
         FrameInfo[] _frameInfos;
+
+        Dictionary<int, SequencePoint> _sequencePoints;
+        DebugLocInfo[] _debugLocInfos;
 
         void allocMem(IntPtr _this, uint hotCodeSize, uint coldCodeSize, uint roDataSize, uint xcptnsCount, CorJitAllocMemFlag flag, ref void* hotCodeBlock, ref void* coldCodeBlock, ref void* roDataBlock)
         {
