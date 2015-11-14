@@ -16,28 +16,28 @@ for i in "$@"
 			exit 1
 			;;
 		x86)
-			__CoreRT_BuildArch=x86
+			export __CoreRT_BuildArch=x86
 			;;
 		x64)
-			__CoreRT_BuildArch=x64
+			export __CoreRT_BuildArch=x64
 			;;
 		arm)
-			__CoreRT_BuildArch=arm
+			export __CoreRT_BuildArch=arm
 			;;
 		arm64)
-			__CoreRT_BuildArch=arm64
+			export __CoreRT_BuildArch=arm64
 			;;
 		dbg)
-			__CoreRT_BuildType=Debug
+			export __CoreRT_BuildType=Debug
 			;;
 		debug)
-			__CoreRT_BuildType=Debug
+			export __CoreRT_BuildType=Debug
 			;;
 		rel)
-			__CoreRT_BuildType=Release
+			export __CoreRT_BuildType=Release
 			;;
 		release)
-			__CoreRT_BuildType=Release
+			export __CoreRT_BuildType=Release
 			;;
 		*)
 			;;

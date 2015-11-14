@@ -1,29 +1,27 @@
-@echo off
-setlocal EnableDelayedExpansion
+#!/usr/bin/env bash
 
-REM
-REM Script to compile a MSIL assembly to native code. 
-REM 
-REM Supported code-generators: CPPCODEGEN, ProtoJIT
-REM
+usage()
+{
+    echo "Script to compile a MSIL assembly to native code."
+    echo "Supported code-generators: CPPCODEGEN, ProtoJIT"
+}
 
-if "%VS140COMNTOOLS%" == "" (
-	echo Please install Microsoft Visual Studio 2015.
-	goto InvalidArgs
+if `hash clang` == "" (
+   echo Please install clang.
 )
 
-set __BuildArch=x64
-set __Infile=
-set __Outfile=
-set __LibPath=
-set __Temp=%temp%\
-set __AppDepSdk=
-set __ILToNative=%~dp0
-set __CompileMode=cpp
-set __LogFilePath=%__Temp%
-set __CodegenPath=
-set __ObjgenPath=
-set __LinkLibs=
+__BuildArch=x64
+__Infile=
+__Outfile=
+__LibPath=
+__Temp=`mktemp -d`
+__AppDepSdk=
+__ILToNative=$(cd "$(dirname "$0")"; pwd -P)
+__CompileMode=cpp
+__LogFilePath=%__Temp%
+__CodegenPath=
+__ObjgenPath=
+__LinkLibs=
 
 :Arg_Loop
 if "%1" == "" goto :ArgsDone

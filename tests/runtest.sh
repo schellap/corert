@@ -24,7 +24,7 @@ compiletest()
 
     echo Begin managed build of ${__SourceFile}.cs
     mcs -nologo -noconfig -unsafe+ -nowarn:1701,1702 -langversion:5 -nostdlib+ -errorreport:prompt -warn:4 -define:TRACE -define:DEBUG -define:SIGNED -reference:../packages/System.Collections/4.0.0/ref/dotnet/System.Collections.dll -reference:../packages/System.Console/4.0.0-beta-23419/ref/dotnet/System.Console.dll -reference:../packages/System.Diagnostics.Debug/4.0.0/ref/dotnet/System.Diagnostics.Debug.dll -reference:../packages/System.Globalization/4.0.0/ref/dotnet/System.Globalization.dll -reference:../packages/System.IO/4.0.10/ref/dotnet/System.IO.dll -reference:../packages/System.IO.FileSystem/4.0.0/ref/dotnet/System.IO.FileSystem.dll -reference:../packages/System.IO.FileSystem.Primitives/4.0.0/ref/dotnet/System.IO.FileSystem.Primitives.dll -reference:../packages/System.Reflection/4.0.0/ref/dotnet/System.Reflection.dll -reference:../packages/System.Reflection.Extensions/4.0.0/ref/dotnet/System.Reflection.Extensions.dll -reference:../packages/System.Reflection.Primitives/4.0.0/ref/dotnet/System.Reflection.Primitives.dll -reference:../packages/System.Resources.ResourceManager/4.0.0/ref/dotnet/System.Resources.ResourceManager.dll -reference:../packages/System.Runtime/4.0.20/ref/dotnet/System.Runtime.dll -reference:../packages/System.Runtime.Extensions/4.0.10/ref/dotnet/System.Runtime.Extensions.dll -reference:../packages/System.Runtime.Handles/4.0.0/ref/dotnet/System.Runtime.Handles.dll -reference:../packages/System.Runtime.InteropServices/4.0.10/ref/dotnet/System.Runtime.InteropServices.dll -reference:../packages/System.Text.Encoding/4.0.0/ref/dotnet/System.Text.Encoding.dll -reference:../packages/System.Text.Encoding.Extensions/4.0.0/ref/dotnet/System.Text.Encoding.Extensions.dll -reference:../packages/System.Threading/4.0.0/ref/dotnet/System.Threading.dll -reference:../packages/System.Threading.Overlapped/4.0.0/ref/dotnet/System.Threading.Overlapped.dll -reference:../packages/System.Threading.Tasks/4.0.10/ref/dotnet/System.Threading.Tasks.dll -debug+ -debug:full -filealign:512 -optimize- -out:${__SourceFile}.exe -target:exe -warnaserror+ ${__SourceFile}.cs
-    echo Compiling ILToNative ${__SourceFile}.exe
+    echo Compiling ILCompiler ${__SourceFile}.exe
     # hack
     chmod +x ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh
     #hack
@@ -41,7 +41,7 @@ int MultiByteToWideChar (uint32_t page, unsigned long flags, char *src, int srcl
 EOF
     #hack
     cp ${__CoreRT_ToolchainDir}/System.Native.so ${__SourceFolder}
-    ${__CoreRT_ToolchainDir}/ILToNative ${__SourceFile}.exe -out ${__SourceFile}.o \
+    ${__CoreRT_ToolchainDir}/ILCompiler ${__SourceFile}.exe -out ${__SourceFile}.o \
         -r ${__CoreRT_AppDepSdkDir}/*.dll \
         -r ${__CoreRT_ToolchainDir}/sdk/System.Private.Corelib.dll
     clang-3.5 -g ${__SourceFile}.o -o ${__SourceFile}.native \
@@ -154,10 +154,10 @@ if [ ! -d ${__CoreRT_ObjWriterDir} ]; then
     exit -1
 fi
 
-if [ ! -f ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh ]; then
-    echo "dotnet-compile-native.sh not found in ${__CoreRT_ToolchainDir}"
-    exit -1
-fi
+#if [ ! -f ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh ]; then
+    #echo "dotnet-compile-native.sh not found in ${__CoreRT_ToolchainDir}"
+    #exit -1
+#fi
 
 if [ -z ${__CoreRT_ToolchainPkg} ]; then
     echo "Run ${__PackageRestoreCmd} first"

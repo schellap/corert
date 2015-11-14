@@ -7,7 +7,7 @@ usage()
 }
 
 
-source $(cd "$(dirname "$0")"; pwd -P)/testenv.sh
+. $(cd "$(dirname "$0")"; pwd -P)/testenv.sh
 
 if [ -z ${__CoreRT_BuildOS} ]; then
     __CoreRT_BuildOS=Linux
@@ -23,13 +23,13 @@ if [ -z ${__CoreRT_BuildType} ]; then
     exit -1
 fi
 
-__CoreRT_ToolchainPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ILToNative.Development
+__CoreRT_ToolchainPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ILCompiler.Development
 __CoreRT_ToolchainVer=1.0.0-prerelease
 __CoreRT_AppDepSdkPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.AppDep
 __CoreRT_AppDepSdkVer=1.0.0-prerelease
 __CoreRT_ProtoJitPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ProtoJit
 __CoreRT_ProtoJitVer=1.0.0-prerelease
-__CoreRT_ObjWriterPkg=toolchain.${__CoreRT_BuildOS,,}-${__CoreRT_BuildArch}.Microsoft.DotNet.ObjectWriter
+__CoreRT_ObjWriterPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ObjectWriter
 __CoreRT_ObjWriterVer=1.0.1-prerelease
 
 __ScriptDir=$(cd "$(dirname "$0")"; pwd -P)
@@ -86,7 +86,7 @@ fi
 
 echo "Cleaning up ${__NuPkgInstallDir}"
 rm -rf ${__NuPkgInstallDir}
-mkdir ${__NuPkgInstallDir}
+mkdir -p ${__NuPkgInstallDir}
 if [ ! -d ${__NuPkgInstallDir} ]; then
     echo "Could not make install dir"
     exit -1
@@ -103,7 +103,7 @@ mono ${__NuGetExeDir}/NuGet.exe install -Source ${__NuGetFeedUrl} -OutputDir ${_
 echo Installing ObjectWriter from NuGet
 mono ${__NuGetExeDir}/NuGet.exe install -Source ${__NuGetFeedUrl} -OutputDir ${__NuPkgInstallDir} -Version ${__CoreRT_ObjWriterVer} ${__CoreRT_ObjWriterPkg} -prerelease ${__NuGetOptions}
 
-echo Installing ILToNative from ${__BuiltNuPkgPath} into ${__NuPkgInstallDir}
+echo Installing ILCompiler from ${__BuiltNuPkgPath} into ${__NuPkgInstallDir}
 __BuiltNuPkgPath=${__BuiltNuPkgDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}.nupkg
 
 if [ ! -f ${__BuiltNuPkgPath} ]; then
@@ -120,7 +120,7 @@ cp ${__BuiltNuPkgPath} ${__NuPkgUnpackDir}
 echo "<packages><package id=\"${__CoreRT_ToolchainPkg}\" version=\"${__CoreRT_ToolchainVer}\"/></packages>" > ${__NuPkgUnpackDir}/packages.config
 mono ${__NuGetExeDir}/NuGet.exe install "${__NuPkgUnpackDir}/packages.config" -Source "${__NuPkgUnpackDir}" -OutputDir "${__NuPkgInstallDir}" -prerelease ${__NuGetOptions}
 # the .nupkg doesn't currently keep the +x bit
-chmod +x ${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}/ILToNative
+chmod +x ${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}/ILCompiler
 # horrible hack -- System.Console in appdep doesn't match what we're building
 cp ${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}/System.Console.dll ${__NuPkgInstallDir}/${__CoreRT_AppDepSdkPkg}.${__CoreRT_AppDepSdkVer}
 rm -rf ${__NuPkgUnpackDir}
