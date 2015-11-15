@@ -30,7 +30,7 @@
       <file src="../System.Private.Corelib.dll" target="sdk/System.Private.Corelib.dll" />
       <file src="../ToolRuntime/*.dll" />
       <file src="../ToolRuntime/*.so" />
-      <file src="../ToolRuntime/coreconsole" target="ILCompiler" />
+      <file src="../ToolRuntime/corerun" target="ilc" />
       <file src="../../../../packages/Microsoft.DiaSymReader/1.0.6/lib/portable-net45+win8/Microsoft.DiaSymReader.dll" />
       <file src="../../../../src/scripts/dotnet-compile-native.sh" />
   </files>

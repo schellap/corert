@@ -7,7 +7,7 @@ usage()
 }
 
 
-. $(cd "$(dirname "$0")"; pwd -P)/testenv.sh
+source $(cd "$(dirname "$0")"; pwd -P)/testenv.sh
 
 if [ -z ${__CoreRT_BuildOS} ]; then
     __CoreRT_BuildOS=Linux

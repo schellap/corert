@@ -4,3 +4,9 @@
 **/*.exe.cpp
 **/*.idb
 **/*.pdb
+
+**/*.o
+**/*.so
+**/*.native
+**/*.mdb
+**/*.env.cpp

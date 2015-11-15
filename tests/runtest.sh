@@ -11,6 +11,17 @@ usage()
 	exit 1
 }
 
+runtest()
+{
+    echo "Running test $1 $2 $3"
+    __SourceFolder=$1
+    __SourceFileName=$2
+    __SourceFile=${__SourceFolder}/${__SourceFileName}
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$3
+    ${__SourceFile}.sh $1 $2
+    return $?
+}
+
 compiletest()
 {
     echo "Compiling test $1 $2"
@@ -19,6 +30,7 @@ compiletest()
     __SourceFile=${__SourceFolder}/${__SourceFileName}
     rm -f ${__SourceFile}.S
     rm -f ${__SourceFile}.compiled
+    rm -f ${__SourceFile}.native
     rm -f ${__SourceFile}.o
     rm -f ${__SourceFile}.exe
 
@@ -28,7 +40,7 @@ compiletest()
     # hack
     chmod +x ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh
     #hack
-    cat <<'EOF'>> ${__SourceFile}.env.cpp
+    cat <<'EOF'> ${__SourceFile}.env.cpp
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -39,9 +51,10 @@ int MultiByteToWideChar (uint32_t page, unsigned long flags, char *src, int srcl
         return 0;
 }
 EOF
-    #hack
-    cp ${__CoreRT_ToolchainDir}/System.Native.so ${__SourceFolder}
-    ${__CoreRT_ToolchainDir}/ILCompiler ${__SourceFile}.exe -out ${__SourceFile}.o \
+    cp ${__CoreRT_ProtoJitDir}/libprotojit.so ${__CoreRT_ToolchainDir}/protojit.so
+    cp ${__CoreRT_ObjWriterDir}/libobjwriter.so ${__CoreRT_ToolchainDir}/objwriter.so
+    chmod +x ${__CoreRT_ToolchainDir}/ilc
+    ${__CoreRT_ToolchainDir}/ilc ${__CoreRT_ToolchainDir}/ilc.dll ${__SourceFile}.exe -out ${__SourceFile}.o \
         -r ${__CoreRT_AppDepSdkDir}/*.dll \
         -r ${__CoreRT_ToolchainDir}/sdk/System.Private.Corelib.dll
     clang-3.5 -g ${__SourceFile}.o -o ${__SourceFile}.native \
@@ -176,6 +189,11 @@ compiletest src/Simple/AsgAdd1 AsgAdd1
 compiletest src/Simple/Add1 Add1
 compiletest src/Simple/Hello Hello
 
+runtest src/Simple/Hello Hello ${__CoreRT_ToolchainDir}
+if [ "$?" == 0 ]; then
+    __PassedTests=$(($__PassedTests + 1))
+fi
+__TotalTests=$(($__TotalTests + 1))
 echo "TOTAL: ${__TotalTests} PASSED: ${__PassedTests}"
 
 exit 0
