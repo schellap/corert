@@ -260,7 +260,7 @@ namespace Internal.IL
             return _stack[--_stackTop];
         }
 
-        public static bool Msvc = true;
+        public static bool Msvc = false;
 
         string GetStackValueKindCPPTypeName(StackValueKind kind, TypeDesc type = null)
         {
