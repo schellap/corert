@@ -40,17 +40,6 @@ compiletest()
     # hack
     chmod +x ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh
     #hack
-    cat <<'EOF'> ${__SourceFile}.env.cpp
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-
-extern "C"
-int MultiByteToWideChar (uint32_t page, unsigned long flags, char *src, int srclen, wchar_t *dst, int dstlen)
-{
-        return 0;
-}
-EOF
     cp ${__CoreRT_ProtoJitDir}/libryujit.so ${__CoreRT_ToolchainDir}/ryujit.so
     cp ${__CoreRT_ObjWriterDir}/libobjwriter.so ${__CoreRT_ToolchainDir}/objwriter.so
     chmod +x ${__CoreRT_ToolchainDir}/ilc
@@ -58,7 +47,7 @@ EOF
         -r ${__CoreRT_AppDepSdkDir}/*.dll \
         -r ${__CoreRT_ToolchainDir}/sdk/System.Private.Corelib.dll
     clang-3.5 -g ${__SourceFile}.o -o ${__SourceFile}.native \
-        ${__SourceFile}.env.cpp \
+        ${__CoreRT_AppDepSdkDir}/CPPSdk/ubuntu.14.04/lxstubs.cpp \
         ${__CoreRT_ToolchainDir}/sdk/libbootstrapper.a \
         ${__CoreRT_ToolchainDir}/sdk/libRuntime.a \
         ${__CoreRT_ToolchainDir}/sdk/libPortableRuntime.a \
