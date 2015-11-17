@@ -51,7 +51,7 @@ int MultiByteToWideChar (uint32_t page, unsigned long flags, char *src, int srcl
         return 0;
 }
 EOF
-    cp ${__CoreRT_ProtoJitDir}/libprotojit.so ${__CoreRT_ToolchainDir}/protojit.so
+    cp ${__CoreRT_ProtoJitDir}/libryujit.so ${__CoreRT_ToolchainDir}/ryujit.so
     cp ${__CoreRT_ObjWriterDir}/libobjwriter.so ${__CoreRT_ToolchainDir}/objwriter.so
     chmod +x ${__CoreRT_ToolchainDir}/ilc
     ${__CoreRT_ToolchainDir}/ilc ${__CoreRT_ToolchainDir}/ilc.dll ${__SourceFile}.exe -out ${__SourceFile}.o \

@@ -23,14 +23,14 @@ if [ -z ${__CoreRT_BuildType} ]; then
     exit -1
 fi
 
-__CoreRT_ToolchainPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ILCompiler.Development
+__CoreRT_ToolchainPkg=toolchain.ubuntu.14.04-${__CoreRT_BuildArch}.Microsoft.DotNet.ILCompiler.Development
 __CoreRT_ToolchainVer=1.0.0-prerelease
-__CoreRT_AppDepSdkPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.AppDep
+__CoreRT_AppDepSdkPkg=toolchain.ubuntu.14.04-${__CoreRT_BuildArch}.Microsoft.DotNet.AppDep
 __CoreRT_AppDepSdkVer=1.0.0-prerelease
-__CoreRT_ProtoJitPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ProtoJit
+__CoreRT_ProtoJitPkg=toolchain.ubuntu.14.04-${__CoreRT_BuildArch}.Microsoft.DotNet.RyuJit
 __CoreRT_ProtoJitVer=1.0.0-prerelease
-__CoreRT_ObjWriterPkg=toolchain.${__CoreRT_BuildOS}-${__CoreRT_BuildArch}.Microsoft.DotNet.ObjectWriter
-__CoreRT_ObjWriterVer=1.0.1-prerelease
+__CoreRT_ObjWriterPkg=toolchain.ubuntu.14.04-${__CoreRT_BuildArch}.Microsoft.DotNet.ObjectWriter
+__CoreRT_ObjWriterVer=1.0.2-prerelease
 
 __ScriptDir=$(cd "$(dirname "$0")"; pwd -P)
 __BuildStr=${__CoreRT_BuildOS}.${__CoreRT_BuildArch}.${__CoreRT_BuildType}
@@ -92,10 +92,10 @@ if [ ! -d ${__NuPkgInstallDir} ]; then
     exit -1
 fi
 
-__NuGetFeedUrl="https://www.myget.org/F/schellap/auth/3e4f1dbe-f43a-45a8-b029-3ad4d25605ac/api/v2"
+__NuGetFeedUrl="https://www.myget.org/F/dotnet/auth/3e4f1dbe-f43a-45a8-b029-3ad4d25605ac/api/v2"
 
 echo Installing CoreRT external dependencies
-mono ${__NuGetExeDir}/NuGet.exe install -Source ${__NuGetFeedUrl} -OutputDir ${__NuPkgInstallDir} -Version ${__CoreRT_AppDepSdkVer} ${__CoreRT_AppDepSdkPkg} -prerelease ${__NuGetOptions}
+mono ${__NuGetExeDir}/NuGet.exe install -Source ${__NuGetFeedUrl} -OutputDir ${__NuPkgInstallDir} -Version ${__CoreRT_AppDepSdkVer} ${__CoreRT_AppDepSdkPkg} -prerelease ${__NuGetOptions} -nocache
 
 echo Installing ProtoJit from NuGet
 mono ${__NuGetExeDir}/NuGet.exe install -Source ${__NuGetFeedUrl} -OutputDir ${__NuPkgInstallDir} -Version ${__CoreRT_ProtoJitVer} ${__CoreRT_ProtoJitPkg} -prerelease ${__NuGetOptions}
@@ -126,6 +126,6 @@ cp ${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}/System
 rm -rf ${__NuPkgUnpackDir}
 
 export __CoreRT_AppDepSdkDir=${__NuPkgInstallDir}/${__CoreRT_AppDepSdkPkg}.${__CoreRT_AppDepSdkVer}
-export __CoreRT_ProtoJitDir=${__NuPkgInstallDir}/${__CoreRT_ProtoJitPkg}.${__CoreRT_ProtoJitVer}
-export __CoreRT_ObjWriterDir=${__NuPkgInstallDir}/${__CoreRT_ObjWriterPkg}.${__CoreRT_ObjWriterVer}
+export __CoreRT_ProtoJitDir=${__NuPkgInstallDir}/${__CoreRT_ProtoJitPkg}.${__CoreRT_ProtoJitVer}/runtimes/ubuntu.14.04-${__CoreRT_BuildArch}/native/
+export __CoreRT_ObjWriterDir=${__NuPkgInstallDir}/${__CoreRT_ObjWriterPkg}.${__CoreRT_ObjWriterVer}/runtimes/ubuntu.14.04-${__CoreRT_BuildArch}/native/
 export __CoreRT_ToolchainDir=${__NuPkgInstallDir}/${__CoreRT_ToolchainPkg}.${__CoreRT_ToolchainVer}
