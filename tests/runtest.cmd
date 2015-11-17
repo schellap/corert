@@ -168,13 +168,13 @@ if "%__StatusPassed%"=="1" (
     if not "%CoreRT_BuildExtRepo%" == "false" (
         pushd %CoreRT_TestExtRepo%
         call build.cmd %CoreRT_BuildArch% %CoreRT_BuildType%
-        if not !ErrorLevel!=="0" ((call :Fail "%CoreRT_TestExtRepo% build failed") & popd & exit /b -1)
+        if not !ErrorLevel!==0 ((call :Fail "%CoreRT_TestExtRepo% build failed") & popd & exit /b -1)
         popd
     )
 
     echo.
-    powershell -Command Write-Host "set CLRCustomTestLauncher=%CoreRT_TestRoot%ILCompiler.cmd" -foreground "cyan"
-    set CLRCustomTestLauncher=%CoreRT_TestRoot%ILCompiler.cmd
+    powershell -Command Write-Host "set CLRCustomTestLauncher=%CoreRT_TestRoot%ilc.cmd" -foreground "cyan"
+    set CLRCustomTestLauncher=%CoreRT_TestRoot%ilc.cmd
 
     set CORE_ROOT=%CoreRT_TestExtRepo%\bin\Product\%__BuildStr%
     pushd %CoreRT_TestExtRepo%\tests

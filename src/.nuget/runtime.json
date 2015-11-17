@@ -1,6 +1,7 @@
 {
   "runtimes": {
     "win7-x64": {
+<<<<<<< HEAD
       "Microsoft.DotNet.ILToNative": {
         "toolchain.Windows_NT-x64.Microsoft.DotNet.ILToNative": "1.0.0-prerelease"
       }
@@ -13,6 +14,20 @@
     "osx.10.10-x64": {
       "Microsoft.DotNet.ILToNative": {
         "toolchain.OSX-x64.Microsoft.DotNet.ILToNative": "1.0.0-prerelease"
+=======
+      "Microsoft.DotNet.ILCompiler": {
+        "toolchain.win7-x64.Microsoft.DotNet.ILCompiler": "1.0.0-prerelease"
+      }
+    },
+    "ubuntu.14.04-x64": {
+      "Microsoft.DotNet.ILCompiler": {
+        "toolchain.ubuntu.14.04-x64.Microsoft.DotNet.ILCompiler": "1.0.0-prerelease"
+      }
+    },
+    "osx.10.10-x64": {
+      "Microsoft.DotNet.ILCompiler": {
+        "toolchain.osx.10.10-x64.Microsoft.DotNet.ILCompiler": "1.0.0-prerelease"
+>>>>>>> 65128827b9109bd2984d50989ccb87c3991914f7
       }
     }
   }
