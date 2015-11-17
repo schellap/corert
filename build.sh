@@ -353,6 +353,14 @@ if [ $BUILDERRORLEVEL != 0 ]; then
     exit $BUILDERRORLEVEL
 fi
 
+# Checkin tests
+cd tests
+source runtest.sh
+if [ $? != 0 ]; then
+    exit $BUILDERRORLEVEL
+fi
+cd ..
+
 echo "Product binaries are available at $__ProductBinDir"
 
 exit $BUILDERRORLEVEL
