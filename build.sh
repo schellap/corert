@@ -11,6 +11,7 @@ usage()
     echo "clean - optional argument to force a clean build."
     echo "verbose - optional argument to enable verbose build output."
     echo "clangx.y - optional argument to build using clang version x.y."
+    echo "installcli - should download CLI and not use cached copy of the CLI."
 
     exit 1
 }
@@ -50,6 +51,62 @@ check_managed_prereqs()
     fi
 }
 
+download_file()
+{
+    which curl wget > /dev/null 2> /dev/null
+    if [ $? -ne 0 -a $? -ne 1 ]; then
+        echo "cURL or wget is required to build corert."
+        exit 1
+    fi
+    echo "Downloading... $2"
+
+    # curl has HTTPS CA trust-issues less often than wget, so lets try that first.
+    which curl > /dev/null 2> /dev/null
+    if [ $? -ne 0 ]; then
+       wget -q -O $1 $2
+    else
+       curl -sSL --create-dirs -o $1 $2
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Failed to download into $1 from $2."
+        exit 1
+    fi
+}
+
+install_dotnet_cli()
+{
+    echo "Installing the dotnet/cli..."
+    local __tools_dir=${__scriptpath}/bin/tools
+    local __cli_dir=${__tools_dir}/cli
+    
+    if [ ${__InstallCli} -ne 0 ]; then
+        rm -rf "${__cli_dir}"
+        if [ $? -ne 0 ]; then
+            echo "Could not remove existing CLI dir."
+            exit 1
+        fi
+    fi
+    if [ ! -d "${__cli_dir}" ]; then
+        mkdir -p "${__cli_dir}"
+    fi
+    if [ ! -f "${__cli_dir}/bin/dotnet" ]; then
+        local __build_os_lowercase=$(echo "${__BuildOS}" | tr '[:upper:]' '[:lower:]')
+        local __build_arch_lowercase=$(echo "${__BuildArch}" | tr '[:upper:]' '[:lower:]')
+        local __cli_tarball=dotnet-${__build_os_lowercase}-${__build_arch_lowercase}.latest.tar.gz
+        local __cli_tarball_path=${__tools_dir}/${__cli_tarball}
+        download_file ${__cli_tarball_path} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/Latest/${__cli_tarball}"
+        tar -xzf ${__cli_tarball_path} -C ${__cli_dir}
+        export DOTNET_HOME=${__cli_dir}
+        if [ -n ${HOME:+1} ]; then
+            export HOME=${__tools_dir}
+        fi
+    fi
+    if [ ! -f "${__cli_dir}/bin/dotnet" ]; then
+        echo "CLI could not be installed or not present."
+        exit 1
+    fi
+}
+
 check_native_prereqs()
 {
     echo "Checking pre-requisites..."
@@ -67,26 +124,8 @@ prepare_managed_build()
 {
     # Pull NuGet.exe down if we don't have it already
     if [ ! -e "$__nugetpath" ]; then
-        which curl wget > /dev/null 2> /dev/null
-        if [ $? -ne 0 -a $? -ne 1 ]; then
-            echo "cURL or wget is required to build corert."
-            exit 1
-        fi
-        echo "Restoring NuGet.exe..."
-
-        # curl has HTTPS CA trust-issues less often than wget, so lets try that first.
-        which curl > /dev/null 2> /dev/null
-        if [ $? -ne 0 ]; then
-           mkdir -p $__packageroot
-           wget -q -O $__nugetpath https://api.nuget.org/downloads/nuget.exe
-        else
-           curl -sSL --create-dirs -o $__nugetpath https://api.nuget.org/downloads/nuget.exe
-        fi
-
-        if [ $? -ne 0 ]; then
-            echo "Failed to restore NuGet.exe."
-            exit 1
-        fi
+        mkdir -p $__packageroot
+        download_file $__nugetpath https://api.nuget.org/downloads/nuget.exe
     fi
 
     # Grab the MSBuild package if we don't have it already
@@ -98,6 +137,9 @@ prepare_managed_build()
             exit 1
         fi
     fi
+
+    # Obtain dotnet CLI to perform restore
+    install_dotnet_cli
 }
 
 prepare_native_build()
@@ -260,6 +302,7 @@ BUILDERRORLEVEL=0
 __UnprocessedBuildArgs=
 __CleanBuild=0
 __VerboseBuild=0
+__InstallCli=0
 __ClangMajorVersion=3
 __ClangMinorVersion=5
 
@@ -301,6 +344,9 @@ for i in "$@"
             ;;
         verbose)
             __VerboseBuild=1
+            ;;
+        installcli)
+            __InstallCli=1
             ;;
         clang3.5)
             __ClangMajorVersion=3
@@ -381,6 +427,15 @@ fi
 # If managed build failed, exit with the status code of the managed build
 if [ $BUILDERRORLEVEL != 0 ]; then
     exit $BUILDERRORLEVEL
+fi
+
+pushd ${__scriptpath}/tests
+source ${__scriptpath}/tests/runtest.sh $__BuildOS $__BuildArch $__BuildType
+TESTERRORLEVEL=$?
+popd
+
+if [ $TESTERRORLEVEL != 0 ]; then
+    exit $TESTERRORLEVEL
 fi
 
 echo "Product binaries are available at $__ProductBinDir"

@@ -377,10 +377,7 @@ extern "C" void RhRethrow()
 }
 
 #ifdef CPPCODEGEN
-extern "C" void RhpBulkWriteBarrier()
-{
-    throw 42;
-}
+extern "C" void RhpBulkWriteBarrier();
 #endif
 
 #ifndef CPPCODEGEN
