@@ -38,8 +38,8 @@ compiletest()
     mcs -nologo -noconfig -unsafe+ -nowarn:1701,1702 -langversion:5 -nostdlib+ -errorreport:prompt -warn:4 -define:TRACE -define:DEBUG -define:SIGNED -reference:../packages/System.Collections/4.0.0/ref/dotnet/System.Collections.dll -reference:../packages/System.Console/4.0.0-beta-23419/ref/dotnet/System.Console.dll -reference:../packages/System.Diagnostics.Debug/4.0.0/ref/dotnet/System.Diagnostics.Debug.dll -reference:../packages/System.Globalization/4.0.0/ref/dotnet/System.Globalization.dll -reference:../packages/System.IO/4.0.10/ref/dotnet/System.IO.dll -reference:../packages/System.IO.FileSystem/4.0.0/ref/dotnet/System.IO.FileSystem.dll -reference:../packages/System.IO.FileSystem.Primitives/4.0.0/ref/dotnet/System.IO.FileSystem.Primitives.dll -reference:../packages/System.Reflection/4.0.0/ref/dotnet/System.Reflection.dll -reference:../packages/System.Reflection.Extensions/4.0.0/ref/dotnet/System.Reflection.Extensions.dll -reference:../packages/System.Reflection.Primitives/4.0.0/ref/dotnet/System.Reflection.Primitives.dll -reference:../packages/System.Resources.ResourceManager/4.0.0/ref/dotnet/System.Resources.ResourceManager.dll -reference:../packages/System.Runtime/4.0.20/ref/dotnet/System.Runtime.dll -reference:../packages/System.Runtime.Extensions/4.0.10/ref/dotnet/System.Runtime.Extensions.dll -reference:../packages/System.Runtime.Handles/4.0.0/ref/dotnet/System.Runtime.Handles.dll -reference:../packages/System.Runtime.InteropServices/4.0.10/ref/dotnet/System.Runtime.InteropServices.dll -reference:../packages/System.Text.Encoding/4.0.0/ref/dotnet/System.Text.Encoding.dll -reference:../packages/System.Text.Encoding.Extensions/4.0.0/ref/dotnet/System.Text.Encoding.Extensions.dll -reference:../packages/System.Threading/4.0.0/ref/dotnet/System.Threading.dll -reference:../packages/System.Threading.Overlapped/4.0.0/ref/dotnet/System.Threading.Overlapped.dll -reference:../packages/System.Threading.Tasks/4.0.10/ref/dotnet/System.Threading.Tasks.dll -debug+ -debug:full -filealign:512 -optimize- -out:${__SourceFile}.exe -target:exe -warnaserror+ ${__SourceFile}.cs
     echo Compiling ILCompiler ${__SourceFile}.exe
     # hack
-    chmod +x ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh
-    #hack
+    # chmod +x ${__CoreRT_ToolchainDir}/dotnet-compile-native.sh
+    # hack
     cp ${__CoreRT_ProtoJitDir}/libryujit.so ${__CoreRT_ToolchainDir}/ryujit.so
     cp ${__CoreRT_ObjWriterDir}/libobjwriter.so ${__CoreRT_ToolchainDir}/objwriter.so
     chmod +x ${__CoreRT_ToolchainDir}/ilc
@@ -52,9 +52,8 @@ compiletest()
         ${__CoreRT_ToolchainDir}/sdk/libRuntime.a \
         ${__CoreRT_ToolchainDir}/sdk/libPortableRuntime.a \
         ${__CoreRT_ToolchainDir}/sdk/libSystem.Private.CoreLib.Native.a \
-        ${__CoreRT_ToolchainDir}/System.Native.so \
-        -lstdc++ -lpthread -ldl -lm
-
+        /home/senthil/corefx/bin/Linux.x64.Debug/Native/./libSystem.Native.a \
+        -lstdc++ -lpthread -ldl -lm -lrt
 }
 
 __CoreRT_TestRoot=$(cd "$(dirname "$0")"; pwd -P)
@@ -174,8 +173,8 @@ fi
 __TotalTests=0
 __PassedTests=0
 
-compiletest src/Simple/AsgAdd1 AsgAdd1
-compiletest src/Simple/Add1 Add1
+#compiletest src/Simple/AsgAdd1 AsgAdd1
+#compiletest src/Simple/Add1 Add1
 compiletest src/Simple/Hello Hello
 
 runtest src/Simple/Hello Hello ${__CoreRT_ToolchainDir}
