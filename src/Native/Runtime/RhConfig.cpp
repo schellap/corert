@@ -2,8 +2,8 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
+#include "common.h"
 #ifndef DACCESS_COMPILE
-#include "rhcommon.h"
 #include "CommonTypes.h"
 #include "daccess.h"
 #include "CommonMacros.h"
@@ -25,8 +25,9 @@
 #include "module.h"
 #include "RhConfig.h"
 
+#include <string.h>
 
-UInt32 RhConfig::ReadConfigValue(_In_z_ const WCHAR *wszName)
+UInt32 RhConfig::ReadConfigValue(_In_z_ const WCHAR *wszName, UInt32 uiDefaultValue)
 {
     WCHAR wszBuffer[CONFIG_VAL_MAXLEN + 1]; // 8 hex digits plus a nul terminator.
     const UInt32 cchBuffer = sizeof(wszBuffer) / sizeof(wszBuffer[0]);
@@ -42,7 +43,7 @@ UInt32 RhConfig::ReadConfigValue(_In_z_ const WCHAR *wszName)
         cchResult = GetIniVariable(wszName, wszBuffer, cchBuffer);
 
     if ((cchResult == 0) || (cchResult >= cchBuffer))
-        return 0;
+        return uiDefaultValue; // not found, return default
 
     UInt32 uiResult = 0;
 
@@ -58,7 +59,7 @@ UInt32 RhConfig::ReadConfigValue(_In_z_ const WCHAR *wszName)
         else if ((ch >= L'A') && (ch <= L'F'))
             uiResult += (ch - L'A') + 10;
         else
-            return 0;
+            return uiDefaultValue; // parse error, return default
     }
 
     return uiResult;

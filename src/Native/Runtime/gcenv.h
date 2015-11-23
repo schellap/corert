@@ -4,6 +4,12 @@
 //
 #define FEATURE_PREMORTEM_FINALIZATION
 
+#ifdef _MSC_VER
+#pragma warning( disable: 4189 )  // 'hp': local variable is initialized but not referenced -- common in GC
+#pragma warning( disable: 4127 )  // conditional expression is constant -- common in GC
+#endif
+
+#include "sal.h"
 #include "gcenv.base.h"
 
 #include "Crst.h"
@@ -14,6 +20,28 @@
 #include "TargetPtrs.h"
 #include "eetype.h"
 #include "ObjectLayout.h"
+#include "rheventtrace.h"
+#include "PalRedhawkCommon.h"
+#include "PalRedhawk.h"
+#include "gcrhinterface.h"
+
+#ifdef CORERT // no real ETW in CoreRT yet
+
+    #include "etmdummy.h"
+    #define ETW_EVENT_ENABLED(e,f) false
+
+#else
+
+    // @TODO: ETW update required -- placeholders
+    #define FireEtwGCPerHeapHistory_V3(ClrInstanceID, FreeListAllocated, FreeListRejected, EndOfSegAllocated, CondemnedAllocated, PinnedAllocated, PinnedAllocatedAdvance, RunningFreeListEfficiency, CondemnReasons0, CondemnReasons1, CompactMechanisms, ExpandMechanisms, HeapIndex, ExtraGen0Commit, Count, Values_Len_, Values) 0
+    #define FireEtwGCGlobalHeapHistory_V2(FinalYoungestDesired, NumHeaps, CondemnedGeneration, Gen0ReductionCount, Reason, GlobalMechanisms, ClrInstanceID, PauseMode, MemoryPressure) 0
+    #define FireEtwGCMarkWithType(HeapNum, ClrInstanceID, Type, Bytes) {HeapNum;ClrInstanceID;Type;Bytes;}
+    #define FireEtwPinPlugAtGCTime(PlugStart, PlugEnd, GapBeforeSize, ClrInstanceID) 0
+    #define FireEtwGCTriggered(Reason, ClrInstanceID) 0
+
+    #include "etwevents.h"
+    #include "eventtrace.h"
+#endif
 
 // Adapter for GC's view of Array
 class ArrayBase : Array
@@ -71,7 +99,7 @@ public:
 
 class EEConfig
 {
-    BYTE m_gcStressMode;
+    UInt8 m_gcStressMode;
 
 public:
     enum HeapVerifyFlags {
@@ -119,7 +147,7 @@ public:
     bool    IsHeapVerifyEnabled()                 { return GetHeapVerifyLevel() != 0; }
 
     GCStressFlags GetGCStressLevel()        const { return (GCStressFlags) m_gcStressMode; }
-    void    SetGCStressLevel(int val)             { m_gcStressMode = (BYTE) val;}
+    void    SetGCStressLevel(int val)             { m_gcStressMode = (UInt8) val;}
     bool    IsGCStressMix()                 const { return false; }
 
     int     GetGCtraceStart()               const { return 0; }
@@ -158,7 +186,7 @@ class SyncBlockCache
 {
 public:
     static SyncBlockCache *GetSyncBlockCache() { return &g_sSyncBlockCache; }
-    void GCWeakPtrScan(void *pCallback, LPARAM pCtx, int dummy)
+    void GCWeakPtrScan(void *pCallback, uintptr_t pCtx, int dummy)
     {
         UNREFERENCED_PARAMETER(pCallback);
         UNREFERENCED_PARAMETER(pCtx);
@@ -192,18 +220,16 @@ extern UInt32 g_uiShutdownFinalizationTimeout;
 extern bool g_fShutdownHasStarted;
 
 
-#ifdef DACCESS_COMPILE
 
-// The DAC uses DebuggerEnumGcRefContext in place of a GCCONTEXT when doing reference
-// enumeration. The GC passes through additional data in the ScanContext which the debugger
-// neither has nor needs. While we could refactor the GC code to make an interface
-// with less coupling, that might affect perf or make integration messier. Instead
-// we use some typedefs so DAC and runtime can get strong yet distinct types.
 
-typedef Thread::ScanCallbackData EnumGcRefScanContext;
-typedef void EnumGcRefCallbackFunc(PTR_PTR_Object, EnumGcRefScanContext* callbackData, DWORD flags);
+EXTERN_C UInt32 _tls_index;
+inline UInt16 GetClrInstanceId()
+{
+    return (UInt16)_tls_index;
+}
 
-#else
-typedef promote_func EnumGcRefCallbackFunc;
-typedef ScanContext  EnumGcRefScanContext;
-#endif
+class GCHeap;
+typedef DPTR(GCHeap) PTR_GCHeap;
+typedef DPTR(uint32_t) PTR_uint32_t;
+
+enum CLRDataEnumMemoryFlags : int;

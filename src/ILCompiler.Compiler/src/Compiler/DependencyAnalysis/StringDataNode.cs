@@ -38,9 +38,9 @@ namespace ILCompiler.DependencyAnalysis
             get
             {
                 if (_id.HasValue)
-                    return "__str_table_entry_" + _id.Value.ToString(CultureInfo.InvariantCulture);
+                    return NodeFactory.NameMangler.CompilationUnitPrefix + "__str_table_entry_" + _id.Value.ToString(CultureInfo.InvariantCulture);
                 else
-                    return "__str_table_entry_" + _data;
+                    return NodeFactory.NameMangler.CompilationUnitPrefix + "__str_table_entry_" + _data;
             }
         }
 
@@ -62,7 +62,7 @@ namespace ILCompiler.DependencyAnalysis
             Encoding encoding = UTF8Encoding.UTF8;
 
             ObjectDataBuilder objDataBuilder = new ObjectDataBuilder(factory);
-            AsmStringWriter stringWriter = new AsmStringWriter((byte b) =>objDataBuilder.EmitByte(b));
+            AsmStringWriter stringWriter = new AsmStringWriter((byte b) => objDataBuilder.EmitByte(b));
             stringWriter.WriteString(_data);
             objDataBuilder.DefinedSymbols.Add(this);
 

@@ -16,94 +16,93 @@ namespace ILCompiler.DependencyAnalysis
     /// <summary>
     /// Object writer using https://github.com/dotnet/llilc
     /// </summary>
-    class ObjectWriter : IDisposable
+    internal class ObjectWriter : IDisposable
     {
         // This is used to look up file id for the given file name.
         // This is a global table across nodes.
-        Dictionary<string, int> _debugFileToId = new Dictionary<string, int>();
+        private Dictionary<string, int> _debugFileToId = new Dictionary<string, int>();
 
         // This is used to look up DebugLocInfo for the given native offset.
         // This is for individual node and should be flushed once node is emitted.
-        Dictionary<int, DebugLocInfo> _offsetToDebugLoc = new Dictionary<int, DebugLocInfo>();
+        private Dictionary<int, DebugLocInfo> _offsetToDebugLoc = new Dictionary<int, DebugLocInfo>();
 
         // This is one to multiple mapping -- we might have multiple symbols at the give offset.
         // We preserved the original order of ISymbolNode[].
-        Dictionary<int, List<ISymbolNode>> _offsetToDefSymbol = new Dictionary<int, List<ISymbolNode>>();
+        private Dictionary<int, List<ISymbolNode>> _offsetToDefSymbol = new Dictionary<int, List<ISymbolNode>>();
 
-        public const string MainEntryNodeName = "__managed__Main";
-        const string NativeObjectWriterFileName = "objwriter";
-
-        [DllImport(NativeObjectWriterFileName)]
-        static extern IntPtr InitObjWriter(string objectFilePath);
+        private const string NativeObjectWriterFileName = "objwriter";
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void FinishObjWriter(IntPtr objWriter);
+        private static extern IntPtr InitObjWriter(string objectFilePath);
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void SwitchSection(IntPtr objWriter, string sectionName);
+        private static extern void FinishObjWriter(IntPtr objWriter);
+
+        [DllImport(NativeObjectWriterFileName)]
+        private static extern void SwitchSection(IntPtr objWriter, string sectionName);
         public void SwitchSection(string sectionName)
         {
             SwitchSection(_nativeObjectWriter, sectionName);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitAlignment(IntPtr objWriter, int byteAlignment);
+        private static extern void EmitAlignment(IntPtr objWriter, int byteAlignment);
         public void EmitAlignment(int byteAlignment)
         {
             EmitAlignment(_nativeObjectWriter, byteAlignment);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitBlob(IntPtr objWriter, int blobSize, byte[] blob);
+        private static extern void EmitBlob(IntPtr objWriter, int blobSize, byte[] blob);
         public void EmitBlob(int blobSize, byte[] blob)
         {
             EmitBlob(_nativeObjectWriter, blobSize, blob);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitIntValue(IntPtr objWriter, ulong value, int size);
+        private static extern void EmitIntValue(IntPtr objWriter, ulong value, int size);
         public void EmitIntValue(ulong value, int size)
         {
             EmitIntValue(_nativeObjectWriter, value, size);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitSymbolDef(IntPtr objWriter, string symbolName);
+        private static extern void EmitSymbolDef(IntPtr objWriter, string symbolName);
         public void EmitSymbolDef(string symbolName)
         {
             EmitSymbolDef(_nativeObjectWriter, symbolName);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitSymbolRef(IntPtr objWriter, string symbolName, int size, bool isPCRelative, int delta = 0);
+        private static extern void EmitSymbolRef(IntPtr objWriter, string symbolName, int size, bool isPCRelative, int delta = 0);
         public void EmitSymbolRef(string symbolName, int size, bool isPCRelative, int delta = 0)
         {
             EmitSymbolRef(_nativeObjectWriter, symbolName, size, isPCRelative, delta);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitFrameInfo(IntPtr objWriter, string methodName, int startOffset, int endOffset, int blobSize, byte[] blobData);
+        private static extern void EmitFrameInfo(IntPtr objWriter, string methodName, int startOffset, int endOffset, int blobSize, byte[] blobData);
         public void EmitFrameInfo(string methodName, int startOffset, int endOffset, int blobSize, byte[] blobData)
         {
             EmitFrameInfo(_nativeObjectWriter, methodName, startOffset, endOffset, blobSize, blobData);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitDebugFileInfo(IntPtr objWriter, int fileInfoSize, string[] fileInfos);
+        private static extern void EmitDebugFileInfo(IntPtr objWriter, int fileInfoSize, string[] fileInfos);
         public void EmitDebugFileInfo(int fileInfoSize, string[] fileInfos)
         {
             EmitDebugFileInfo(_nativeObjectWriter, fileInfoSize, fileInfos);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void EmitDebugLoc(IntPtr objWriter, int nativeOffset, int fileId, int linueNumber, int colNumber);
-        public void EmitDebugLoc(int nativeOffset, int fileId,  int linueNumber, int colNumber)
+        private static extern void EmitDebugLoc(IntPtr objWriter, int nativeOffset, int fileId, int linueNumber, int colNumber);
+        public void EmitDebugLoc(int nativeOffset, int fileId, int linueNumber, int colNumber)
         {
             EmitDebugLoc(_nativeObjectWriter, nativeOffset, fileId, linueNumber, colNumber);
         }
 
         [DllImport(NativeObjectWriterFileName)]
-        static extern void FlushDebugLocs(IntPtr objWriter, string methodName, int methodSize);
+        private static extern void FlushDebugLocs(IntPtr objWriter, string methodName, int methodSize);
         public void FlushDebugLocs(string methodName, int methodSize)
         {
             // No interest if there is no debug location emission/map before.
@@ -127,7 +126,7 @@ namespace ILCompiler.DependencyAnalysis
                     DebugLocInfo[] debugLocInfos = ((INodeWithDebugInfo)node).DebugLocInfos;
                     if (debugLocInfos != null)
                     {
-                        foreach(DebugLocInfo debugLocInfo in debugLocInfos)
+                        foreach (DebugLocInfo debugLocInfo in debugLocInfos)
                         {
                             string fileName = debugLocInfo.FileName;
                             if (!_debugFileToId.ContainsKey(fileName))
@@ -170,7 +169,8 @@ namespace ILCompiler.DependencyAnalysis
         public void EmitDebugLocInfo(int offset)
         {
             DebugLocInfo loc;
-            if (_offsetToDebugLoc.TryGetValue(offset, out loc)) {
+            if (_offsetToDebugLoc.TryGetValue(offset, out loc))
+            {
                 Debug.Assert(_debugFileToId.Count > 0);
                 EmitDebugLoc(offset,
                     _debugFileToId[loc.FileName],
@@ -184,25 +184,31 @@ namespace ILCompiler.DependencyAnalysis
             _offsetToDefSymbol.Clear();
             foreach (ISymbolNode n in definedSymbols)
             {
-                if (!_offsetToDefSymbol.ContainsKey(n.Offset)) {
+                if (!_offsetToDefSymbol.ContainsKey(n.Offset))
+                {
                     _offsetToDefSymbol[n.Offset] = new List<ISymbolNode>();
                 }
                 _offsetToDefSymbol[n.Offset].Add(n);
             }
         }
 
-        public void EmitSymbolDefinition(int currentOffset)
+        public void EmitSymbolDefinition(int currentOffset, NodeFactory factory)
         {
             List<ISymbolNode> nodes;
-            if (_offsetToDefSymbol.TryGetValue(currentOffset, out nodes)) {
+            if (_offsetToDefSymbol.TryGetValue(currentOffset, out nodes))
+            {
                 foreach (var node in nodes)
                 {
                     EmitSymbolDef(node.MangledName);
+
+                    string alternateName = factory.GetSymbolAlternateName(node);
+                    if (alternateName != null)
+                        EmitSymbolDef(alternateName);
                 }
             }
         }
 
-        IntPtr _nativeObjectWriter = IntPtr.Zero;
+        private IntPtr _nativeObjectWriter = IntPtr.Zero;
 
         public ObjectWriter(string outputPath)
         {
@@ -238,7 +244,7 @@ namespace ILCompiler.DependencyAnalysis
             Dispose(false);
         }
 
-        public static void EmitObject(string OutputPath, IEnumerable<DependencyNode> nodes, ISymbolNode mainMethodNode, NodeFactory factory)
+        public static void EmitObject(string OutputPath, IEnumerable<DependencyNode> nodes, NodeFactory factory)
         {
             using (ObjectWriter objectWriter = new ObjectWriter(OutputPath))
             {
@@ -279,11 +285,6 @@ namespace ILCompiler.DependencyAnalysis
                         nextRelocIndex = 0;
                     }
 
-                    if (mainMethodNode == node)
-                    {
-                        objectWriter.EmitSymbolDef(MainEntryNodeName);
-                    }
-
                     // Build symbol definition map.
                     objectWriter.BuildSymbolDefinitionMap(nodeContents.DefinedSymbols);
 
@@ -293,7 +294,7 @@ namespace ILCompiler.DependencyAnalysis
                     for (int i = 0; i < nodeContents.Data.Length; i++)
                     {
                         // Emit symbol definitions if necessary
-                        objectWriter.EmitSymbolDefinition(i);
+                        objectWriter.EmitSymbolDefinition(i, factory);
 
                         // Emit debug loc info if needed.
                         objectWriter.EmitDebugLocInfo(i);
@@ -308,11 +309,6 @@ namespace ILCompiler.DependencyAnalysis
                             bool isPCRelative = false;
                             switch (reloc.RelocType)
                             {
-                                // REVIEW: I believe the JIT is emitting 0x3 instead of 0xA
-                                // for x64, because emitter from x86 is ported for RyuJIT.
-                                // I will consult with Bruce and if he agrees, I will delete
-                                // this "case" duplicated by IMAGE_REL_BASED_DIR64.
-                                case (RelocType)0x03: // IMAGE_REL_BASED_HIGHLOW
                                 case RelocType.IMAGE_REL_BASED_DIR64:
                                     size = 8;
                                     break;
@@ -339,14 +335,14 @@ namespace ILCompiler.DependencyAnalysis
                     }
 
                     // It is possible to have a symbol just after all of the data.
-                    objectWriter.EmitSymbolDefinition(nodeContents.Data.Length);
+                    objectWriter.EmitSymbolDefinition(nodeContents.Data.Length, factory);
 
                     // The first definition is the main node name
                     string nodeName = objectWriter._offsetToDefSymbol[0][0].MangledName;
                     // Emit frame info for object code.
                     if (node is INodeWithFrameInfo)
                     {
-                        FrameInfo[] frameInfos = ((INodeWithFrameInfo) node).FrameInfos;
+                        FrameInfo[] frameInfos = ((INodeWithFrameInfo)node).FrameInfos;
                         if (frameInfos != null)
                         {
                             foreach (var frameInfo in frameInfos)

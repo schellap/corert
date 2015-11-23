@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // ---------------------------------------------------------------------------
-// TypeHashingAlgorithms.cs
-//
 // Generic functions to compute the hashcode value of types
 // ---------------------------------------------------------------------------
 
@@ -124,17 +122,6 @@ namespace Internal.NativeFormat
 
 
         public static int ComputeGenericInstanceHashCode<ARG>(int genericDefinitionHashCode, ARG[] genericTypeArguments)
-        {
-            int hashcode = genericDefinitionHashCode;
-            for (int i = 0; i < genericTypeArguments.Length; i++)
-            {
-                int argumentHashCode = genericTypeArguments[i].GetHashCode();
-                hashcode = (hashcode + _rotl(hashcode, 13)) ^ argumentHashCode;
-            }
-            return (hashcode + _rotl(hashcode, 15));
-        }
-
-        public static int ComputeGenericInstanceHashCode(int genericDefinitionHashCode, Internal.TypeSystem.Instantiation genericTypeArguments)
         {
             int hashcode = genericDefinitionHashCode;
             for (int i = 0; i < genericTypeArguments.Length; i++)

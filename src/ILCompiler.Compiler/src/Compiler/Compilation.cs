@@ -30,20 +30,20 @@ namespace ILCompiler
 
     public partial class Compilation
     {
-        readonly CompilerTypeSystemContext _typeSystemContext;
-        readonly CompilationOptions _options;
-        
-        NodeFactory _nodeFactory;
-        DependencyAnalyzerBase<NodeFactory> _dependencyGraph;
+        private readonly CompilerTypeSystemContext _typeSystemContext;
+        private readonly CompilationOptions _options;
 
-        Dictionary<TypeDesc, RegisteredType> _registeredTypes = new Dictionary<TypeDesc, RegisteredType>();
-        Dictionary<MethodDesc, RegisteredMethod> _registeredMethods = new Dictionary<MethodDesc, RegisteredMethod>();
-        Dictionary<FieldDesc, RegisteredField> _registeredFields = new Dictionary<FieldDesc, RegisteredField>();
-        List<MethodDesc> _methodsThatNeedsCompilation = null;
+        private NodeFactory _nodeFactory;
+        private DependencyAnalyzerBase<NodeFactory> _dependencyGraph;
 
-        NameMangler _nameMangler = null;
+        private Dictionary<TypeDesc, RegisteredType> _registeredTypes = new Dictionary<TypeDesc, RegisteredType>();
+        private Dictionary<MethodDesc, RegisteredMethod> _registeredMethods = new Dictionary<MethodDesc, RegisteredMethod>();
+        private Dictionary<FieldDesc, RegisteredField> _registeredFields = new Dictionary<FieldDesc, RegisteredField>();
+        private List<MethodDesc> _methodsThatNeedsCompilation = null;
 
-        ILCompiler.CppCodeGen.CppWriter _cppWriter = null;
+        private NameMangler _nameMangler = null;
+
+        private ILCompiler.CppCodeGen.CppWriter _cppWriter = null;
 
         public Compilation(CompilerTypeSystemContext typeSystemContext, CompilationOptions options)
         {
@@ -87,7 +87,7 @@ namespace ILCompiler
             set;
         }
 
-        MethodDesc _mainMethod;
+        private MethodDesc _mainMethod;
 
         internal MethodDesc MainMethod
         {
@@ -107,7 +107,7 @@ namespace ILCompiler
 
         internal CompilationOptions Options
         {
-           get
+            get
             {
                 return _options;
             }
@@ -166,14 +166,14 @@ namespace ILCompiler
             return registration;
         }
 
-        ILProvider _ilProvider = new ILProvider();
+        private ILProvider _ilProvider = new ILProvider();
 
         public MethodIL GetMethodIL(MethodDesc method)
         {
             return _ilProvider.GetMethodIL(method);
         }
 
-        void CompileMethods()
+        private void CompileMethods()
         {
             var pendingMethods = _methodsThatNeedsCompilation;
             _methodsThatNeedsCompilation = null;
@@ -181,10 +181,10 @@ namespace ILCompiler
             foreach (MethodDesc method in pendingMethods)
             {
                 _cppWriter.CompileMethod(method);
-           }
+            }
         }
 
-        void ExpandVirtualMethods()
+        private void ExpandVirtualMethods()
         {
             // Take a snapshot of _registeredTypes - new registered types can be added during the expansion
             foreach (var reg in _registeredTypes.Values.ToArray())
@@ -211,7 +211,7 @@ namespace ILCompiler
             }
         }
 
-        CorInfoImpl _corInfo;
+        private CorInfoImpl _corInfo;
 
         public void CompileSingleFile(MethodDesc mainMethod)
         {
@@ -228,9 +228,9 @@ namespace ILCompiler
 
             if (!_options.IsCppCodeGen)
             {
-                _nodeFactory = new NodeFactory(this._typeSystemContext);
                 NodeFactory.NameMangler = NameMangler;
-                var rootNode = _nodeFactory.MethodEntrypoint(_mainMethod);
+
+                _nodeFactory = new NodeFactory(_typeSystemContext);
 
                 // Choose which dependency graph implementation to use based on the amount of logging requested.
                 if (_options.DgmlLog == null)
@@ -251,15 +251,16 @@ namespace ILCompiler
                         _dependencyGraph = new DependencyAnalyzer<FirstMarkLogStrategy<NodeFactory>, NodeFactory>(_nodeFactory, null);
                     }
                 }
-                
+
                 _nodeFactory.AttachToDependencyGraph(_dependencyGraph);
-                _dependencyGraph.AddRoot(rootNode, "Main method");
-                AddWellKnownTypes(_dependencyGraph);
+
+                AddWellKnownTypes();
+                AddCompilationRoots();
 
                 _dependencyGraph.ComputeDependencyRoutine += ComputeDependencyNodeDependencies;
                 var nodes = _dependencyGraph.MarkedNodeList;
 
-                ObjectWriter.EmitObject(OutputPath, nodes, rootNode, _nodeFactory);
+                ObjectWriter.EmitObject(OutputPath, nodes, _nodeFactory);
 
                 if (_options.DgmlLog != null)
                 {
@@ -272,8 +273,8 @@ namespace ILCompiler
             }
             else
             {
-                AddMethod(mainMethod);
                 AddWellKnownTypes();
+                AddCompilationRoots();
 
                 while (_methodsThatNeedsCompilation != null)
                 {
@@ -283,6 +284,46 @@ namespace ILCompiler
                 }
 
                 _cppWriter.OutputCode();
+            }
+        }
+
+        private void AddCompilationRoots()
+        {
+            if (_mainMethod != null)
+            {
+                AddCompilationRoot(_mainMethod, "Main method");
+
+                _nodeFactory.NodeAliases.Add(_nodeFactory.MethodEntrypoint(_mainMethod), "__managed__Main");
+            }
+
+            foreach (var inputFile in _typeSystemContext.InputFilePaths)
+            {
+                var module = _typeSystemContext.GetModuleFromPath(inputFile.Value);
+                foreach (var type in module.GetAllTypes())
+                {
+                    foreach (var method in type.GetMethods())
+                    {
+                        if (method.HasCustomAttribute("System.Runtime", "RuntimeExportAttribute"))
+                        {
+                            AddCompilationRoot(method, "Runtime export");
+
+                            string exportName = ((EcmaMethod)method).GetAttributeStringValue("System.Runtime", "RuntimeExportAttribute");
+                            _nodeFactory.NodeAliases.Add(_nodeFactory.MethodEntrypoint(method), exportName);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddCompilationRoot(MethodDesc method, string reason)
+        {
+            if (_dependencyGraph != null)
+            {
+                _dependencyGraph.AddRoot(_nodeFactory.MethodEntrypoint(method), reason);
+            }
+            else
+            {
+                AddMethod(method);
             }
         }
 
@@ -391,7 +432,7 @@ namespace ILCompiler
                     for (int i = 0; i < methodCode.Relocs.Length; i++)
                     {
                         // TODO: Arbitrary relocs
-                        if (methodCode.Relocs[i].Block != 0)
+                        if (methodCode.Relocs[i].Block != BlockType.Code)
                             throw new NotImplementedException();
 
                         int offset = methodCode.Relocs[i].Offset;
@@ -430,7 +471,7 @@ namespace ILCompiler
                         {
                             var blockRelativeTarget = (BlockRelativeTarget)target;
                             // TODO: Arbitrary block relative relocs
-                            if (blockRelativeTarget.Block != 2)
+                            if (blockRelativeTarget.Block != BlockType.ROData)
                                 throw new NotImplementedException();
                             targetNode = readOnlyDataBlob;
                         }
@@ -457,14 +498,16 @@ namespace ILCompiler
         private void AddWellKnownTypes()
         {
             var stringType = TypeSystemContext.GetWellKnownType(WellKnownType.String);
-            AddType(stringType);
-            MarkAsConstructed(stringType);
-        }
 
-        private void AddWellKnownTypes(DependencyAnalyzerBase<NodeFactory> analyzer)
-        {
-            var stringType = TypeSystemContext.GetWellKnownType(WellKnownType.String);
-            analyzer.AddRoot(_nodeFactory.ConstructedTypeSymbol(stringType), "String type is always generated");
+            if (_dependencyGraph != null)
+            {
+                _dependencyGraph.AddRoot(_nodeFactory.ConstructedTypeSymbol(stringType), "String type is always generated");
+            }
+            else
+            {
+                AddType(stringType);
+                MarkAsConstructed(stringType);
+            }
         }
 
         public void AddMethod(MethodDesc method)
@@ -544,10 +587,10 @@ namespace ILCompiler
             }
         }
 
-        struct ReadyToRunHelperKey : IEquatable<ReadyToRunHelperKey>
+        private struct ReadyToRunHelperKey : IEquatable<ReadyToRunHelperKey>
         {
-            ReadyToRunHelperId _id;
-            Object _obj;
+            private ReadyToRunHelperId _id;
+            private Object _obj;
 
             public ReadyToRunHelperKey(ReadyToRunHelperId id, Object obj)
             {
@@ -574,7 +617,7 @@ namespace ILCompiler
             }
         }
 
-        Dictionary<ReadyToRunHelperKey, ReadyToRunHelper> _readyToRunHelpers = new Dictionary<ReadyToRunHelperKey, ReadyToRunHelper>();
+        private Dictionary<ReadyToRunHelperKey, ReadyToRunHelper> _readyToRunHelpers = new Dictionary<ReadyToRunHelperKey, ReadyToRunHelper>();
 
         public Object GetReadyToRunHelper(ReadyToRunHelperId id, Object target)
         {
@@ -587,7 +630,7 @@ namespace ILCompiler
             return helper;
         }
 
-        Dictionary<JitHelperId, JitHelper> _jitHelpers = new Dictionary<JitHelperId, JitHelper>();
+        private Dictionary<JitHelperId, JitHelper> _jitHelpers = new Dictionary<JitHelperId, JitHelper>();
         public Object GetJitHelper(JitHelperId id)
         {
             JitHelper helper;
@@ -598,7 +641,7 @@ namespace ILCompiler
             return helper;
         }
 
-        Dictionary<MethodDesc, DelegateInfo> _delegateInfos = new Dictionary<MethodDesc, DelegateInfo>();
+        private Dictionary<MethodDesc, DelegateInfo> _delegateInfos = new Dictionary<MethodDesc, DelegateInfo>();
         public DelegateInfo GetDelegateCtor(MethodDesc target)
         {
             DelegateInfo info;
@@ -611,7 +654,7 @@ namespace ILCompiler
             return info;
         }
 
-        Dictionary<FieldDesc, RvaFieldData> _rvaFieldDatas = new Dictionary<FieldDesc, RvaFieldData>();
+        private Dictionary<FieldDesc, RvaFieldData> _rvaFieldDatas = new Dictionary<FieldDesc, RvaFieldData>();
 
         /// <summary>
         /// Gets an object representing the static data for RVA mapped fields from the PE image.

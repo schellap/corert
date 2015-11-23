@@ -14,7 +14,7 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Internal.IL
 {
-    class ILProvider
+    internal class ILProvider
     {
         // TODO: Caching
 
@@ -60,6 +60,11 @@ namespace Internal.IL
                         return result;
                 }
 
+                if (method.IsPInvoke)
+                {
+                    return PInvokeMarshallingILEmitter.EmitIL(method);
+                }
+
                 return EcmaMethodIL.Create((EcmaMethod)method);
             }
             else
@@ -83,7 +88,7 @@ namespace Internal.IL
             else
             if (method is ArrayMethod)
             {
-                return new ArrayMethodILEmitter((ArrayMethod)method).EmitIL();
+                return ArrayMethodILEmitter.EmitIL((ArrayMethod)method);
             }
             else
             {

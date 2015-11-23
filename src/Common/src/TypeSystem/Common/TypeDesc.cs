@@ -10,7 +10,7 @@ namespace Internal.TypeSystem
 {
     public struct Instantiation
     {
-        TypeDesc[] _genericParameters;
+        private TypeDesc[] _genericParameters;
 
         public Instantiation(TypeDesc[] genericParameters)
         {
@@ -42,12 +42,54 @@ namespace Internal.TypeSystem
             }
         }
 
-        public IEnumerable<TypeDesc> GetEnumerator()
+        /// <summary>
+        /// Combines the given generic definition's hash code with the hashes
+        /// of the generic parameters in this instantiation
+        /// </summary>
+        public int ComputeGenericInstanceHashCode(int genericDefinitionHashCode)
         {
-            return _genericParameters;
+            return Internal.NativeFormat.TypeHashingAlgorithms.ComputeGenericInstanceHashCode(genericDefinitionHashCode, _genericParameters);
         }
 
         public static readonly Instantiation Empty = new Instantiation(TypeDesc.EmptyTypes);
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(_genericParameters);
+        }
+
+        /// <summary>
+        /// Enumerator for iterating over the types in an instantiation
+        /// </summary>
+        public struct Enumerator
+        {
+            private TypeDesc[] _collection;
+            private int _currentIndex;
+
+            public Enumerator(TypeDesc[] collection)
+            {
+                _collection = collection;
+                _currentIndex = -1;
+            }
+
+            public TypeDesc Current
+            {
+                get
+                {
+                    return _collection[_currentIndex];
+                }
+            }
+
+            public bool MoveNext()
+            {
+                _currentIndex++;
+                if (_currentIndex >= _collection.Length)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
     }
 
     public abstract partial class TypeDesc
@@ -66,7 +108,7 @@ namespace Internal.TypeSystem
         }
 
         // The most frequently used type properties are cached here to avoid excesive virtual calls
-        TypeFlags _typeFlags;
+        private TypeFlags _typeFlags;
 
         public abstract TypeSystemContext Context
         {
@@ -146,7 +188,7 @@ namespace Internal.TypeSystem
         protected abstract TypeFlags ComputeTypeFlags(TypeFlags mask);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        TypeFlags InitializeTypeFlags(TypeFlags mask)
+        private TypeFlags InitializeTypeFlags(TypeFlags mask)
         {
             TypeFlags flags = ComputeTypeFlags(mask);
 

@@ -11,8 +11,8 @@ namespace Internal.TypeSystem.Ecma
 {
     public struct EcmaSignatureParser
     {
-        EcmaModule _module;
-        BlobReader _reader;
+        private EcmaModule _module;
+        private BlobReader _reader;
 
         // TODO
         // bool _hasModifiers;
@@ -77,7 +77,7 @@ namespace Internal.TypeSystem.Ecma
                     {
                         var elementType = ParseType();
                         var rank = _reader.ReadCompressedInteger();
- 
+
                         // TODO: Bounds for multi-dimmensional arrays
                         var boundsCount = _reader.ReadCompressedInteger();
                         for (int i = 0; i < boundsCount; i++)
@@ -110,6 +110,8 @@ namespace Internal.TypeSystem.Ecma
                     }
                 case SignatureTypeCode.TypedReference:
                     throw new PlatformNotSupportedException("TypedReference not supported in .NET Core");
+                case SignatureTypeCode.FunctionPointer:
+                    throw new PlatformNotSupportedException("Function pointer types are not supported in .NET Core");
                 default:
                     throw new BadImageFormatException();
             }

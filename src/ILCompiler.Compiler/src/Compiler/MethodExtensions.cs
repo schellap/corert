@@ -17,9 +17,9 @@ namespace ILCompiler
         RuntimeImport
     };
 
-    static class MethodExtensions
+    internal static class MethodExtensions
     {
-        public static string GetRuntimeImportEntryPointName(this EcmaMethod This)
+        public static string GetAttributeStringValue(this EcmaMethod This, string nameSpace, string name)
         {
             var metadataReader = This.MetadataReader;
             foreach (var attributeHandle in metadataReader.GetMethodDefinition(This.Handle).GetCustomAttributes())
@@ -32,14 +32,14 @@ namespace ILCompiler
                 }
 
                 StringHandle namespaceHandle, nameHandle;
-                if (!metadataReader.GetAttributeTypeNamespaceAndName(attributeType, 
+                if (!metadataReader.GetAttributeTypeNamespaceAndName(attributeType,
                    out namespaceHandle, out nameHandle))
                 {
                     continue;
                 }
 
-                if (metadataReader.StringComparer.Equals(namespaceHandle, "System.Runtime")
-                    && metadataReader.StringComparer.Equals(nameHandle, "RuntimeImportAttribute"))
+                if (metadataReader.StringComparer.Equals(namespaceHandle, nameSpace)
+                    && metadataReader.StringComparer.Equals(nameHandle, name))
                 {
                     var constructor = This.Module.GetMethod(attributeCtor);
 
@@ -67,22 +67,16 @@ namespace ILCompiler
 
         public static SpecialMethodKind DetectSpecialMethodKind(this MethodDesc method)
         {
-            if (method is EcmaMethod)
+            if (method.IsPInvoke && !Internal.IL.Stubs.PInvokeMarshallingILEmitter.RequiresMarshalling(method))
             {
-                if (((EcmaMethod)method).IsPInvoke())
-                {
-                    return SpecialMethodKind.PInvoke;
-                }
-                else if (method.HasCustomAttribute("System.Runtime", "RuntimeImportAttribute"))
-                {
-                    return SpecialMethodKind.RuntimeImport;
-                }
-                else if (method.HasCustomAttribute("System.Runtime.InteropServices", "NativeCallableAttribute"))
-                {
-                    // TODO: add reverse pinvoke callout
-                    throw new NotImplementedException();
-                }
+                return SpecialMethodKind.PInvoke;
             }
+
+            if (method.HasCustomAttribute("System.Runtime", "RuntimeImportAttribute"))
+            {
+                return SpecialMethodKind.RuntimeImport;
+            }
+
             return SpecialMethodKind.Unknown;
         }
     }

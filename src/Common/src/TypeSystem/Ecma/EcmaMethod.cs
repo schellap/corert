@@ -14,7 +14,7 @@ namespace Internal.TypeSystem.Ecma
 {
     public sealed class EcmaMethod : MethodDesc, EcmaModule.IEntityHandleObject
     {
-        static class MethodFlags
+        private static class MethodFlags
         {
             public const int BasicMetadataCache     = 0x0001;
             public const int Virtual                = 0x0002;
@@ -28,14 +28,14 @@ namespace Internal.TypeSystem.Ecma
             public const int Intrinsic            = 0x0200;
         };
 
-        EcmaType _type;
-        MethodDefinitionHandle _handle;
+        private EcmaType _type;
+        private MethodDefinitionHandle _handle;
 
         // Cached values
-        ThreadSafeFlags _methodFlags;
-        MethodSignature _signature;
-        string _name;
-        TypeDesc[] _genericParameters; // TODO: Optional field?
+        private ThreadSafeFlags _methodFlags;
+        private MethodSignature _signature;
+        private string _name;
+        private TypeDesc[] _genericParameters; // TODO: Optional field?
 
         internal EcmaMethod(EcmaType type, MethodDefinitionHandle handle)
         {
@@ -91,7 +91,7 @@ namespace Internal.TypeSystem.Ecma
                 return _signature;
             }
         }
- 
+
         public EcmaModule Module
         {
             get
@@ -276,7 +276,7 @@ namespace Internal.TypeSystem.Ecma
             }
         }
 
-        void ComputeGenericParameters()
+        private void ComputeGenericParameters()
         {
             var genericParameterHandles = MetadataReader.GetMethodDefinition(_handle).GetGenericParameters();
             int count = genericParameterHandles.Count;
@@ -317,18 +317,29 @@ namespace Internal.TypeSystem.Ecma
             return _type.ToString() + "." + Name;
         }
 
-        public bool IsPInvoke()
+        public override bool IsPInvoke
         {
-            return (((int)Attributes & (int)MethodAttributes.PinvokeImpl) != 0);
+            get
+            {
+                return (((int)Attributes & (int)MethodAttributes.PinvokeImpl) != 0);
+            }
         }
 
-        public string GetPInvokeImportName()
+        public override PInvokeMetadata GetPInvokeMethodMetadata()
         {
-            if (((int)Attributes & (int)MethodAttributes.PinvokeImpl) == 0)
-                return null;
+            if (!IsPInvoke)
+                return default(PInvokeMetadata);
 
-            var metadataReader = MetadataReader;
-            return metadataReader.GetString(metadataReader.GetMethodDefinition(_handle).GetImport().Name);
+            MetadataReader metadataReader = MetadataReader;
+            MethodImport import = metadataReader.GetMethodDefinition(_handle).GetImport();
+            string name = metadataReader.GetString(import.Name);
+
+            // Spot check the enums match
+            Debug.Assert((int)MethodImportAttributes.CallingConventionStdCall == (int)PInvokeAttributes.CallingConventionStdCall);
+            Debug.Assert((int)MethodImportAttributes.CharSetAuto == (int)PInvokeAttributes.CharSetAuto);
+            Debug.Assert((int)MethodImportAttributes.CharSetUnicode == (int)PInvokeAttributes.CharSetUnicode);
+
+            return new PInvokeMetadata(name, (PInvokeAttributes)import.Attributes);
         }
     }
 

@@ -15,9 +15,9 @@ using Internal.IL;
 
 namespace ILCompiler.CppCodeGen
 {
-    class CppWriter
+    internal class CppWriter
     {
-        Compilation _compilation;
+        private Compilation _compilation;
 
         private void SetWellKnownTypeSignatureName(WellKnownType wellKnownType, string mangledSignatureName)
         {
@@ -164,7 +164,6 @@ namespace ILCompiler.CppCodeGen
                 }
                 if (i != argCount - 1)
                     sb.Append(", ");
-
             }
             sb.Append(")");
             if (!implementation)
@@ -254,37 +253,7 @@ namespace ILCompiler.CppCodeGen
             return varName;
         }
 
-        enum SpecialMethodKind
-        {
-            Unknown,
-            PInvoke,
-            RuntimeImport
-        };
-
-        SpecialMethodKind DetectSpecialMethodKind(MethodDesc method)
-        {
-            if (method is EcmaMethod)
-            {
-                if (((EcmaMethod)method).IsPInvoke())
-                {
-                    return SpecialMethodKind.PInvoke;
-                }
-                else if (method.HasCustomAttribute("System.Runtime", "RuntimeImportAttribute"))
-                {
-                    _compilation.Log.WriteLine("RuntimeImport: " + method.ToString());
-                    return SpecialMethodKind.RuntimeImport;
-                }
-                else if (method.HasCustomAttribute("System.Runtime.InteropServices", "NativeCallableAttribute"))
-                {
-                    _compilation.Log.WriteLine("NativeCallable: " + method.ToString());
-                    // TODO: add reverse pinvoke callout
-                    throw new NotImplementedException();
-                }
-            }
-            return SpecialMethodKind.Unknown;
-        }
-
-        string CompileSpecialMethod(MethodDesc method, SpecialMethodKind kind)
+        private string CompileSpecialMethod(MethodDesc method, SpecialMethodKind kind)
         {
             StringBuilder builder = new StringBuilder();
             switch (kind)
@@ -292,13 +261,13 @@ namespace ILCompiler.CppCodeGen
                 case SpecialMethodKind.PInvoke:
                 case SpecialMethodKind.RuntimeImport:
                     {
-                        EcmaMethod ecmaMethod = (EcmaMethod)method;
+                        EcmaMethod ecmaMethod = method as EcmaMethod;
 
                         string importName = kind == SpecialMethodKind.PInvoke ?
-                            ecmaMethod.GetPInvokeImportName() : ecmaMethod.GetRuntimeImportEntryPointName();
+                            method.GetPInvokeMethodMetadata().Name : ecmaMethod.GetAttributeStringValue("System.Runtime", "RuntimeImport");
 
                         if (importName == null)
-                            importName = ecmaMethod.Name;
+                            importName = method.Name;
 
                         // TODO: hacky special-case
                         if (importName != "memmove" && importName != "malloc") // some methods are already declared by the CRT headers
@@ -332,7 +301,7 @@ namespace ILCompiler.CppCodeGen
         {
             _compilation.Log.WriteLine("Compiling " + method.ToString());
 
-            SpecialMethodKind kind = DetectSpecialMethodKind(method);
+            SpecialMethodKind kind = method.DetectSpecialMethodKind();
 
             if (kind != SpecialMethodKind.Unknown)
             {
@@ -379,7 +348,7 @@ namespace ILCompiler.CppCodeGen
             _compilation.GetRegisteredMethod(method).MethodCode = methodCode;
         }
 
-        TextWriter Out
+        private TextWriter Out
         {
             get
             {
@@ -387,15 +356,15 @@ namespace ILCompiler.CppCodeGen
             }
         }
 
-        StringBuilder _statics;
-        StringBuilder _gcStatics;
-        StringBuilder _threadStatics;
-        StringBuilder _gcThreadStatics;
+        private StringBuilder _statics;
+        private StringBuilder _gcStatics;
+        private StringBuilder _threadStatics;
+        private StringBuilder _gcThreadStatics;
 
         // Base classes and valuetypes has to be emitted before they are used.
-        HashSet<RegisteredType> _emittedTypes;
+        private HashSet<RegisteredType> _emittedTypes;
 
-        void OutputTypes(bool full)
+        private void OutputTypes(bool full)
         {
             if (full)
             {
@@ -455,7 +424,7 @@ namespace ILCompiler.CppCodeGen
             }
         }
 
-        void OutputType(RegisteredType t, bool full)
+        private void OutputType(RegisteredType t, bool full)
         {
             if (_emittedTypes != null)
             {
@@ -599,12 +568,12 @@ namespace ILCompiler.CppCodeGen
             Out.WriteLine();
         }
 
-        void OutputMethod(RegisteredMethod m)
+        private void OutputMethod(RegisteredMethod m)
         {
             Out.WriteLine(GetCppMethodDeclaration(m.Method, false));
         }
 
-        void AppendSlotTypeDef(StringBuilder sb, MethodDesc method)
+        private void AppendSlotTypeDef(StringBuilder sb, MethodDesc method)
         {
             var methodSignature = method.Signature;
 
@@ -642,7 +611,7 @@ namespace ILCompiler.CppCodeGen
         }
 
 
-        String GetCodeForDelegate(TypeDesc delegateType)
+        private String GetCodeForDelegate(TypeDesc delegateType)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -664,7 +633,7 @@ namespace ILCompiler.CppCodeGen
             return sb.ToString();
         }
 
-        String GetCodeForVirtualMethod(MethodDesc method, int slot)
+        private String GetCodeForVirtualMethod(MethodDesc method, int slot)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -683,7 +652,7 @@ namespace ILCompiler.CppCodeGen
             return sb.ToString();
         }
 
-        void AppendVirtualSlots(StringBuilder sb, TypeDesc implType, TypeDesc declType)
+        private void AppendVirtualSlots(StringBuilder sb, TypeDesc implType, TypeDesc declType)
         {
             var baseType = declType.BaseType;
             if (baseType != null)
@@ -706,7 +675,7 @@ namespace ILCompiler.CppCodeGen
             }
         }
 
-        String GetCodeForType(TypeDesc type)
+        private String GetCodeForType(TypeDesc type)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -798,7 +767,7 @@ namespace ILCompiler.CppCodeGen
             return sb.ToString();
         }
 
-        void AddInstanceFields(TypeDesc type)
+        private void AddInstanceFields(TypeDesc type)
         {
             foreach (var field in type.GetFields())
             {

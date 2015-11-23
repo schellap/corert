@@ -20,7 +20,7 @@ namespace ILCompiler
     //
     public class NameMangler
     {
-        readonly Compilation _compilation;
+        private readonly Compilation _compilation;
 
         public NameMangler(Compilation compilation)
         {
@@ -75,7 +75,7 @@ namespace ILCompiler
             return (sb != null) ? sb.ToString() : s;
         }
 
-        ImmutableDictionary<TypeDesc, string> _mangledTypeNames = ImmutableDictionary<TypeDesc, string>.Empty;
+        private ImmutableDictionary<TypeDesc, string> _mangledTypeNames = ImmutableDictionary<TypeDesc, string>.Empty;
 
         public string GetMangledTypeName(TypeDesc type)
         {
@@ -184,7 +184,7 @@ namespace ILCompiler
             return mangledName;
         }
 
-        ImmutableDictionary<MethodDesc, string> _mangledMethodNames = ImmutableDictionary<MethodDesc, string>.Empty;
+        private ImmutableDictionary<MethodDesc, string> _mangledMethodNames = ImmutableDictionary<MethodDesc, string>.Empty;
 
         public string GetMangledMethodName(MethodDesc method)
         {
@@ -270,7 +270,7 @@ namespace ILCompiler
             return mangledName;
         }
 
-        ImmutableDictionary<FieldDesc, string> _mangledFieldNames = ImmutableDictionary<FieldDesc, string>.Empty;
+        private ImmutableDictionary<FieldDesc, string> _mangledFieldNames = ImmutableDictionary<FieldDesc, string>.Empty;
 
         public string GetMangledFieldName(FieldDesc field)
         {
@@ -334,6 +334,33 @@ namespace ILCompiler
             }
 
             return mangledName;
+        }
+
+        private string _compilationUnixPrefix;
+
+        /// <summary>
+        /// Prefix to prepend to compilation unit global symbols to make them disambiguated between different .obj files.
+        /// </summary>
+        public string CompilationUnitPrefix
+        {
+            get
+            {
+                if (_compilationUnixPrefix == null)
+                {
+                    string systemModuleName = ((EcmaModule)_compilation.TypeSystemContext.SystemModule).GetName().Name;
+
+                    // TODO: just something to get Runtime.Base compiled
+                    if (systemModuleName != "System.Private.CoreLib")
+                    {
+                        _compilationUnixPrefix = systemModuleName.Replace(".", "_");
+                    }
+                    else
+                    {
+                        _compilationUnixPrefix = "";
+                    }
+                }
+                return _compilationUnixPrefix;
+            }
         }
     }
 }

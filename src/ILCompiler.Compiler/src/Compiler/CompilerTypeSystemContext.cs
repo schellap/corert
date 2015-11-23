@@ -16,9 +16,9 @@ using Internal.IL;
 
 namespace ILCompiler
 {
-    public class CompilerTypeSystemContext : TypeSystemContext
+    public class CompilerTypeSystemContext : TypeSystemContext, IMetadataStringDecoderProvider
     {
-        static readonly string[] s_wellKnownTypeNames = new string[] {
+        private static readonly string[] s_wellKnownTypeNames = new string[] {
             "Void",
             "Boolean",
             "Char",
@@ -47,31 +47,26 @@ namespace ILCompiler
             "RuntimeTypeHandle",
             "RuntimeMethodHandle",
             "RuntimeFieldHandle",
+
+            "Exception",
         };
 
-        static readonly string[][] s_wellKnownEntrypointNames = new string[][] {
-            new string[] { "System.Runtime.CompilerServices", "CctorHelper", "CheckStaticClassConstructionReturnGCStaticBase" },
-            new string[] { "System.Runtime.CompilerServices", "CctorHelper", "CheckStaticClassConstructionReturnNonGCStaticBase" }
-        };
+        private MetadataType[] _wellKnownTypes = new MetadataType[s_wellKnownTypeNames.Length];
 
-        MetadataType[] _wellKnownTypes = new MetadataType[s_wellKnownTypeNames.Length];
+        private MetadataFieldLayoutAlgorithm _metadataFieldLayoutAlgorithm = new CompilerMetadataFieldLayoutAlgorithm();
+        private MetadataRuntimeInterfacesAlgorithm _metadataRuntimeInterfacesAlgorithm = new MetadataRuntimeInterfacesAlgorithm();
+        private ArrayOfTRuntimeInterfacesAlgorithm _arrayOfTRuntimeInterfacesAlgorithm;
 
-        MethodDesc[] _wellKnownEntrypoints = new MethodDesc[s_wellKnownEntrypointNames.Length];
+        private MetadataStringDecoder _metadataStringDecoder;
 
-        EcmaModule _systemModule;
+        private Dictionary<string, EcmaModule> _modules = new Dictionary<string, EcmaModule>(StringComparer.OrdinalIgnoreCase);
 
-        MetadataFieldLayoutAlgorithm _metadataFieldLayoutAlgorithm = new CompilerMetadataFieldLayoutAlgorithm();
-        MetadataRuntimeInterfacesAlgorithm _metadataRuntimeInterfacesAlgorithm = new MetadataRuntimeInterfacesAlgorithm();
-        ArrayOfTRuntimeInterfacesAlgorithm _arrayOfTRuntimeInterfacesAlgorithm;
-
-        Dictionary<string, EcmaModule> _modules = new Dictionary<string, EcmaModule>(StringComparer.OrdinalIgnoreCase);
-
-        class ModuleData
+        private class ModuleData
         {
             public string Path;
             public Microsoft.DiaSymReader.ISymUnmanagedReader PdbReader;
         }
-        Dictionary<EcmaModule, ModuleData> _moduleData = new Dictionary<EcmaModule, ModuleData>();
+        private Dictionary<EcmaModule, ModuleData> _moduleData = new Dictionary<EcmaModule, ModuleData>();
 
         public CompilerTypeSystemContext(TargetDetails details)
             : base(details)
@@ -92,7 +87,7 @@ namespace ILCompiler
 
         public void SetSystemModule(EcmaModule systemModule)
         {
-            _systemModule = systemModule;
+            InitializeSystemModule(systemModule);
 
             // Sanity check the name table
             Debug.Assert(s_wellKnownTypeNames[(int)WellKnownType.MulticastDelegate - 1] == "MulticastDelegate");
@@ -100,19 +95,9 @@ namespace ILCompiler
             // Initialize all well known types - it will save us from checking the name for each loaded type
             for (int typeIndex = 0; typeIndex < _wellKnownTypes.Length; typeIndex++)
             {
-                MetadataType type = _systemModule.GetType("System", s_wellKnownTypeNames[typeIndex]);
+                MetadataType type = systemModule.GetType("System", s_wellKnownTypeNames[typeIndex]);
                 type.SetWellKnownType((WellKnownType)(typeIndex + 1));
                 _wellKnownTypes[typeIndex] = type;
-            }
-
-            // Initialize all well known entrypoints
-            for (int entrypointIndex = 0; entrypointIndex < _wellKnownEntrypoints.Length; entrypointIndex++)
-            {
-                MetadataType type = _systemModule.GetType(
-                    s_wellKnownEntrypointNames[entrypointIndex][0],
-                    s_wellKnownEntrypointNames[entrypointIndex][1]);
-                MethodDesc method = type.GetMethod(s_wellKnownEntrypointNames[entrypointIndex][2], null);
-                _wellKnownEntrypoints[entrypointIndex] = method;
             }
         }
 
@@ -121,12 +106,7 @@ namespace ILCompiler
             return _wellKnownTypes[(int)wellKnownType - 1];
         }
 
-        public MethodDesc GetWellKnownEntryPoint(WellKnownEntrypoint entryPoint)
-        {
-            return _wellKnownEntrypoints[(int)entryPoint - 1];
-        }
-
-        public override object ResolveAssembly(System.Reflection.AssemblyName name)
+        public override ModuleDesc ResolveAssembly(System.Reflection.AssemblyName name)
         {
             return GetModuleForSimpleName(name.Name);
         }
@@ -158,6 +138,13 @@ namespace ILCompiler
 
         public EcmaModule GetModuleFromPath(string filePath)
         {
+            // This method is not expected to be called frequently. Linear search is acceptable.
+            foreach (var entry in _moduleData)
+            {
+                if (entry.Value.Path == filePath)
+                    return entry.Key;
+            }
+
             EcmaModule module = new EcmaModule(this, new PEReader(File.OpenRead(filePath)));
 
             MetadataReader metadataReader = module.MetadataReader;
@@ -193,7 +180,7 @@ namespace ILCompiler
         {
             if (_arrayOfTRuntimeInterfacesAlgorithm == null)
             {
-                _arrayOfTRuntimeInterfacesAlgorithm = new ArrayOfTRuntimeInterfacesAlgorithm(_systemModule.GetType("System", "Array`1"));
+                _arrayOfTRuntimeInterfacesAlgorithm = new ArrayOfTRuntimeInterfacesAlgorithm(SystemModule.GetType("System", "Array`1"));
             }
             return _arrayOfTRuntimeInterfacesAlgorithm;
         }
@@ -203,11 +190,18 @@ namespace ILCompiler
             return _metadataRuntimeInterfacesAlgorithm;
         }
 
+        MetadataStringDecoder IMetadataStringDecoderProvider.GetMetadataStringDecoder()
+        {
+            if (_metadataStringDecoder == null)
+                _metadataStringDecoder = new CachingMetadataStringDecoder(0x10000); // TODO: Tune the size
+            return _metadataStringDecoder;
+        }
+
         //
         // Symbols
         //
 
-        PdbSymbolProvider _pdbSymbolProvider;
+        private PdbSymbolProvider _pdbSymbolProvider;
 
         private void InitializeSymbolReader(ModuleData moduleData)
         {
@@ -215,7 +209,7 @@ namespace ILCompiler
                 _pdbSymbolProvider = new PdbSymbolProvider();
 
             moduleData.PdbReader = _pdbSymbolProvider.GetSymbolReaderForFile(moduleData.Path);
-       }
+        }
 
         public IEnumerable<ILSequencePoint> GetSequencePointsForMethod(MethodDesc method)
         {
@@ -262,12 +256,5 @@ namespace ILCompiler
                 yield return ecmaMethod.MetadataReader.GetString(p.Name);
             }
         }
-    }
-
-    public enum WellKnownEntrypoint
-    {
-        Unknown,
-        EnsureClassConstructorRunAndReturnGCStaticBase,
-        EnsureClassConstructorRunAndReturnNonGCStaticBase,
     }
 }

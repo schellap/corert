@@ -12,14 +12,12 @@ using Internal.TypeSystem;
 
 namespace Internal.TypeSystem.Ecma
 {
-    public sealed class EcmaModule
+    public sealed class EcmaModule : ModuleDesc
     {
-        TypeSystemContext _context;
+        private PEReader _peReader;
+        private MetadataReader _metadataReader;
 
-        PEReader _peReader;
-        MetadataReader _metadataReader;
-
-        AssemblyDefinition _assemblyDefinition;
+        private AssemblyDefinition _assemblyDefinition;
 
         internal interface IEntityHandleObject
         {
@@ -59,7 +57,7 @@ namespace Internal.TypeSystem.Ecma
 
         internal class EcmaObjectLookupHashtable : LockFreeReaderHashtable<EntityHandle, IEntityHandleObject>
         {
-            EcmaModule _module;
+            private EcmaModule _module;
 
             public EcmaObjectLookupHashtable(EcmaModule module)
             {
@@ -140,10 +138,13 @@ namespace Internal.TypeSystem.Ecma
                         item = _module.ResolveExportedType((ExportedTypeHandle)handle);
                         break;
 
-                    // TODO: Resolve other tokens
+                    case HandleKind.StandaloneSignature:
+                        item = _module.ResolveStandaloneSignature((StandaloneSignatureHandle)handle);
+                        break;
 
+                    // TODO: Resolve other tokens
                     default:
-                        throw new BadImageFormatException("Unknown metadata token type");
+                        throw new BadImageFormatException("Unknown metadata token type: " + handle.Kind);
                 }
 
                 switch (handle.Kind)
@@ -160,12 +161,11 @@ namespace Internal.TypeSystem.Ecma
             }
         }
 
-        LockFreeReaderHashtable<EntityHandle, IEntityHandleObject> _resolvedTokens;
+        private LockFreeReaderHashtable<EntityHandle, IEntityHandleObject> _resolvedTokens;
 
         public EcmaModule(TypeSystemContext context, PEReader peReader)
+            : base(context)
         {
-            _context = context;
-
             _peReader = peReader;
 
             var stringDecoderProvider = context as IMetadataStringDecoderProvider;
@@ -179,18 +179,9 @@ namespace Internal.TypeSystem.Ecma
         }
 
         public EcmaModule(TypeSystemContext context, MetadataReader metadataReader)
+            : base(context)
         {
-            _context = context;
-
             _metadataReader = metadataReader;
-        }
-
-        public TypeSystemContext Context
-        {
-            get
-            {
-                return _context;
-            }
         }
 
         public PEReader PEReader
@@ -217,7 +208,7 @@ namespace Internal.TypeSystem.Ecma
             }
         }
 
-        public MetadataType GetType(string nameSpace, string name, bool throwIfNotFound = true)
+        public override MetadataType GetType(string nameSpace, string name, bool throwIfNotFound = true)
         {
             var stringComparer = _metadataReader.StringComparer;
 
@@ -229,7 +220,7 @@ namespace Internal.TypeSystem.Ecma
                     stringComparer.Equals(typeDefinition.Namespace, nameSpace))
                 {
                     return (MetadataType)GetType((EntityHandle)typeDefinitionHandle);
-                }                
+                }
             }
 
             foreach (var exportedTypeHandle in _metadataReader.ExportedTypes)
@@ -241,7 +232,7 @@ namespace Internal.TypeSystem.Ecma
                     if (exportedType.IsForwarder)
                     {
                         Object implementation = GetObject(exportedType.Implementation);
-                        
+
                         if (implementation is EcmaModule)
                         {
                             return ((EcmaModule)(implementation)).GetType(nameSpace, name);
@@ -252,7 +243,7 @@ namespace Internal.TypeSystem.Ecma
                     }
                     // TODO:
                     throw new NotImplementedException();
-                }                
+                }
             }
 
             if (throwIfNotFound)
@@ -303,7 +294,7 @@ namespace Internal.TypeSystem.Ecma
             }
         }
 
-        Object ResolveMethodSpecification(MethodSpecificationHandle handle)
+        private Object ResolveMethodSpecification(MethodSpecificationHandle handle)
         {
             MethodSpecification methodSpecification = _metadataReader.GetMethodSpecification(handle);
 
@@ -313,10 +304,20 @@ namespace Internal.TypeSystem.Ecma
             EcmaSignatureParser parser = new EcmaSignatureParser(this, signatureReader);
 
             TypeDesc[] instantiation = parser.ParseMethodSpecSignature();
-            return _context.GetInstantiatedMethod(methodDef, new Instantiation(instantiation));
+            return Context.GetInstantiatedMethod(methodDef, new Instantiation(instantiation));
         }
 
-        Object ResolveTypeSpecification(TypeSpecificationHandle handle)
+        private Object ResolveStandaloneSignature(StandaloneSignatureHandle handle)
+        {
+            StandaloneSignature signature = _metadataReader.GetStandaloneSignature(handle);
+            BlobReader signatureReader = _metadataReader.GetBlobReader(signature.Signature);
+            EcmaSignatureParser parser = new EcmaSignatureParser(this, signatureReader);
+
+            MethodSignature methodSig = parser.ParseMethodSignature();
+            return methodSig;
+        }
+
+        private Object ResolveTypeSpecification(TypeSpecificationHandle handle)
         {
             TypeSpecification typeSpecification = _metadataReader.GetTypeSpecification(handle);
 
@@ -326,7 +327,7 @@ namespace Internal.TypeSystem.Ecma
             return parser.ParseType();
         }
 
-        Object ResolveMemberReference(MemberReferenceHandle handle)
+        private Object ResolveMemberReference(MemberReferenceHandle handle)
         {
             MemberReference memberReference = _metadataReader.GetMemberReference(handle);
 
@@ -356,7 +357,7 @@ namespace Internal.TypeSystem.Ecma
                         return method;
 
                     // TODO: Lookup in parent
-                    
+
                     // TODO: Better error message
                     throw new MissingMemberException("Method not found " + parent.ToString() + "." + name);
                 }
@@ -366,7 +367,7 @@ namespace Internal.TypeSystem.Ecma
             throw new NotImplementedException();
         }
 
-        Object ResolveTypeReference(TypeReferenceHandle handle)
+        private Object ResolveTypeReference(TypeReferenceHandle handle)
         {
             TypeReference typeReference = _metadataReader.GetTypeReference(handle);
 
@@ -386,7 +387,7 @@ namespace Internal.TypeSystem.Ecma
             throw new NotImplementedException();
         }
 
-        Object ResolveAssemblyReference(AssemblyReferenceHandle handle)
+        private Object ResolveAssemblyReference(AssemblyReferenceHandle handle)
         {
             AssemblyReference assemblyReference = _metadataReader.GetAssemblyReference(handle);
 
@@ -406,10 +407,10 @@ namespace Internal.TypeSystem.Ecma
 
             // TODO: ContentType, Culture - depends on newer version of the System.Reflection contract
 
-            return _context.ResolveAssembly(an);
+            return Context.ResolveAssembly(an);
         }
 
-        Object ResolveExportedType(ExportedTypeHandle handle)
+        private Object ResolveExportedType(ExportedTypeHandle handle)
         {
             ExportedType exportedType = _metadataReader.GetExportedType(handle);
 
@@ -455,7 +456,7 @@ namespace Internal.TypeSystem.Ecma
             return GetType(MetadataTokens.EntityHandle(0x02000001 /* COR_GLOBAL_PARENT_TOKEN */));
         }
 
-        AssemblyName _assemblyName;
+        private AssemblyName _assemblyName;
 
         // Returns cached copy of the name. Caller has to create a clone before mutating the name.
         public AssemblyName GetName()

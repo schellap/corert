@@ -40,10 +40,21 @@ namespace Internal.TypeSystem
             get; private set;
         }
 
+        public ModuleDesc SystemModule
+        {
+            get;
+            private set;
+        }
+
+        protected void InitializeSystemModule(ModuleDesc systemModule)
+        {
+            Debug.Assert(SystemModule == null);
+            SystemModule = systemModule;
+        }
+
         public abstract MetadataType GetWellKnownType(WellKnownType wellKnownType);
 
-        // TODO: Optional interface instead? Return ModuleDesc instead?
-        public virtual Object ResolveAssembly(AssemblyName name)
+        public virtual ModuleDesc ResolveAssembly(AssemblyName name)
         {
             return null;
         }
@@ -66,10 +77,10 @@ namespace Internal.TypeSystem
         // MDArray types
         //
 
-        struct ArrayTypeKey
+        private struct ArrayTypeKey
         {
-            TypeDesc _elementType;
-            int _rank;
+            private TypeDesc _elementType;
+            private int _rank;
 
             public ArrayTypeKey(TypeDesc elementType, int rank)
             {
@@ -128,7 +139,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        ArrayTypeKey.ArrayTypeKeyHashtable _arrayTypes;
+        private ArrayTypeKey.ArrayTypeKeyHashtable _arrayTypes;
 
         public TypeDesc GetArrayType(TypeDesc elementType, int rank)
         {
@@ -166,7 +177,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        ByRefHashtable _byRefTypes;
+        private ByRefHashtable _byRefTypes;
 
         public TypeDesc GetByRefType(TypeDesc parameterType)
         {
@@ -204,7 +215,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        PointerHashtable _pointerTypes;
+        private PointerHashtable _pointerTypes;
 
         public TypeDesc GetPointerType(TypeDesc parameterType)
         {
@@ -215,10 +226,10 @@ namespace Internal.TypeSystem
         // Instantiated types
         //
 
-        struct InstantiatedTypeKey
+        private struct InstantiatedTypeKey
         {
-            TypeDesc _typeDef;
-            Instantiation _instantiation;
+            private TypeDesc _typeDef;
+            private Instantiation _instantiation;
 
             public InstantiatedTypeKey(TypeDesc typeDef, Instantiation instantiation)
             {
@@ -246,12 +257,12 @@ namespace Internal.TypeSystem
             {
                 protected override int GetKeyHashCode(InstantiatedTypeKey key)
                 {
-                    return Internal.NativeFormat.TypeHashingAlgorithms.ComputeGenericInstanceHashCode(key._typeDef.GetHashCode(), key._instantiation);
+                    return key._instantiation.ComputeGenericInstanceHashCode(key._typeDef.GetHashCode());
                 }
 
                 protected override int GetValueHashCode(InstantiatedType value)
                 {
-                    return Internal.NativeFormat.TypeHashingAlgorithms.ComputeGenericInstanceHashCode(value.GetTypeDefinition().GetHashCode(), value.Instantiation);
+                    return value.Instantiation.ComputeGenericInstanceHashCode(value.GetTypeDefinition().GetHashCode());
                 }
 
                 protected override bool CompareKeyToValue(InstantiatedTypeKey key, InstantiatedType value)
@@ -300,7 +311,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        InstantiatedTypeKey.InstantiatedTypeKeyHashtable _instantiatedTypes;
+        private InstantiatedTypeKey.InstantiatedTypeKeyHashtable _instantiatedTypes;
 
         public InstantiatedType GetInstantiatedType(MetadataType typeDef, Instantiation instantiation)
         {
@@ -311,10 +322,10 @@ namespace Internal.TypeSystem
         // Instantiated methods
         //
 
-        struct InstantiatedMethodKey
+        private struct InstantiatedMethodKey
         {
-            MethodDesc _methodDef;
-            Instantiation _instantiation;
+            private MethodDesc _methodDef;
+            private Instantiation _instantiation;
 
             public InstantiatedMethodKey(MethodDesc methodDef, Instantiation instantiation)
             {
@@ -342,12 +353,12 @@ namespace Internal.TypeSystem
             {
                 protected override int GetKeyHashCode(InstantiatedMethodKey key)
                 {
-                    return Internal.NativeFormat.TypeHashingAlgorithms.ComputeGenericInstanceHashCode(key._methodDef.GetHashCode(), key._instantiation);
+                    return key._instantiation.ComputeGenericInstanceHashCode(key._methodDef.GetHashCode());
                 }
 
                 protected override int GetValueHashCode(InstantiatedMethod value)
                 {
-                    return Internal.NativeFormat.TypeHashingAlgorithms.ComputeGenericInstanceHashCode(value.GetMethodDefinition().GetHashCode(), value.Instantiation);
+                    return value.Instantiation.ComputeGenericInstanceHashCode(value.GetMethodDefinition().GetHashCode());
                 }
 
                 protected override bool CompareKeyToValue(InstantiatedMethodKey key, InstantiatedMethod value)
@@ -396,7 +407,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        InstantiatedMethodKey.InstantiatedMethodKeyHashtable _instantiatedMethods;
+        private InstantiatedMethodKey.InstantiatedMethodKeyHashtable _instantiatedMethods;
 
         public InstantiatedMethod GetInstantiatedMethod(MethodDesc methodDef, Instantiation instantiation)
         {
@@ -408,10 +419,10 @@ namespace Internal.TypeSystem
         // Methods for instantiated type
         //
 
-        struct MethodForInstantiatedTypeKey
+        private struct MethodForInstantiatedTypeKey
         {
-            MethodDesc _typicalMethodDef;
-            InstantiatedType _instantiatedType;
+            private MethodDesc _typicalMethodDef;
+            private InstantiatedType _instantiatedType;
 
             public MethodForInstantiatedTypeKey(MethodDesc typicalMethodDef, InstantiatedType instantiatedType)
             {
@@ -467,7 +478,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        MethodForInstantiatedTypeKey.MethodForInstantiatedTypeKeyHashtable _methodForInstantiatedTypes;
+        private MethodForInstantiatedTypeKey.MethodForInstantiatedTypeKeyHashtable _methodForInstantiatedTypes;
 
         public MethodDesc GetMethodForInstantiatedType(MethodDesc typicalMethodDef, InstantiatedType instantiatedType)
         {
@@ -481,10 +492,10 @@ namespace Internal.TypeSystem
         // Fields for instantiated type
         //
 
-        struct FieldForInstantiatedTypeKey
+        private struct FieldForInstantiatedTypeKey
         {
-            FieldDesc _fieldDef;
-            InstantiatedType _instantiatedType;
+            private FieldDesc _fieldDef;
+            private InstantiatedType _instantiatedType;
 
             public FieldForInstantiatedTypeKey(FieldDesc fieldDef, InstantiatedType instantiatedType)
             {
@@ -540,7 +551,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        FieldForInstantiatedTypeKey.FieldForInstantiatedTypeKeyHashtable _fieldForInstantiatedTypes;
+        private FieldForInstantiatedTypeKey.FieldForInstantiatedTypeKeyHashtable _fieldForInstantiatedTypes;
 
         public FieldDesc GetFieldForInstantiatedType(FieldDesc fieldDef, InstantiatedType instantiatedType)
         {
@@ -552,7 +563,7 @@ namespace Internal.TypeSystem
         //
         private class SignatureVariableHashtable : LockFreeReaderHashtable<uint, SignatureVariable>
         {
-            TypeSystemContext _context;
+            private TypeSystemContext _context;
             public SignatureVariableHashtable(TypeSystemContext context)
             {
                 _context = context;
@@ -594,7 +605,7 @@ namespace Internal.TypeSystem
             }
         }
 
-        SignatureVariableHashtable _signatureVariables;
+        private SignatureVariableHashtable _signatureVariables;
 
         public TypeDesc GetSignatureVariable(int index, bool method)
         {
