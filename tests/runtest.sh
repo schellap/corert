@@ -109,7 +109,7 @@ for i in "$@"
 			__CoreRT_BuildType=Debug
 			;;
 		release)
-			__CoreRT_BuildType=release
+			__CoreRT_BuildType=Release
 			;;
 		-extrepo)
             shift
