@@ -66,7 +66,7 @@ install_dotnet_cli()
         __cli_tarball=dotnet-linux-${__BuildArch}.latest.tar.gz
         echo Downloading... "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/Latest/${__cli_tarball}"
         wget -q -P ${__tools_dir} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/Latest/${__cli_tarball}"
-        tar -xzf ${__tools_dir}/${__cli_tarball} -C ${__cli_dir}
+        tar -xzpf ${__tools_dir}/${__cli_tarball} -C ${__cli_dir}
     fi
 }
 
