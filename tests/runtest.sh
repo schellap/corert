@@ -21,14 +21,19 @@ runtest()
     return $?
 }
 
+restore()
+{
+    ${__CoreRT_CliDir}/dotnet restore $1
+}
+
 compiletest()
 {
     echo "Compiling dir $1 with dotnet compile $2"
     __SourceFolder=$1
-    __CliDir=${__CoreRT_TestRoot}/../bin/tools/cli/bin
-    ${__CliDir}/dotnet compile --native --ilcpath ${__CoreRT_ToolchainDir} ${__SourceFolder} $2
+    ${__CoreRT_CliDir}/dotnet compile --native --ilcpath ${__CoreRT_ToolchainDir} ${__SourceFolder} $2
 }
 
+__CoreRT_CliDir=${__CoreRT_TestRoot}/../bin/tools/cli/bin
 __CoreRT_TestRoot=$(cd "$(dirname "$0")"; pwd -P)
 __CoreRT_BuildArch=x64
 __CoreRT_BuildType=Debug
@@ -152,6 +157,7 @@ for json in src/**/project.json
 do
     __dir_path=`dirname ${json}`
     __filename=`basename ${__dir_path}`
+    restore ${__dir_path}
     compiletest ${__dir_path}
     runtest ${__dir_path} ${__filename}
     if [ $? == 0 ]; then
@@ -164,6 +170,7 @@ for json in src/**/project.json
 do
     __dir_path=`dirname ${json}`
     __filename=`basename ${__dir_path}`
+    # restore ${__dir_path}
     compiletest ${__dir_path} --cpp
     runtest ${__dir_path} ${__filename}
     if [ $? == 0 ]; then

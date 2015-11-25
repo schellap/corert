@@ -1,6 +1,7 @@
 @echo off
 
 set CoreRT_TestRoot=%~dp0
+set CoreRT_CliDir=%CoreRT_TestRoot%..\bin\tools\cli\bin
 set CoreRT_BuildArch=x64
 set CoreRT_BuildType=Debug
 set CoreRT_BuildOS=Windows_NT
@@ -41,7 +42,6 @@ exit /b 2
 setlocal EnableDelayedExpansion
 set __BuildStr=%CoreRT_BuildOS%.%CoreRT_BuildArch%.%CoreRT_BuildType%
 set __TestBinDir=%CoreRT_TestRoot%..\bin\tests
-set __CliDir=%CoreRT_TestRoot%..\bin\tools\cli\bin
 set __LogDir=%CoreRT_TestRoot%\..\bin\Logs\%__BuildStr%\tests
 set __NuPkgInstallDir=%__TestBinDir%\package
 set __BuiltNuPkgDir=%CoreRT_TestRoot%..\bin\Product\%__BuildStr%\.nuget
@@ -69,18 +69,31 @@ if /i "%__BuildType%"=="Debug" (
 
 echo. > %__TestBinDir%\testResults.tmp
 
-set /a __TotalTests=0
-set /a __PassedTests=0
+set /a __CppTotalTests=0
+set /a __CppPassedTests=0
+set /a __JitTotalTests=0
+set /a __JitPassedTests=0
 for /f "delims=" %%a in ('dir /s /aD /b src\*') do (
     set __SourceFolder=%%a
     set __SourceFileName=%%~na
     set __RelativePath=!__SourceFolder:%CoreRT_TestRoot%=!
     if exist "!__SourceFolder!\project.json" (
+        %CoreRT_CliDir%\dotnet restore !__SourceFolder!
+
+        set __Mode=Jit
         call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath!
-        set /a __TotalTests=!__TotalTests!+1
+        set /a __JitTotalTests=!__JitTotalTests!+1
+
+        set __Mode=Cpp
+        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath! --cpp
+        set /a __CppTotalTests=!__CppTotalTests!+1
     )
 )
-set /a __FailedTests=%__TotalTests%-%__PassedTests%
+set /a __CppFailedTests=%__CppTotalTests%-%__CppPassedTests%
+set /a __JitFailedTests=%__JitTotalTests%-%__JitPassedTests%
+set /a __TotalTests=%__JitTotalTests%+%__CppTotalTests%
+set /a __PassedTests=%__JitPassedTests%+%__CppPassedTests%
+set /a __FailedTests=%__JitFailedTests%+%__CppFailedTests%
 
 echo ^<?xml version="1.0" encoding="utf-8"?^> > %__TestBinDir%\testResults.xml
 echo ^<assemblies^>  >> %__TestBinDir%\testResults.xml
@@ -92,32 +105,43 @@ echo ^</assembly^>  >> %__TestBinDir%\testResults.xml
 echo ^</assemblies^>  >> %__TestBinDir%\testResults.xml
 
 echo.
-set "__ConsoleOut=TOTAL: %__TotalTests% PASSED: %__PassedTests%"
+set __JitStatusPassed=0
+if %__JitTotalTests% EQU %__JitPassedTests% (set __JitStatusPassed=1)
+if %__JitTotalTests% EQU 0 (set __JitStatusPassed=0)
+call :PassFail %__JitStatusPassed% "JIT TOTAL: %__JitTotalTests% PASSED: %__JitPassedTests%"
 
-if %__TotalTests% EQU %__PassedTests% (set __StatusPassed=1)
-if %__TotalTests% EQU 0 (set __StatusPassed=0)
-if "%__StatusPassed%"=="1" (
-    powershell -Command Write-Host "%__ConsoleOut%" -foreground "Black" -background "Green"
-    exit /b 0
+set __CppStatusPassed=0
+if %__CppTotalTests% EQU %__CppPassedTests% (set __CppStatusPassed=1)
+if %__CppTotalTests% EQU 0 (set __CppStatusPassed=0)
+call :PassFail %__CppStatusPassed% "CPP TOTAL: %__CppTotalTests% PASSED: %__CppPassedTests%"
+
+if not %__JitStatusPassed% EQU 1 (exit /b 1)
+if not %__CppStatusPassed% EQU 1 (exit /b 1)
+exit /b 0
+
+:PassFail
+set __Green=%~1
+set __OutStr=%~2
+if "%__Green%"=="1" (
+    powershell -Command Write-Host %__OutStr% -foreground "Black" -background "Green"
 ) else ( 
-    powershell -Command Write-Host "%__ConsoleOut%" -foreground "White" -background "Red"
-    exit /b 1
+    powershell -Command Write-Host %__OutStr% -foreground "White" -background "Red"
 )
+goto :eof
 
 :CompileFile
     echo.
-    echo Compiling directory %~1
     set __SourceFolder=%~1
     set __SourceFileName=%~2
     set __CompileLogPath=%~3
+    set __ExtraCompileArgs=%~4
+    echo Compiling directory !__SourceFolder! !__ExtraCompileArgs!
     if not exist "!__CompileLogPath!" (mkdir !__CompileLogPath!)
     set __SourceFile=!__SourceFolder!\!__SourceFileName!
 
     setlocal
-    
     call "!VS140COMNTOOLS!\..\..\VC\vcvarsall.bat" %CoreRT_BuildArch%
-    %__CliDir%\dotnet restore %__SourceFolder%
-    %__CliDir%\dotnet compile --native --ilcpath %CoreRT_ToolchainDir% %__SourceFolder%
+    %CoreRT_CliDir%\dotnet compile --native --ilcpath %CoreRT_ToolchainDir% %__ExtraCompileArgs% %__SourceFolder%
     endlocal
 
     set __SavedErrorLevel=%ErrorLevel%
@@ -132,7 +156,7 @@ if "%__StatusPassed%"=="1" (
 
 :SkipTestRun
     if "%__SavedErrorLevel%"=="0" (
-        set /a __PassedTests=%__PassedTests%+1
+        set /a __%__Mode%PassedTests=!__%__Mode%PassedTests!+1
         echo ^<test name="!__SourceFile!" type="Program" method="Main" result="Pass" /^> >> %__TestBinDir%\testResults.tmp
     ) ELSE (
         echo ^<test name="!__SourceFile!" type="Program" method="Main" result="Fail"^> >> %__TestBinDir%\testResults.tmp
