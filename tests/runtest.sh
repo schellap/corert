@@ -172,8 +172,8 @@ do
     __CppTotalTests=$(($__CppTotalTests + 1))
 done
 
-echo "JIT-TOTAL: ${__JitTotalTests} JIT-PASSED: ${__JitPassedTests}"
-echo "CPP-TOTAL: ${__CppTotalTests} CPP-PASSED: ${__CppPassedTests}"
+echo "JIT -- TOTAL: ${__JitTotalTests} PASSED: ${__JitPassedTests}"
+echo "CPP -- TOTAL: ${__CppTotalTests} PASSED: ${__CppPassedTests}"
 
 if [ ${__JitTotalTests} == 0 ]; then
     exit 1
