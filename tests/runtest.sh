@@ -23,12 +23,10 @@ runtest()
 
 compiletest()
 {
-    echo "Compiling test $1 $2"
+    echo "Compiling dir $1 with dotnet compile $2"
     __SourceFolder=$1
-    __SourceFileName=$2
-    __cli_dir=${__CoreRT_TestRoot}/../bin/tools/cli/bin
-    ${__cli_dir}/dotnet restore ${__SourceFolder}
-    ${__cli_dir}/dotnet compile --native --ilcpath ${__CoreRT_ToolchainDir} ${__SourceFolder} 
+    __CliDir=${__CoreRT_TestRoot}/../bin/tools/cli/bin
+    ${__CliDir}/dotnet compile --native --ilcpath ${__CoreRT_ToolchainDir} ${__SourceFolder} $2
 }
 
 __CoreRT_TestRoot=$(cd "$(dirname "$0")"; pwd -P)
@@ -145,22 +143,36 @@ if [ -z ${__CoreRT_ToolchainVer} ]; then
     exit -1
 fi
 
+report_status()
+{
+    if [ "$1" == 0 ]; then
+        __PassedTests=$(($__PassedTests + 1))
+    fi
+    __TotalTests=$(($__TotalTests + 1))
+}
+
 __TotalTests=0
 __PassedTests=0
 
 shopt -s globstar
-for json in src/**/*.json
+for json in src/**/project.json
 do
     __dir_path=`dirname ${json}`
     __filename=`basename ${__dir_path}`
     compiletest ${__dir_path}
     runtest ${__dir_path} ${__filename}
+    report_status $?
 done
 
-if [ "$?" == 0 ]; then
-    __PassedTests=$(($__PassedTests + 1))
-fi
-__TotalTests=$(($__TotalTests + 1))
+for json in src/**/project.json
+do
+    __dir_path=`dirname ${json}`
+    __filename=`basename ${__dir_path}`
+    compiletest ${__dir_path} --cpp
+    runtest ${__dir_path} ${__filename}
+    report_status $?
+done
+
 echo "TOTAL: ${__TotalTests} PASSED: ${__PassedTests}"
 
 exit 0
