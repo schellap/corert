@@ -143,17 +143,10 @@ if [ -z ${__CoreRT_ToolchainVer} ]; then
     exit -1
 fi
 
-report_status()
-{
-    if [ "$1" == 0 ]; then
-        __PassedTests=$(($__PassedTests + 1))
-    fi
-    __TotalTests=$(($__TotalTests + 1))
-}
-
-__TotalTests=0
-__PassedTests=0
-
+__CppTotalTests=0
+__CppPassedTests=0
+__JitTotalTests=0
+__JitPassedTests=0
 shopt -s globstar
 for json in src/**/project.json
 do
@@ -161,7 +154,10 @@ do
     __filename=`basename ${__dir_path}`
     compiletest ${__dir_path}
     runtest ${__dir_path} ${__filename}
-    report_status $?
+    if [ $? == 0 ]; then
+        __JitPassedTests=$(($__JitPassedTests + 1))
+    fi
+    __JitTotalTests=$(($__JitTotalTests + 1))
 done
 
 for json in src/**/project.json
@@ -170,10 +166,27 @@ do
     __filename=`basename ${__dir_path}`
     compiletest ${__dir_path} --cpp
     runtest ${__dir_path} ${__filename}
-    report_status $?
+    if [ $? == 0 ]; then
+        __CppPassedTests=$(($__CppPassedTests + 1))
+    fi
+    __CppTotalTests=$(($__CppTotalTests + 1))
 done
 
-echo "TOTAL: ${__TotalTests} PASSED: ${__PassedTests}"
+echo "JIT-TOTAL: ${__JitTotalTests} JIT-PASSED: ${__JitPassedTests}"
+echo "CPP-TOTAL: ${__CppTotalTests} CPP-PASSED: ${__CppPassedTests}"
+
+if [ ${__JitTotalTests} == 0 ]; then
+    exit 1
+fi
+if [ ${__CppTotalTests} == 0 ]; then
+    exit 1
+fi
+if [ ${__JitTotalTests} -gt ${__JitPassedTests} ]; then
+    exit 1
+fi
+if [ ${__CppTotalTests} -gt ${__CppPassedTests} ]; then
+    exit 1
+fi
 
 exit 0
 
