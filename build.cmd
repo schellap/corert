@@ -77,26 +77,6 @@ echo.
 :: Eval the output from probe-win1.ps1
 for /f "delims=" %%a in ('powershell -NoProfile -ExecutionPolicy RemoteSigned "& ""%__SourceDir%\Native\probe-win.ps1"""') do %%a
 
-:GetDotNetCli
-
-set "__DotNetCliPath=%__RootBinDir%\tools\cli"
-if not "%__InstallCli%"=="" (
-    if exist "%__DotNetCliPath%" (rmdir /s /q "%__DotNetCliPath%")
-    if not %ErrorLevel%==0 (
-        echo "Could not remove current installation of dotnet CLI"
-        exit /b 1
-    )
-)
-if not exist "%__DotNetCliPath%" (
-    for /f "delims=" %%a in ('powershell -NoProfile -ExecutionPolicy RemoteSigned "& "%__SourceDir%\scripts\install-cli.ps1" -installdir "%__RootBinDir%\tools""') do (
-        echo "" > nul
-    )
-)
-if not exist "%__DotNetCliPath%" (
-    echo DotNet CLI could not be downloaded or installed.
-    exit /b 1
-)
-
 :CheckVS
 
 set __VSProductVersion=
@@ -162,6 +142,27 @@ setlocal
 
 rem Explicitly set Platform causes conflicts in managed project files. Clear it to allow building from VS x64 Native Tools Command Prompt
 set Platform=
+
+:: Obtain dotnet CLI tools to perform restore packages/test runs
+:GetDotNetCli
+
+set "__DotNetCliPath=%__RootBinDir%\tools\cli"
+if not "%__InstallCli%"=="" (
+    if exist "%__DotNetCliPath%" (rmdir /s /q "%__DotNetCliPath%")
+    if not %ErrorLevel%==0 (
+        echo "Could not remove current installation of dotnet CLI"
+        exit /b 1
+    )
+)
+if not exist "%__DotNetCliPath%" (
+    for /f "delims=" %%a in ('powershell -NoProfile -ExecutionPolicy RemoteSigned "& "%__SourceDir%\scripts\install-cli.ps1" -installdir "%__RootBinDir%\tools""') do (
+        echo "" > nul
+    )
+)
+if not exist "%__DotNetCliPath%" (
+    echo DotNet CLI could not be downloaded or installed.
+    exit /b 1
+)
 
 :: Set the environment for the managed build
 call "!VS%__VSProductVersion%COMNTOOLS!\VsDevCmd.bat"
