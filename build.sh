@@ -97,6 +97,12 @@ install_dotnet_cli()
         download_file ${__cli_tarball_path} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/Latest/${__cli_tarball}"
         tar -xzf ${__cli_tarball_path} -C ${__cli_dir}
         export DOTNET_HOME=${__cli_dir}
+        #
+        # Workaround: Setting "HOME" for now to a dir in repo, as "dotnet restore"
+        # depends on "HOME" to be set for its .dnx cache.
+        #
+        # See https://github.com/dotnet/cli/blob/5f5e3ad74c0c1de7071ba1309dca2ea289691163/scripts/ci_build.sh#L24
+        #
         if [ -n ${HOME:+1} ]; then
             export HOME=${__tools_dir}
         fi

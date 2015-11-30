@@ -166,8 +166,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OsEnvironment)'!='Unix'">$(BinDir)/tools/cli/bin/dotnet</DnuToolPath>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OsEnvironment)'=='Unix'">$(BinDir)/tools/cli/bin/dotnet</DnuToolPath>
+    <DnuToolPath Condition="'$(DnuToolPath)'==''">$(BinDir)/tools/cli/bin/dotnet</DnuToolPath>
 
     <DnuRestoreSource>@(DnuSourceList -> '--source %(Identity)', ' ')</DnuRestoreSource>
     <DnuRestoreDirs>@(DnuRestoreDir -> '%(Identity)', ' ')</DnuRestoreDirs>
