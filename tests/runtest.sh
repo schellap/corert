@@ -17,21 +17,20 @@ runtest()
     __SourceFolder=$1
     __SourceFileName=$2
     __SourceFile=${__SourceFolder}/${__SourceFileName}
-    ${__SourceFile}.sh $1 $2 ${__CoreRT_BuildType}
+    ${__SourceFile}.sh $1 $2 ${CoreRT_BuildType}
     return $?
 }
 
 restore()
 {
-    #${__CoreRT_TestRoot}/../packages/dnx-mono.1.0.0-beta8/bin/dnu restore $1
-    ${__CoreRT_CliBinDir}/dotnet restore $1
+    ${CoreRT_CliBinDir}/dotnet restore $1
 }
 
 compiletest()
 {
     echo "Compiling dir $1 with dotnet compile $2"
     rm -rf $1/bin $1/obj
-    ${__CoreRT_CliBinDir}/dotnet compile --native -c ${__CoreRT_BuildType} --ilcpath ${__CoreRT_ToolchainDir} $1 $2
+    ${CoreRT_CliBinDir}/dotnet compile --native -c ${CoreRT_BuildType} --ilcpath ${CoreRT_ToolchainDir} $1 $2
 }
 
 run_test_dir()
@@ -67,33 +66,33 @@ run_test_dir()
     return $?
 }
 
-__CoreRT_TestRoot=$(cd "$(dirname "$0")"; pwd -P)
-__CoreRT_CliBinDir=${__CoreRT_TestRoot}/../bin/tools/cli/bin
-__CoreRT_BuildArch=x64
-__CoreRT_BuildType=Debug
-__CoreRT_TestRun=true
-__CoreRT_TestCompileMode=ryujit
-__CoreRT_TestExtRepo=
-__CoreRT_BuildExtRepo=
+CoreRT_TestRoot=$(cd "$(dirname "$0")"; pwd -P)
+CoreRT_CliBinDir=${CoreRT_TestRoot}/../bin/tools/cli/bin
+CoreRT_BuildArch=x64
+CoreRT_BuildType=Debug
+CoreRT_TestRun=true
+CoreRT_TestCompileMode=ryujit
+CoreRT_TestExtRepo=
+CoreRT_BuildExtRepo=
 
 # Use uname to determine what the OS is.
 OSName=$(uname -s)
 case $OSName in
     Linux)
-        __CoreRT_BuildOS=Linux
+        CoreRT_BuildOS=Linux
         ;;
 
     Darwin)
-        __CoreRT_BuildOS=OSX
+        CoreRT_BuildOS=OSX
         ;;
 
     FreeBSD)
-        __CoreRT_BuildOS=FreeBSD
+        CoreRT_BuildOS=FreeBSD
         ;;
 
     *)
         echo "Unsupported OS $OSName detected, configuring as if for Linux"
-        __CoreRT_BuildOS=Linux
+        CoreRT_BuildOS=Linux
         ;;
 esac
 
@@ -106,58 +105,58 @@ for i in "$@"
             exit 1
             ;;
         x86)
-            __CoreRT_BuildArch=x86
+            CoreRT_BuildArch=x86
             ;;
         x64)
-            __CoreRT_BuildArch=x64
+            CoreRT_BuildArch=x64
             ;;
         arm)
-            __CoreRT_BuildArch=arm
+            CoreRT_BuildArch=arm
             ;;
         arm64)
-            __CoreRT_BuildArch=arm64
+            CoreRT_BuildArch=arm64
             ;;
         debug)
-            __CoreRT_BuildType=Debug
+            CoreRT_BuildType=Debug
             ;;
         release)
-            __CoreRT_BuildType=Release
+            CoreRT_BuildType=Release
             ;;
         -extrepo)
             shift
-            __CoreRT_TestExtRepo=$i
+            CoreRT_TestExtRepo=$i
             ;;
         -mode)
             shift
-            __CoreRT_TestCompileMode=$i
+            CoreRT_TestCompileMode=$i
             ;;
         -runtest)
             shift
-            __CoreRT_TestRun=$i
+            CoreRT_TestRun=$i
             ;;
         -nocache)
-            __CoreRT_NuGetOptions=-nocache
+            CoreRT_NuGetOptions=-nocache
             ;;
         *)
             ;;
     esac
 done
 
-__BuildStr=${__CoreRT_BuildOS}.${__CoreRT_BuildArch}.${__CoreRT_BuildType}
-__TestBinDir=${__CoreRT_TestRoot}/../bin/tests
-__LogDir=${__CoreRT_TestRoot}/../bin/Logs/${__BuildStr}/tests
+__BuildStr=${CoreRT_BuildOS}.${CoreRT_BuildArch}.${CoreRT_BuildType}
+__TestBinDir=${CoreRT_TestRoot}/../bin/tests
+__LogDir=${CoreRT_TestRoot}/../bin/Logs/${__BuildStr}/tests
 __NuPkgInstallDir=${__TestBinDir}/package
-__BuiltNuPkgDir=${__CoreRT_TestRoot}/../bin/Product/${__BuildStr}/.nuget
-__PackageRestoreCmd=$__CoreRT_TestRoot/restore.sh
-source ${__PackageRestoreCmd} -nugetexedir ${__CoreRT_TestRoot}/../packages -installdir ${__NuPkgInstallDir} -nupkgdir ${__BuiltNuPkgDir} -nugetopt ${__CoreRT_NuGetOptions}
+__BuiltNuPkgDir=${CoreRT_TestRoot}/../bin/Product/${__BuildStr}/.nuget
+__PackageRestoreCmd=$CoreRT_TestRoot/restore.sh
+source ${__PackageRestoreCmd} -nugetexedir ${CoreRT_TestRoot}/../packages -installdir ${__NuPkgInstallDir} -nupkgdir ${__BuiltNuPkgDir} -nugetopt ${CoreRT_NuGetOptions}
 
-if [ ! -d ${__CoreRT_AppDepSdkDir} ]; then
-    echo "AppDep SDK not installed at ${__CoreRT_AppDepSdkDir}"
+if [ ! -d ${CoreRT_AppDepSdkDir} ]; then
+    echo "AppDep SDK not installed at ${CoreRT_AppDepSdkDir}"
     exit -1
 fi
 
-if [ ! -d ${__CoreRT_ToolchainDir} ]; then
-    echo "Toolchain not found in ${__CoreRT_ToolchainDir}"
+if [ ! -d ${CoreRT_ToolchainDir} ]; then
+    echo "Toolchain not found in ${CoreRT_ToolchainDir}"
     exit -1
 fi
 
@@ -168,7 +167,7 @@ __JitPassedTests=0
 
 echo > ${__TestBinDir}/testResults.tmp
 
-__BuildOsLowcase=$(echo "${__CoreRT_BuildOS}" | tr '[:upper:]' '[:lower:]')
+__BuildOsLowcase=$(echo "${CoreRT_BuildOS}" | tr '[:upper:]' '[:lower:]')
 
 for json in $(find src -iname 'project.json')
 do
