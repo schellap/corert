@@ -2125,6 +2125,11 @@ namespace Internal.JitInterface
                         throw new NotImplementedException("RuntimeFieldHandle is not implemented");
                     }
 
+                    if (targetObject is TypeDesc)
+                    {
+                        targetObject = _compilation.NodeFactory.NecessaryTypeSymbol((TypeDesc)targetObject);
+                    }
+
                     reloc.Target = (ISymbolNode)targetObject;
                     break;
             }
