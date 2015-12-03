@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Target Name="BuildNuGetPackages" AfterTargets="Build">
+        <!-- Property needed for creating nupkgs -->
+        <PropertyGroup>
+            <ToolchainVersion>1.0.3-prerelease-00001</ToolchainVersion>
+            <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
+            
+            <PackageNameSuffix Condition="'$(Configuration)'=='Debug'">.Debug</PackageNameSuffix>
+            <LibraryPrefix Condition="'$(OSEnvironment)'=='Unix'">$(LibraryPrefix)lib</LibraryPrefix>
+            <LibraryFlavorSuffix Condition="'$(Configuration)'=='Debug'">D</LibraryFlavorSuffix>
+            <LibraryExt Condition="'$(OSEnvironment)'!='Unix'">lib</LibraryExt>
+            <LibraryExt Condition="'$(OSEnvironment)'=='Unix'">a</LibraryExt>
+        </PropertyGroup>
+        <ItemGroup>
+            <!-- IL.Compiler target files -->
+            <ILCompilerFiles Include="ilc.exe" />
+            <ILCompilerFiles Include="ILCompiler.Compiler.dll" />
+            <ILCompilerFiles Include="ILCompiler.DependencyAnalysisFramework.dll" />
+            <ILCompilerFiles Include="ILCompiler.TypeSystem.dll" />
+            <ILCompilerFiles Include="System.Private.CoreLib.dll" />
+            <ILCompilerBinPlace Include="@(ILCompilerFiles)">
+                <Text><![CDATA[        <file src="../%(Identity)" target="runtimes/any/lib/dotnet/%(Identity)" /> ]]></Text>
+            </ILCompilerBinPlace>
+
+            <!-- IL.Compiler.SDK target files -->
+            <ILCompilerSdkFiles Include="Runtime" />
+            <ILCompilerSdkFiles Include="PortableRuntime" />
+            <ILCompilerSdkFiles Include="bootstrapper" />
+            <ILCompilerSdkFiles Include="bootstrappercpp" />
+            <ILCompilerSdkFiles Include="System.Private.CoreLib.Native" Condition="'$(OsEnvironment)'=='Unix'" />
+            <ILCompilerSdkBinPlace Include="@(ILCompilerSdkFiles)">
+                <Text><![CDATA[        <file src="../lib/$(LibraryPrefix)%(Identity).$(LibraryExt)" target="runtimes/$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)/native/sdk/$(LibraryPrefix)%(Identity)$(LibraryFlavorSuffix).$(LibraryExt)" /> ]]></Text>
+            </ILCompilerSdkBinPlace>
+
+            <!-- ILCompiler nuspec file -->
+            <NuSpecFile Include="Microsoft.DotNet.ILCompiler">
+                <Version>$(ToolchainVersion)</Version>
+                <Title>Microsoft .NET Native Toolchain</Title>
+                <Description>Provides the toolchain to compile managed code to native.</Description>
+                <Files>@(ILCompilerBinPlace -> '%(Text)', '')</Files>
+                <!-- TODO: Obtain this from project.lock.json -->
+                <Dependencies><![CDATA[
+        <dependency id="Microsoft.DiaSymReader" version="1.0.6" />
+        <dependency id="Microsoft.DotNet.ObjectWriter" version="1.0.3-prerelease-00001" />
+        <dependency id="Microsoft.DotNet.RyuJit" version="1.0.1-prerelease-00002" />
+        <dependency id="System.AppContext" version="4.0.0" />
+        <dependency id="System.Collections" version="4.0.10" />
+        <dependency id="System.Collections.Concurrent" version="4.0.10" />
+        <dependency id="System.Collections.Immutable" version="1.1.37" />
+        <dependency id="System.Console" version="4.0.0-beta-23419" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
+        <dependency id="System.IO" version="4.0.10" />
+        <dependency id="System.IO.FileSystem" version="4.0.0" />
+        <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.10" />
+        <dependency id="System.Reflection.Extensions" version="4.0.0" />
+        <dependency id="System.Reflection.Metadata" version="1.0.22" />
+        <dependency id="System.Reflection.Primitives" version="4.0.0" />
+        <dependency id="System.Resources.ResourceManager" version="4.0.0" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="System.Runtime.InteropServices" version="4.0.20" />
+        <dependency id="System.Text.Encoding" version="4.0.10" />
+        <dependency id="System.Text.Encoding.Extensions" version="4.0.10" />
+        <dependency id="System.Threading" version="4.0.10" />
+        <dependency id="System.Threading.Tasks" version="4.0.10" />
+        <dependency id="System.Xml.ReaderWriter" version="4.0.0" />
+                    ]]></Dependencies>
+            </NuSpecFile>
+            
+            <!-- ILCompiler.SDK nuspec file -->
+            <NuSpecFile Include="Microsoft.DotNet.ILCompiler.SDK$(PackageNameSuffix)">
+                <Version>$(RuntimeSdkVersion)</Version>
+                <Title>Microsoft .NET Native Runtime SDK</Title>
+                <Description>Provides the runtime and link libraries to compile managed code to native.</Description>
+                <Files>@(ILCompilerSdkBinPlace -> '%(Text)', '')</Files>
+                <Dependencies><![CDATA[
+        <dependency id="Microsoft.DotNet.ILCompiler" version="$(ToolchainVersion)"/>]]>
+                </Dependencies>
+            </NuSpecFile>
+            
+            <!-- A pair of platform and runtime package info per nuspec file -->
+            <NuSpecFileGroup Include="@(NuSpecFile)">
+                <RedirPackage>%(Identity)</RedirPackage>
+                <Version>%(Version)</Version>
+                <PlatformPackage>toolchain.$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform).%(Identity)</PlatformPackage>
+                <NuSpecPackageMetadata><![CDATA[
+    <version>%(Version)</version>
+    <title>%(Title)</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>https://github.com/dotnet/corert</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>%(Description)</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright &#169%3B Microsoft Corporation</copyright>
+    <dependencies>
+        %(Dependencies)
+    </dependencies>]]>
+                </NuSpecPackageMetadata>
+                <PlatformPkgFiles>%(Files)</PlatformPkgFiles>
+            </NuSpecFileGroup>
+
+            <!-- NuSpecCollection: A collection of NuSpecFileGroup -->
+            <NuSpecCollection Include="@(NuSpecFileGroup)">
+                <RuntimeJsonFile>$(ProductPackageDir)/%(RedirPackage).runtime.json</RuntimeJsonFile>
+                <RuntimeJsonLines><![CDATA[
+{
+  "runtimes": {
+    "win7-x64": {
+      "%(RedirPackage)": {
+        "toolchain.win7-x64.%(RedirPackage)": "%(Version)"
+      }
+    },
+    "osx.10.10-x64": {
+      "%(RedirPackage)": {
+        "toolchain.osx.10.10-x64.%(RedirPackage)": "%(Version)"
+      }
+    },
+    "ubuntu.14.04-x64": {
+      "%(RedirPackage)": {
+        "toolchain.ubuntu.14.04-x64.%(RedirPackage)": "%(Version)"
+      }
+    }
+  }
+}]]>
+                </RuntimeJsonLines>
+                <RedirFile>$(ProductPackageDir)/%(RedirPackage).nuspec</RedirFile>
+                <RedirLines><![CDATA[<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>%(RedirPackage)</id>
+    %(NuSpecPackageMetadata)
+  </metadata>
+  <files>
+      <file src="%(RedirPackage).runtime.json" target="runtime.json"></file>
+  </files>
+</package>
+]]>
+                </RedirLines>
+                <PlatformFile>$(ProductPackageDir)/%(PlatformPackage).nuspec</PlatformFile>
+                <PlatformLines><![CDATA[<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>%(PlatformPackage)</id>
+    %(NuSpecPackageMetadata)
+  </metadata>
+  <files>
+    %(PlatformPkgFiles)
+  </files>
+</package>
+]]>
+                </PlatformLines>
+            </NuSpecCollection>
+        </ItemGroup>
+
+        <!-- Create the package dir if it doesn't exist -->
+        <MakeDir Directories="$(ProductPackageDir)" Condition="!Exists('$(ProductPackageDir)')" />
+
+        <!-- Write the runtime.json redirection package and the runtime platform file -->
+        <WriteLinesToFile File="%(NuSpecCollection.RuntimeJsonFile)" Lines="%(NuSpecCollection.RuntimeJsonLines)" Overwrite="true" />
+        <WriteLinesToFile File="%(NuSpecCollection.PlatformFile)" Lines="%(NuSpecCollection.PlatformLines)" Overwrite="true" />
+        <WriteLinesToFile File="%(NuSpecCollection.RedirFile)" Lines="%(NuSpecCollection.RedirLines)" Overwrite="true" />
+
+        <ItemGroup>
+            <NuSpecsExt Include="$(SourceDir).nuget\toolchain.$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform).Microsoft.DotNet.ILCompiler.Development.nuspec" />
+            <NuSpecs Include="$(ProductPackageDir)toolchain.$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform).Microsoft.DotNet.ILCompiler.Development.nuspec" />
+            <NuSpecs Include="%(NuSpecCollection.PlatformFile)" />
+            <NuSpecs Include="%(NuSpecCollection.RedirFile)" />
+        </ItemGroup>
+
+        <Copy SourceFiles="@(NuSpecsExt)" DestinationFolder="$(ProductPackageDir)" />
+        <Exec Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(NuSpecs.Identity)&quot; -NoPackageAnalysis -NoDefaultExcludes -OutputDirectory &quot;$(ProductPackageDir)&quot;" />
+    </Target>
+</Project>
