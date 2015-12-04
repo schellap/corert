@@ -18,7 +18,6 @@
             <ILCompilerFiles Include="ILCompiler.Compiler.dll" />
             <ILCompilerFiles Include="ILCompiler.DependencyAnalysisFramework.dll" />
             <ILCompilerFiles Include="ILCompiler.TypeSystem.dll" />
-            <ILCompilerFiles Include="System.Private.CoreLib.dll" />
             <ILCompilerBinPlace Include="@(ILCompilerFiles)">
                 <Text><![CDATA[        <file src="../%(Identity)" target="runtimes/any/lib/dotnet/%(Identity)" /> ]]></Text>
             </ILCompilerBinPlace>
@@ -29,8 +28,12 @@
             <ILCompilerSdkFiles Include="bootstrapper" />
             <ILCompilerSdkFiles Include="bootstrappercpp" />
             <ILCompilerSdkFiles Include="System.Private.CoreLib.Native" Condition="'$(OsEnvironment)'=='Unix'" />
+            <ILCompilerSdkFilesManaged Include="System.Private.CoreLib.dll" Condition="'$(Configuration)'=='Release'" />
             <ILCompilerSdkBinPlace Include="@(ILCompilerSdkFiles)">
                 <Text><![CDATA[        <file src="../lib/$(LibraryPrefix)%(Identity).$(LibraryExt)" target="runtimes/$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)/native/sdk/$(LibraryPrefix)%(Identity)$(LibraryFlavorSuffix).$(LibraryExt)" /> ]]></Text>
+            </ILCompilerSdkBinPlace>
+            <ILCompilerSdkBinPlace Include="@(ILCompilerSdkFilesManaged)">
+                <Text><![CDATA[        <file src="../%(Identity)" target="runtimes/$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)/native/sdk/%(Identity)" /> ]]></Text>
             </ILCompilerSdkBinPlace>
 
             <!-- ILCompiler nuspec file -->
