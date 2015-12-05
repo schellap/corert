@@ -81,12 +81,18 @@ for /f "delims=" %%a in ('dir /s /aD /b src\*') do (
         %CoreRT_CliDir%\dotnet restore !__SourceFolder!
 
         set __Mode=Jit
-        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath!
-        set /a __JitTotalTests=!__JitTotalTests!+1
+        set CompileFile_BuildType=Debug
+        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath! "-c Debug"
+        set CompileFile_BuildType=Release
+        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath! "-c Release"
+        set /a __JitTotalTests=!__JitTotalTests!+2
 
         set __Mode=Cpp
-        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath! --cpp
-        set /a __CppTotalTests=!__CppTotalTests!+1
+        set CompileFile_BuildType=Debug
+        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath! "--cpp -c Debug"
+        set CompileFile_BuildType=Release
+        call :CompileFile !__SourceFolder! !__SourceFileName! %__LogDir%\!__RelativePath! "--cpp -c Release"
+        set /a __CppTotalTests=!__CppTotalTests!+2
     )
 )
 set /a __CppFailedTests=%__CppTotalTests%-%__CppPassedTests%
@@ -145,7 +151,7 @@ goto :eof
     setlocal
     REM TODO: Add AppDepSDK argument after CLI build picks up: PR dotnet/cli #336
     call "!VS140COMNTOOLS!\..\..\VC\vcvarsall.bat" %CoreRT_BuildArch%
-    "%CoreRT_CliDir%\dotnet" compile --native --ilcpath "%CoreRT_ToolchainDir%" !__ExtraCompileArgs! !__SourceFolder! -c %CoreRT_BuildType%
+    "%CoreRT_CliDir%\dotnet" compile --native !__ExtraCompileArgs! !__SourceFolder!
     endlocal
 
     set __SavedErrorLevel=%ErrorLevel%
@@ -154,7 +160,7 @@ goto :eof
     if "%__SavedErrorLevel%"=="0" (
         echo.
         echo Running test !__SourceFileName!
-        call !__SourceFile!.cmd %CoreRT_BuildType%
+        call !__SourceFile!.cmd %CompileFile_BuildType%
         set __SavedErrorLevel=!ErrorLevel!
     )
 

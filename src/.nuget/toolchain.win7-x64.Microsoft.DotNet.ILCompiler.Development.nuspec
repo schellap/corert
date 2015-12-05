@@ -29,8 +29,8 @@
     <file src="..\lib\PortableRuntime.lib" target="PortableRuntime.lib" />
     <file src="..\lib\bootstrapper.lib" target="bootstrapper.lib" />
     <file src="..\lib\bootstrappercpp.lib" target="bootstrappercpp.lib" />
-    <file src="..\System.Private.Corelib.dll" target="System.Private.Corelib.dll" />
-    <file src="..\System.Private.Corelib.pdb" target="System.Private.Corelib.pdb" />
+    <file src="..\System.Private.Corelib.dll" target="System.Private.CoreLib.dll" />
+    <file src="..\System.Private.Corelib.pdb" target="System.Private.CoreLib.pdb" />
     <file src="..\toolruntime\*.dll" />
     <file src="..\toolruntime\corerun.exe" target="corerun.exe" />
     <file src="..\..\..\..\packages\Microsoft.DiaSymReader\1.0.6\lib\portable-net45+win8\Microsoft.DiaSymReader.dll" />

@@ -26,7 +26,7 @@
       <file src="../lib/libbootstrapper.a" target="libbootstrapper.a" />
       <file src="../lib/libbootstrappercpp.a" target="libbootstrappercpp.a" />
       <file src="../lib/libSystem.Private.CoreLib.Native.a" target="libSystem.Private.CoreLib.Native.a" />
-      <file src="../System.Private.Corelib.dll" target="System.Private.Corelib.dll" />
+      <file src="../System.Private.Corelib.dll" target="System.Private.CoreLib.dll" />
       <file src="../ToolRuntime/*.dll" />
       <file src="../ToolRuntime/*.dylib" />
       <file src="../ToolRuntime/corerun" target="corerun" />
