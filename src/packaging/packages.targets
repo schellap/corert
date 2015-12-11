@@ -140,6 +140,8 @@
             <!-- NuSpecCollection: A collection of NuSpecFileGroup -->
             <NuSpecCollection Include="@(NuSpecFileGroup)">
                 <Stage>%(Stage)</Stage>
+                <RedirPackage>%(RedirPackage)</RedirPackage>
+                <PlatformPackage>%(PlatformPackage)</PlatformPackage>
                 <RuntimeJsonFile>$(ProductPackageDir)/%(RedirPackage).runtime.json</RuntimeJsonFile>
                 <RuntimeJsonLines><![CDATA[
 {
@@ -283,6 +285,9 @@
         <WriteLinesToFile File="$(Stage1ProjectDir)/Program.cs" Lines="class Program { public static void Main() { } }" Overwrite="true" />
         <Exec Command="&quot;$(DnuToolPath)&quot; restore -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot;" />
         <Exec Command="&quot;$(DnuToolPath)&quot; publish &quot;$(Stage1ProjectDir)&quot; -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; -r &quot;$(NuPkgRid)&quot;" />
+
+        <Message Text="++++++++++++++++++++++ $(ProductPackageDir)/%(NuSpecCollection.PlatformPackage).nupkg" Importance="high" />
+        <!--        <Exec Command="&quot;$(NuGetExePath) push %(NuSpecCollection.PlatformFile) $(NuGetPushAuth) -Source $()" Condition="'$(NuGetPushAuth)' != '' And '$(NuGetPushFeedUrl)' != ''" /> -->
 
     </Target>
 </Project>
