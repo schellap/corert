@@ -286,8 +286,8 @@
         <Exec Command="&quot;$(DnuToolPath)&quot; restore -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot;" />
         <Exec Command="&quot;$(DnuToolPath)&quot; publish &quot;$(Stage1ProjectDir)&quot; -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; -r &quot;$(NuPkgRid)&quot;" />
 
-        <Message Text="++++++++++++++++++++++ $(ProductPackageDir)/%(NuSpecCollection.PlatformPackage).nupkg" Importance="high" />
-        <!--        <Exec Command="&quot;$(NuGetExePath) push %(NuSpecCollection.PlatformFile) $(NuGetPushAuth) -Source $()" Condition="'$(NuGetPushAuth)' != '' And '$(NuGetPushFeedUrl)' != ''" /> -->
+        <Message Text="$(ProductPackageDir)/%(NuSpecCollection.PlatformPackage).nupkg" Importance="high" />
+        <!--        <Exec Command="&quot;$(NuGetExePath) push %(NuSpecCollection.PlatformFile) $(NuGetDevFeedAuth) -Source $(NuGetDevFeedUrl)" Condition="'$(NuGetDevFeedAuth)' != '' And '$(NuGetDevFeedUrl)' != ''" /> -->
 
     </Target>
 </Project>
