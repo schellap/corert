@@ -298,15 +298,20 @@
 
         <!-- VSO Nightly Builds -->
         <PropertyGroup>
-            <CoreRT_NightlyFeedUrl>https://www.myget.org/F/dotnet-corert-nightly/api/v2/package</CoreRT_NightlyFeedUrl>
+            <CoreRT_NightlyFeedUrl>https://www.myget.org/F/dotnet-corert-nightly</CoreRT_NightlyFeedUrl>
+            <CoreRT_NightlyPushUrl>$(CoreRT_NightlyFeedUrl)/api/v2/package</CoreRT_NightlyPushUrl>
         </PropertyGroup>
         <ItemGroup>
             <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformNuPkg)" Condition="$(CoreRT_NightlyPushRedirPackage) == '' And '%(NuSpecCollection.Push)'=='1'" />
             <NuPkgFilesToPush Include="%(NuSpecCollection.RedirNuPkg)" Condition="$(CoreRT_NightlyPushRedirPackage) != '' And '%(NuSpecCollection.Push)'=='1'" />
         </ItemGroup>
         <Error
-            Text="Could not push daily builds to the $(CoreRT_NightlyFeedUrl) because CoreRT_NightlyFeedAuth is empty."
-            Condition="'$(ToolchainMilestone)' == 'nightly' And '$(CoreRT_NightlyFeedAuth)' == ''" />
-        <Exec Command="&quot;$(NuGetToolPath)&quot; push &quot;$(ProductPackageDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyFeedUrl)" Condition="'$(CoreRT_NightlyFeedAuth)' != '' And '$(CoreRT_NightlyFeedUrl)' != '' And '$(ToolchainMilestone)' == 'nightly'" />
+            Text="Could not push daily builds to the $(CoreRT_NightlyPushUrl) because CoreRT_NightlyFeedAuth is empty."
+            Condition="'$(ToolchainMilestone)'=='nightly' And '$(CoreRT_NightlyFeedAuth)'==''" />
+        <Exec Command="&quot;$(NuGetToolPath)&quot; push &quot;$(ProductPackageDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyPushUrl)"
+              Condition="'$(CoreRT_NightlyFeedAuth)'!='' And '$(ToolchainMilestone)'=='nightly'" />
+        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;&amp; { &amp;&apos;$(ProjectDir)/src/packaging/nightly-push.ps1&apos; -NuGetExe &apos;$(NuGetToolPath)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_NightlyFeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_NightlyFeedAuth)&apos; -Version &apos;$(ToolchainVersion)&apos; } &quot;"
+              IgnoreExitCode="false"
+              Condition="'$(CoreRT_NightlyFeedAuth)'!='' And '$(ToolchainMilestone)'=='nightly' And '$(OsEnvironment)'=='Windows_NT'" />
     </Target>
 </Project>
