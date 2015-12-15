@@ -19,6 +19,7 @@
         <!-- Property needed for creating nupkgs -->
         <PropertyGroup>
             <ToolchainMilestone Condition="'$(ToolchainMilestone)'==''">prerelease</ToolchainMilestone>
+            <ToolchainMilestone Condition="'$(ToolchainMilestone)'=='nightly'">$(ToolchainMilestone)-$(Month)$(Day)</ToolchainMilestone>
             <ToolchainVersion>1.0.3-$(ToolchainMilestone)-00002</ToolchainVersion>
             <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
             <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)</NuPkgRid>
@@ -286,8 +287,17 @@
         <Exec Command="&quot;$(DnuToolPath)&quot; restore -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot;" />
         <Exec Command="&quot;$(DnuToolPath)&quot; publish &quot;$(Stage1ProjectDir)&quot; -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; -r &quot;$(NuPkgRid)&quot;" />
 
-        <Message Text="$(ProductPackageDir)/%(NuSpecCollection.PlatformPackage).nupkg" Importance="high" />
-        <!--        <Exec Command="&quot;$(NuGetExePath) push %(NuSpecCollection.PlatformFile) $(NuGetDevFeedAuth) -Source $(NuGetDevFeedUrl)" Condition="'$(NuGetDevFeedAuth)' != '' And '$(NuGetDevFeedUrl)' != ''" /> -->
-
+        <!-- VSO Nightly Builds -->
+        <PropertyGroup>
+            <CoreRT_NightlyFeedUrl>https://www.myget.org/F/dotnet-corert-nightly/api/v2/package</CoreRT_NightlyFeedUrl>
+        </PropertyGroup>
+        <ItemGroup>
+            <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformPackage)" />
+            <NuPkgFilesToPush Include="%(NuSpecCollection.RedirPackage)" Condition="$(CoreRT_NightlyPushRedirPackage) != ''" />
+        </ItemGroup>
+        <Error
+            Text="Could not push daily builds to the $(CoreRT_NightlyFeedUrl) because CoreRT_NightlyFeedAuth is empty."
+            Condition="'$(ToolchainMilestone)' == 'nightly' And '$(CoreRT_NightlyFeedAuth)' == ''" />
+        <Exec Command="&quot;$(NuGetExePath) push %(NuPkgFilesToPush) $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyFeedUrl)" Condition="'$(CoreRT_NightlyFeedAuth)' != '' And '$(CoreRT_NightlyFeedUrl)' != '' And '$(ToolchainMilestone)' == 'nightly'" />
     </Target>
 </Project>
