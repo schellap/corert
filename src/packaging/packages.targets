@@ -18,9 +18,11 @@
 
         <!-- Property needed for creating nupkgs -->
         <PropertyGroup>
-            <ToolchainMilestone Condition="'$(ToolchainMilestone)'==''">prerelease</ToolchainMilestone>
-            <ToolchainMilestone Condition="'$(ToolchainMilestone)'=='nightly'">$(ToolchainMilestone)-$(Month)$(Day)</ToolchainMilestone>
-            <ToolchainVersion>1.0.3-$(ToolchainMilestone)-00002</ToolchainVersion>
+            <VerIncSuffix>00002</VerIncSuffix>
+            <MilestoneVer>$(ToolchainMilestone)-$(VerIncSuffix)</MilestoneVer>
+            <MilestoneVer Condition="'$(ToolchainMilestone)'==''">prerelease-$(VerIncSuffix)</MilestoneVer>
+            <MilestoneVer Condition="'$(ToolchainMilestone)'=='nightly'">$(ToolchainMilestone)-$([System.DateTime]::Now.ToString(MMdd))</MilestoneVer>
+            <ToolchainVersion>1.0.3-$(MilestoneVer)</ToolchainVersion>
             <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
             <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)</NuPkgRid>
             
@@ -65,6 +67,8 @@
             <!-- ILCompiler nuspec file -->
             <NuSpecFile Include="$(ToolchainPackageName)">
                 <Stage>0</Stage>
+                <Push>0</Push>
+                <Push Condition="'$(Configuration)'=='Release'">1</Push>
                 <Version>$(ToolchainVersion)</Version>
                 <Title>Microsoft .NET Native Toolchain</Title>
                 <Description>Provides the toolchain to compile managed code to native.</Description>
@@ -104,6 +108,7 @@
             <!-- ILCompiler.SDK nuspec file -->
             <NuSpecFile Include="$(RuntimeSdkPackageName)">
                 <Stage>1</Stage>
+                <Push>1</Push>
                 <Version>$(RuntimeSdkVersion)</Version>
                 <Title>Microsoft .NET Native Runtime SDK</Title>
                 <Description>Provides the runtime and link libraries to compile managed code to native.</Description>
@@ -116,9 +121,12 @@
             <!-- A pair of platform and runtime package info per nuspec file -->
             <NuSpecFileGroup Include="@(NuSpecFile)">
                 <Stage>%(Stage)</Stage>
+                <Push>%(Push)</Push>
                 <RedirPackage>%(Identity)</RedirPackage>
+                <RedirNuPkg>%(Identity).%(Version).nupkg</RedirNuPkg>
                 <Version>%(Version)</Version>
                 <PlatformPackage>toolchain.$(NuPkgRid).%(Identity)</PlatformPackage>
+                <PlatformNuPkg>toolchain.$(NuPkgRid).%(Identity).%(Version).nupkg</PlatformNuPkg>
                 <NuSpecPackageMetadata><![CDATA[
     <version>%(Version)</version>
     <title>%(Title)</title>
@@ -141,6 +149,7 @@
             <!-- NuSpecCollection: A collection of NuSpecFileGroup -->
             <NuSpecCollection Include="@(NuSpecFileGroup)">
                 <Stage>%(Stage)</Stage>
+                <Push>%(Push)</Push>
                 <RedirPackage>%(RedirPackage)</RedirPackage>
                 <PlatformPackage>%(PlatformPackage)</PlatformPackage>
                 <RuntimeJsonFile>$(ProductPackageDir)/%(RedirPackage).runtime.json</RuntimeJsonFile>
@@ -292,12 +301,12 @@
             <CoreRT_NightlyFeedUrl>https://www.myget.org/F/dotnet-corert-nightly/api/v2/package</CoreRT_NightlyFeedUrl>
         </PropertyGroup>
         <ItemGroup>
-            <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformPackage)" />
-            <NuPkgFilesToPush Include="%(NuSpecCollection.RedirPackage)" Condition="$(CoreRT_NightlyPushRedirPackage) != ''" />
+            <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformNuPkg)" Condition="$(CoreRT_NightlyPushRedirPackage) == '' And '%(NuSpecCollection.Push)'=='1'" />
+            <NuPkgFilesToPush Include="%(NuSpecCollection.RedirNuPkg)" Condition="$(CoreRT_NightlyPushRedirPackage) != '' And '%(NuSpecCollection.Push)'=='1'" />
         </ItemGroup>
         <Error
             Text="Could not push daily builds to the $(CoreRT_NightlyFeedUrl) because CoreRT_NightlyFeedAuth is empty."
             Condition="'$(ToolchainMilestone)' == 'nightly' And '$(CoreRT_NightlyFeedAuth)' == ''" />
-        <Exec Command="&quot;$(NuGetExePath) push %(NuPkgFilesToPush) $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyFeedUrl)" Condition="'$(CoreRT_NightlyFeedAuth)' != '' And '$(CoreRT_NightlyFeedUrl)' != '' And '$(ToolchainMilestone)' == 'nightly'" />
+        <Exec Command="&quot;$(NuGetToolPath)&quot; push &quot;$(ProductPackageDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyFeedUrl)" Condition="'$(CoreRT_NightlyFeedAuth)' != '' And '$(CoreRT_NightlyFeedUrl)' != '' And '$(ToolchainMilestone)' == 'nightly'" />
     </Target>
 </Project>
