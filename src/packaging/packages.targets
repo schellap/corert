@@ -313,7 +313,8 @@
             Condition="'$(ToolchainMilestone)'=='nightly' And '$(CoreRT_NightlyFeedAuth)'==''" />
         <Exec Command="&quot;$(NuGetToolPath)&quot; push &quot;$(NuPkgFilesDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyPushUrl)"
               Condition="'$(CoreRT_NightlyPushRedir)'=='' And '$(CoreRT_NightlyFeedAuth)'!='' And '$(ToolchainMilestone)'=='nightly'" />
-        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;&amp; { &amp;&apos;$(ProjectDir)/src/packaging/nightly-push.ps1&apos; -NuGetExe &apos;$(NuGetToolPath)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_NightlyFeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_NightlyFeedAuth)&apos; -Version &apos;$(ToolchainVersion)&apos; } &quot;"
+
+        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;&amp; { &amp;&apos;$(ProjectDir)/src/packaging/nightly-push.ps1&apos; -NuGetExe &apos;$(NuGetToolPath)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_NightlyFeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_NightlyFeedAuth)&apos; -Configuration &apos;$(Configuration)&apos; -Version &apos;$(ToolchainVersion)&apos; } &quot;"
               IgnoreExitCode="false"
               Condition="'$(CoreRT_NightlyPushRedir)'!='' And '$(CoreRT_NightlyFeedAuth)'!='' And '$(ToolchainMilestone)'=='nightly' And '$(OsEnvironment)'=='Windows_NT'" />
     </Target>
