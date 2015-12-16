@@ -301,6 +301,7 @@
             <CoreRT_NightlyFeedUrl>https://www.myget.org/F/dotnet-corert-nightly</CoreRT_NightlyFeedUrl>
             <CoreRT_NightlyPushUrl>$(CoreRT_NightlyFeedUrl)/api/v2/package</CoreRT_NightlyPushUrl>
             <NuPkgFilesDir>$(ProductPackageDir)</NuPkgFilesDir>
+            <!-- OSX NuGet.exe doesn't like absolute paths. Fails by appending the working dir with the already absolute path. -->
             <NuPkgFilesDir Condition="'$(OsGroup)'=='OSX'">../bin/Product/$(OsPlatformConfig)/.nuget</NuPkgFilesDir>
         </PropertyGroup>
         <ItemGroup>
