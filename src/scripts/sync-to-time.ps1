@@ -4,9 +4,10 @@
 #
 
 param (
-    [string] $Time = "18:00"
+    [string] $Time = "18:00:00"
 )
 
 $Date = Get-Date($Time)
-Write-Host $Date.ToString("ddd MMM dd hh:mm yyyy")
-# Invoke-Expression "git rev-list -n 1 --before $Date.
+$Format = $Date.ToString("ddd MMM dd HH:mm:ss yyyy") + $Date.ToString("zzz").Replace(":", "")
+$CommitHash = Invoke-Expression "git rev-list -n 1 --before=`"$Format`" master"
+Write-Host "git checkout $CommitHash"
