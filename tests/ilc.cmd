@@ -4,8 +4,8 @@ setlocal
 
 REM ** Validate args
 set "__SourceFolder=%1" & shift
-set "__SourceFile=%__SourceFolder%\%1" & shift
-
+set "__SourceFileName=%1" & shift
+set "__SourceFile=%__SourceFolder%\%__SourceFileName%"
 set __ExeParams=
 :Loop
     if [%1]==[] goto :DoneArgs
@@ -30,7 +30,7 @@ if /i "%CoreRT_BuildType%"=="Debug" (
 )
 set __BuildStr=%CoreRT_BuildOS%.%CoreRT_BuildArch%.%CoreRT_BuildType%
 
-if not exist "%CoreRT_ToolchainDir%\dotnet-compile-native.bat" ((call :Fail "Toolchain not installed correctly at CoreRT_ToolchainDir") & exit /b -1)
+::if not exist "%CoreRT_ToolchainDir%\dotnet-compile-native.bat" ((call :Fail "Toolchain not installed correctly at CoreRT_ToolchainDir") & exit /b -1)
 
 if "%CoreRT_TestCompileMode%"=="" ((call :Fail "Test compile mode not set in CoreRT_TestCompileMode: Specify cpp/ryujit") & exit /b -1)
 
@@ -41,15 +41,19 @@ if exist "%__SourceFolder%\*.dll" set __ExtraArguments=/reference "%__SourceFold
 
 REM ** Invoke ILCompiler to compile. Set CORE_ROOT to empty so, ILCompiler's corerun doesn't load dependencies from there.
 set CORE_ROOT=
-call %CoreRT_ToolchainDir%\dotnet-compile-native.bat %CoreRT_BuildArch% %CoreRT_BuildType% /mode %CoreRT_TestCompileMode% /appdepsdk %CoreRT_AppDepSdkDir% /codegenpath %CoreRT_RyuJitDir% /objgenpath %CoreRT_ObjWriterDir% /logpath %__CompileLogPath% /linklibs %__LinkLibs% /in %__SourceFile% /out %__SourceFile%.compiled.exe %__ExtraArguments%
+:: call %CoreRT_ToolchainDir%\dotnet-compile-native.bat %CoreRT_BuildArch% %CoreRT_BuildType% /mode %CoreRT_TestCompileMode% /appdepsdk %CoreRT_AppDepSdkDir% /codegenpath %CoreRT_RyuJitDir% /objgenpath %CoreRT_ObjWriterDir% /logpath %__CompileLogPath% /linklibs %__LinkLibs% /in %__SourceFile% /out %__SourceFile%.compiled.exe %__ExtraArguments%
+
+set __IlcPath=%CoreRT_ToolchainDir%
+if %__IlcPath:~-1%==\ SET __IlcPath=%__IlcPath:~0,-1%
+"%CoreRT_TestRoot%\..\bin\tools\cli\bin\dotnet-compile-native" "%__SourceFile%" --ilcpath "%__IlcPath%" --configuration %CoreRT_BuildType%
 
 REM ** Fail if we did not generate obj file
-if exist "%__SourceFile%.compiled.exe" (
+if exist "%__SourceFolder%\bin\x64\Debug\native\%__SourceFileName%" (
     REM ** Should run the tests?
     if "%CoreRT_TestRun%"=="false" (exit /b 100)
     
     REM ** Run the test
-    "%__SourceFile%.compiled.exe" %__ExeParams%
+    "%__SourceFolder%\bin\x64\Debug\native\%__SourceFileName%" %__ExeParams%
 
     exit /b !ErrorLevel!
 ) else (
