@@ -461,5 +461,11 @@ namespace System.Runtime
         {
             return default(T);
         }
+
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        public static T Call<T>(System.IntPtr pfn, Object arg1)
+        {
+            return default(T);
+        }
     }
 }
