@@ -14,6 +14,7 @@ using Internal.IL;
 using Internal.JitInterface;
 using ILCompiler.DependencyAnalysis;
 using ILCompiler.DependencyAnalysisFramework;
+using Internal.IL.Stubs.Bootstrap;
 
 namespace ILCompiler
 {
@@ -204,7 +205,29 @@ namespace ILCompiler
                 AddCompilationRootsForRuntimeExports(module);
            }
 
+            AddCompilationRootsForBootstrap();
+
             AddCompilationRootsForRuntimeExports((EcmaModule)_typeSystemContext.SystemModule);
+        }
+
+        private void AddCompilationRootsForBootstrap()
+        {
+            if (_mainMethod == null)
+                return;
+
+            var owningType = _typeSystemContext.GetWellKnownType(WellKnownType.Object);
+            var stringType = _typeSystemContext.GetWellKnownType(WellKnownType.String);
+
+            var data = new BootstrapData();
+            data.MainMethod = _mainMethod;
+            data.OwningType = owningType;
+            data.StringEEType = _nodeFactory.NecessaryTypeSymbol(stringType);
+            data.StringFixupStart = _nodeFactory.StringTable.StartSymbol;
+            data.StringFixupEnd = _nodeFactory.StringTable.EndSymbol;
+
+            var bootstrapMain = new BootstrapMainMethod(data);
+
+            AddCompilationRoot(bootstrapMain, "Bootstrap Main Method", "__managed__Main");
         }
 
         private void AddCompilationRootsForMainMethod(EcmaModule module)
@@ -215,7 +238,7 @@ namespace ILCompiler
             int entryPointToken = module.PEReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
             _mainMethod = module.GetMethod(MetadataTokens.EntityHandle(entryPointToken));
 
-            AddCompilationRoot(_mainMethod, "Main method", "__managed__Main");
+            AddCompilationRoot(_mainMethod, "Main method", "__program__Main");
         }
 
         private void AddCompilationRootsForRuntimeExports(EcmaModule module)
