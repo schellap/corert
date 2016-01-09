@@ -10,7 +10,7 @@ using Internal.TypeSystem;
 
 namespace ILCompiler.DependencyAnalysis
 {
-    public class ArrayOfEmbeddedDataNode : ObjectNode
+    public class ArrayOfEmbeddedDataNode : ObjectNode, ISymbolNode
     {
         private HashSet<EmbeddedObjectNode> _nestedNodes = new HashSet<EmbeddedObjectNode>();
         private List<EmbeddedObjectNode> _nestedNodesList = new List<EmbeddedObjectNode>();
@@ -23,6 +23,22 @@ namespace ILCompiler.DependencyAnalysis
             _startSymbol = new ObjectAndOffsetSymbolNode(this, 0, startSymbolMangledName);
             _endSymbol = new ObjectAndOffsetSymbolNode(this, 0, endSymbolMangledName);
             _sorter = nodeSorter;
+        }
+
+        public ISymbolNode StartSymbol
+        {
+            get
+            {
+                return _startSymbol;
+            }
+        }
+
+        public ISymbolNode EndSymbol
+        {
+            get
+            {
+                return _endSymbol;
+            }
         }
 
         public void AddEmbeddedObject(EmbeddedObjectNode symbol)
@@ -51,6 +67,22 @@ namespace ILCompiler.DependencyAnalysis
             get
             {
                 return true;
+            }
+        }
+
+        public int Offset
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        public string MangledName
+        {
+            get
+            {
+                return ((ISymbolNode)_startSymbol).MangledName;
             }
         }
 

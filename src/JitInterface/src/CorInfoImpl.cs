@@ -16,6 +16,7 @@ using Internal.IL;
 using ILCompiler;
 using ILCompiler.SymbolReader;
 using ILCompiler.DependencyAnalysis;
+using Internal.IL.Stubs;
 
 namespace Internal.JitInterface
 {
@@ -1237,11 +1238,13 @@ namespace Internal.JitInterface
 
                 if (field.HasRva)
                 {
-                    throw new NotSupportedException("getFieldInfo for RVA mapped field");
+                    fieldAccessor = CORINFO_FIELD_ACCESSOR.CORINFO_FIELD_STATIC_RVA_ADDRESS;
                 }
-
-                fieldAccessor = CORINFO_FIELD_ACCESSOR.CORINFO_FIELD_STATIC_SHARED_STATIC_HELPER;
-                pResult.helper = CorInfoHelpFunc.CORINFO_HELP_READYTORUN_STATIC_BASE;
+                else
+                {
+                    fieldAccessor = CORINFO_FIELD_ACCESSOR.CORINFO_FIELD_STATIC_SHARED_STATIC_HELPER;
+                    pResult.helper = CorInfoHelpFunc.CORINFO_HELP_READYTORUN_STATIC_BASE;
+                }
 
                 ReadyToRunHelperId helperId;
                 if (field.IsThreadStatic)
@@ -1911,7 +1914,15 @@ namespace Internal.JitInterface
         private uint getClassDomainID(CORINFO_CLASS_STRUCT_* cls, ref void* ppIndirection)
         { throw new NotImplementedException("getClassDomainID"); }
         private void* getFieldAddress(CORINFO_FIELD_STRUCT_* field, ref void* ppIndirection)
-        { throw new NotImplementedException("getFieldAddress"); }
+        {
+            ppIndirection = null;
+            FieldDesc fd = (FieldDesc)HandleToObject((IntPtr)field);
+            if (fd is StaticSymbolField)
+            {
+                return (void*)ObjectToHandle(((StaticSymbolField)fd).Symbol);
+            }
+            throw new NotImplementedException("getFieldAddress");
+        }
         private IntPtr getVarArgsHandle(CORINFO_SIG_INFO* pSig, ref void* ppIndirection)
         { throw new NotImplementedException("getVarArgsHandle"); }
         [return: MarshalAs(UnmanagedType.I1)]
@@ -2184,8 +2195,16 @@ namespace Internal.JitInterface
 
                     if (targetObject is FieldDesc)
                     {
-                        // We only support FieldDesc for InitializeArray intrinsic right now.
-                        throw new NotImplementedException("RuntimeFieldHandle is not implemented");
+                        if (targetObject is StaticSymbolField)
+                        {
+                            StaticSymbolField stField = (StaticSymbolField)targetObject;
+                            targetObject = stField.Symbol;
+                        }
+                        else
+                        {
+                            // We only support FieldDesc for InitializeArray intrinsic right now.
+                            throw new NotImplementedException("RuntimeFieldHandle is not implemented");
+                        }
                     }
 
                     reloc.Target = (ISymbolNode)targetObject;

@@ -76,6 +76,10 @@
     <Compile Include="Compiler\SymbolReader\UnmanagedPdbSymbolReader.cs" />
     <Compile Include="Compiler\VirtualMethodCallHelper.cs" />
     <Compile Include="CppCodeGen\CppWriter.cs" />
+    <Compile Include="IL\Stubs\Bootstrap\BootstrapData.cs" />
+    <Compile Include="IL\Stubs\Bootstrap\BootstrapMain.cs" />
+    <Compile Include="IL\Stubs\Bootstrap\BootstrapMethod.cs" />
+    <Compile Include="IL\Stubs\Bootstrap\StaticSymbolField.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Common\src\System\Collections\Generic\ArrayBuilder.cs">
