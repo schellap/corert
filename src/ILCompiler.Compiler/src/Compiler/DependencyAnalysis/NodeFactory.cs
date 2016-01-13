@@ -105,6 +105,11 @@ namespace ILCompiler.DependencyAnalysis
                 return new ExternSymbolNode(name);
             });
 
+            _knownSymbols = new NodeCache<ISymbolNode, KnownSymbolNode>((ISymbolNode key) =>
+            {
+                return new KnownSymbolNode(key, this);
+            });
+
             _internalSymbols = new NodeCache<Tuple<ObjectNode, int, string>, ObjectAndOffsetSymbolNode>(
                 (Tuple<ObjectNode, int, string> key) =>
                 {
@@ -255,6 +260,13 @@ namespace ILCompiler.DependencyAnalysis
             return _internalSymbols.GetOrAdd(new Tuple<ObjectNode, int, string>(obj, offset, name));
         }
 
+        private NodeCache<ISymbolNode, KnownSymbolNode> _knownSymbols;
+        public ISymbolNode KnownSymbol(ISymbolNode knownSymbol)
+        {
+            return _knownSymbols.GetOrAdd(new KnownSymbolNode(knownSymbol, this));
+        }
+
+
         private NodeCache<MethodDesc, ISymbolNode> _methodCode;
         private NodeCache<ISymbolNode, JumpStubNode> _jumpStubs;
 
@@ -372,6 +384,10 @@ namespace ILCompiler.DependencyAnalysis
             NameMangler.CompilationUnitPrefix + "__str_fixup",
             NameMangler.CompilationUnitPrefix + "__str_fixup_end", 
             null);
+        public ArrayOfEmbeddedDataNode KnownSymbols = new ArrayOfEmbeddedDataNode(
+            NameMangler.CompilationUnitPrefix + "__KnownSymbolsStart",
+            NameMangler.CompilationUnitPrefix + "__KnownSymbolsEnd",
+            null);
 
         public Dictionary<TypeDesc, List<MethodDesc>> VirtualSlots = new Dictionary<TypeDesc, List<MethodDesc>>();
 
@@ -384,6 +400,7 @@ namespace ILCompiler.DependencyAnalysis
             graph.AddRoot(GCStaticsRegion, "GC StaticsRegion is always generated");
             graph.AddRoot(ThreadStaticsRegion, "ThreadStaticsRegion is always generated");
             graph.AddRoot(StringTable, "StringTable is always generated");
+            graph.AddRoot(KnownSymbols, "KnownSymbols is always generated");
         }
     }
 

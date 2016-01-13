@@ -39,6 +39,7 @@
     <Compile Include="Compiler\DependencyAnalysis\EETypeOptionalFieldsNode.cs" />
     <Compile Include="Compiler\DependencyAnalysis\EmbeddedObjectNode.cs" />
     <Compile Include="Compiler\DependencyAnalysis\JumpStubNode.cs" />
+    <Compile Include="Compiler\DependencyAnalysis\KnownSymbolNode.cs" />
     <Compile Include="Compiler\DependencyAnalysis\MethodCodeNode.cs" />
     <Compile Include="Compiler\DependencyAnalysis\StringDataNode.cs" />
     <Compile Include="Compiler\DependencyAnalysis\StringIndirectionNode.cs" />
@@ -76,7 +77,6 @@
     <Compile Include="Compiler\SymbolReader\UnmanagedPdbSymbolReader.cs" />
     <Compile Include="Compiler\VirtualMethodCallHelper.cs" />
     <Compile Include="CppCodeGen\CppWriter.cs" />
-    <Compile Include="IL\Stubs\Bootstrap\BootstrapData.cs" />
     <Compile Include="IL\Stubs\Bootstrap\BootstrapMain.cs" />
     <Compile Include="IL\Stubs\Bootstrap\BootstrapMethod.cs" />
     <Compile Include="IL\Stubs\Bootstrap\StaticSymbolField.cs" />

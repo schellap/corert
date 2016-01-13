@@ -218,16 +218,13 @@ namespace ILCompiler
             var owningType = _typeSystemContext.GetWellKnownType(WellKnownType.Object);
             var stringType = _typeSystemContext.GetWellKnownType(WellKnownType.String);
 
-            var data = new BootstrapData();
-            data.MainMethod = _mainMethod;
-            data.OwningType = owningType;
-            data.StringEEType = _nodeFactory.NecessaryTypeSymbol(stringType);
-            data.StringFixupStart = _nodeFactory.StringTable.StartSymbol;
-            data.StringFixupEnd = _nodeFactory.StringTable.EndSymbol;
-
-            var bootstrapMain = new BootstrapMainMethod(data);
-
+            var bootstrapMain = new BootstrapMainMethod(owningType, _nodeFactory.KnownSymbols);
             AddCompilationRoot(bootstrapMain, "Bootstrap Main Method", "__managed__Main");
+
+            _nodeFactory.KnownSymbol(_nodeFactory.MethodEntrypoint(_mainMethod));
+            _nodeFactory.KnownSymbol(_nodeFactory.StringTable.StartSymbol);
+            _nodeFactory.KnownSymbol(_nodeFactory.StringTable.EndSymbol);
+            _nodeFactory.KnownSymbol(_nodeFactory.NecessaryTypeSymbol(stringType));
         }
 
         private void AddCompilationRootsForMainMethod(EcmaModule module)
