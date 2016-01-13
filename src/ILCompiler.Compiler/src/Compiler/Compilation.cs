@@ -15,6 +15,7 @@ using Internal.JitInterface;
 using ILCompiler.DependencyAnalysis;
 using ILCompiler.DependencyAnalysisFramework;
 using Internal.IL.Stubs.Bootstrap;
+using Internal.IL.Stubs;
 
 namespace ILCompiler
 {
@@ -205,9 +206,9 @@ namespace ILCompiler
                 AddCompilationRootsForRuntimeExports(module);
            }
 
-            AddCompilationRootsForBootstrap();
-
             AddCompilationRootsForRuntimeExports((EcmaModule)_typeSystemContext.SystemModule);
+
+            AddCompilationRootsForBootstrap();
         }
 
         private void AddCompilationRootsForBootstrap()
@@ -221,10 +222,15 @@ namespace ILCompiler
             var bootstrapMain = new BootstrapMainMethod(owningType, _nodeFactory.KnownSymbols);
             AddCompilationRoot(bootstrapMain, "Bootstrap Main Method", "__managed__Main");
 
-            _nodeFactory.KnownSymbol(_nodeFactory.MethodEntrypoint(_mainMethod));
-            _nodeFactory.KnownSymbol(_nodeFactory.StringTable.StartSymbol);
-            _nodeFactory.KnownSymbol(_nodeFactory.StringTable.EndSymbol);
-            _nodeFactory.KnownSymbol(_nodeFactory.NecessaryTypeSymbol(stringType));
+            ISymbolNode[] symbols = new ISymbolNode[] {
+                _nodeFactory.KnownSymbol(_nodeFactory.MethodEntrypoint(_mainMethod)),
+                _nodeFactory.KnownSymbol(_nodeFactory.StringTable.StartSymbol),
+                _nodeFactory.KnownSymbol(_nodeFactory.StringTable.EndSymbol),
+                _nodeFactory.KnownSymbol(_nodeFactory.NecessaryTypeSymbol(stringType))
+            };
+
+            MethodCodeNode node = (MethodCodeNode) _nodeFactory.MethodEntrypoint(bootstrapMain);
+            node.AddDependencies(symbols, "Bootstrap dependencies");
         }
 
         private void AddCompilationRootsForMainMethod(EcmaModule module)
@@ -356,6 +362,10 @@ namespace ILCompiler
         /// </summary>
         public object GetFieldRvaData(FieldDesc field)
         {
+            if (field is StaticSymbolField)
+            {
+                return ((StaticSymbolField)field).Symbol;
+            }
             return _nodeFactory.ReadOnlyDataBlob(NameMangler.GetMangledFieldName(field),
                 ((EcmaField)field).GetFieldRvaData(), _typeSystemContext.Target.PointerSize);
         }

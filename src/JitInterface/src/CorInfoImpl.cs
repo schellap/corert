@@ -1917,9 +1917,10 @@ namespace Internal.JitInterface
         {
             ppIndirection = null;
             FieldDesc fd = (FieldDesc)HandleToObject((IntPtr)field);
-            if (fd is StaticSymbolField)
+            if (fd.HasRva)
             {
-                return (void*)ObjectToHandle(((StaticSymbolField)fd).Symbol);
+                object symbol = _compilation.GetFieldRvaData(fd);
+                return (void*)ObjectToHandle(symbol);
             }
             throw new NotImplementedException("getFieldAddress");
         }

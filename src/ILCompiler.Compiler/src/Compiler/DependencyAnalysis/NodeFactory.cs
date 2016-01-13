@@ -266,7 +266,6 @@ namespace ILCompiler.DependencyAnalysis
             return _knownSymbols.GetOrAdd(new KnownSymbolNode(knownSymbol, this));
         }
 
-
         private NodeCache<MethodDesc, ISymbolNode> _methodCode;
         private NodeCache<ISymbolNode, JumpStubNode> _jumpStubs;
 

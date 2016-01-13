@@ -2,17 +2,19 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Internal.TypeSystem;
 
 namespace ILCompiler.DependencyAnalysis
 {
-    internal class MethodCodeNode : ObjectNode, INodeWithFrameInfo, INodeWithDebugInfo, ISymbolNode
+    internal class MethodCodeNode : ObjectNode, INodeWithNonRelocDependencies, INodeWithFrameInfo, INodeWithDebugInfo, ISymbolNode
     {
         private MethodDesc _method;
         private ObjectData _methodCode;
         private FrameInfo[] _frameInfos;
         private DebugLocInfo[] _debugLocInfos;
+        private DependencyList _dependencies;
 
         public MethodCodeNode(MethodDesc method)
         {
@@ -101,6 +103,20 @@ namespace ILCompiler.DependencyAnalysis
         {
             Debug.Assert(_debugLocInfos == null);
             _debugLocInfos = debugLocInfos;
+        }
+
+        protected override DependencyList ComputeNonRelocationBasedDependencies(NodeFactory context)
+        {
+            return _dependencies;
+        }
+
+        public void AddDependencies(IEnumerable<object> dependencies, string reason)
+        {
+            if (_dependencies == null)
+                _dependencies = new DependencyList();
+
+            foreach (object node in dependencies)
+                _dependencies.Add(node, reason);
         }
     }
 }
