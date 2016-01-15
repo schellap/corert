@@ -6,77 +6,65 @@ using System;
 
 namespace Internal.IL.Stubs.Bootstrap
 {
+    /// <summary>
+    /// Bootstrap code that does initialization, Main invocation
+    /// and shutdown of the runtime.
+    /// </summary>
     public sealed class BootstrapMainMethod : BootstrapMethod
     {
-        private BootstrapData _data;
-        private ILEmitter _emitter;
-        private ILCodeStream _codeStream;
+        private MethodDesc _mainMethod;
 
-        public BootstrapMainMethod(BootstrapData data)
-            : base(data.OwningType)
+        public BootstrapMainMethod(DefType owningType, MethodDesc mainMethod)
+            : base(owningType)
         {
-            _data = data;
+            _mainMethod = mainMethod;
         }
 
         public override string Name
         {
             get
             {
-                return "__Internal_IL_Stubs_BootstrapMain";
+                return "Internal_IL_Stubs_BootstrapMain";
             }
         }
 
         public override MethodIL EmitIL()
         {
-            _emitter = new ILEmitter();
-            _codeStream = _emitter.NewCodeStream();
+            ILEmitter emitter = new ILEmitter();
+            ILCodeStream codeStream = emitter.NewCodeStream();
+            ILLocalVariable returnValue = emitter.NewLocal(Context.GetWellKnownType(WellKnownType.Int32));
 
-            TypeDesc type = Context.SystemModule.GetType("System.Runtime", "BootstrapHelpers");
-            MethodDesc main = type.GetMethod("Main", null);
+            TypeDesc bootstrap = Context.SystemModule.GetType("System.Runtime", "BootstrapHelpers");
 
-            object[] symbols = {
-                _data.StringFixupStart,
-                _data.StringFixupEnd,
-                _data.StringEEType
-            };
-
-            var totalLocalNum = _emitter.NewLocal(Context.GetWellKnownType(WellKnownType.Array));
-
-            _codeStream.EmitLdc(symbols.Length + 1);
-            _codeStream.Emit(ILOpcode.newarr, _emitter.NewToken(Context.GetWellKnownType(WellKnownType.IntPtr)));
-            _codeStream.Emit(ILOpcode.stloc_0);
-
-            int current = 0;
-            foreach (var symbol in symbols)
+            codeStream.Emit(ILOpcode.call, emitter.NewToken(bootstrap.GetMethod("Initialize", null)));
+            if (_mainMethod.Signature.Length > 0)
             {
-                var fs = new StaticSymbolField(_data.OwningType, symbol);
-                current = AppendToSymbolArray(current, ILOpcode.ldsflda, _emitter.NewToken(fs));
+                MethodDesc getArgs = bootstrap.GetMethod("GetCommandLineArgs", null);
+                codeStream.Emit(ILOpcode.ldarg_0); // argc
+                codeStream.Emit(ILOpcode.ldarg_1); // argv
+                codeStream.Emit(ILOpcode.call, emitter.NewToken(getArgs));
             }
-            current = AppendToSymbolArray(current, ILOpcode.ldftn, _emitter.NewToken(_data.MainMethod));
 
-            _codeStream.Emit(ILOpcode.ldloc_0);
-            _codeStream.EmitLdArg(0);
-            _codeStream.EmitLdArg(1);
-            _codeStream.Emit(ILOpcode.call, _emitter.NewToken(main));
-            _codeStream.Emit(ILOpcode.ret);
+            codeStream.Emit(ILOpcode.call, emitter.NewToken(_mainMethod));
 
-            return _emitter.Link();
+            if (_mainMethod.Signature.ReturnType == Context.GetWellKnownType(WellKnownType.Void))
+            {
+                // Get default exit code if void return;
+                TypeDesc environment = Context.SystemModule.GetType("System", "Environment");
+                MethodDesc defaultExitCode = environment.GetMethod("get_ExitCode", null);
+                codeStream.Emit(ILOpcode.call, emitter.NewToken(defaultExitCode));
+            }
+            codeStream.EmitStLoc(returnValue);
+
+            codeStream.Emit(ILOpcode.call, emitter.NewToken(bootstrap.GetMethod("Shutdown", null)));
+
+            codeStream.EmitLdLoc(returnValue);
+            codeStream.Emit(ILOpcode.ret);
+
+            return emitter.Link();
         }
 
-        private int AppendToSymbolArray(int index, ILOpcode ldSymbolOp, ILToken symbol)
-        {
-            var intPtrType = Context.GetWellKnownType(WellKnownType.IntPtr);
-
-            _codeStream.Emit(ILOpcode.ldloc_0);
-            _codeStream.EmitLdc(index++);
-            _codeStream.Emit(ILOpcode.ldelema, _emitter.NewToken(intPtrType));
-            _codeStream.Emit(ldSymbolOp, symbol);
-            _codeStream.Emit(ILOpcode.stobj, _emitter.NewToken(intPtrType));
-
-            return index;
-        }
-
-        protected override MethodSignature BootstrapMethodSignature()
+        protected override MethodSignature GetBootstrapMethodSignature()
         {
             return new MethodSignature(MethodSignatureFlags.Static, 0, Context.GetWellKnownType(WellKnownType.Int32),
                 new TypeDesc[2] { Context.GetWellKnownType(WellKnownType.Int32), Context.GetWellKnownType(WellKnownType.IntPtr) });

@@ -4,6 +4,9 @@ using Internal.IL.Stubs;
 
 namespace ILCompiler.Compiler.IL.Stubs
 {
+    /// <summary>
+    /// Bootstrap method base for IL methods that run during bootstrapping the runtime.
+    /// </summary>
     public abstract class BootstrapMethod : ILStubMethod
     {
         protected MethodSignature _signature;
@@ -37,7 +40,7 @@ namespace ILCompiler.Compiler.IL.Stubs
             {
                 if (_signature == null)
                 {
-                    _signature = BootstrapMethodSignature();
+                    _signature = GetBootstrapMethodSignature();
                 }
 
                 return _signature;
@@ -45,7 +48,7 @@ namespace ILCompiler.Compiler.IL.Stubs
         }
 
         public abstract override string Name { get; }
-        protected abstract MethodSignature BootstrapMethodSignature();
+        protected abstract MethodSignature GetBootstrapMethodSignature();
     }
 
 }

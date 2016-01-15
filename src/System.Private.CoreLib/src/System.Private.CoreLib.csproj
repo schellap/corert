@@ -38,6 +38,9 @@
     <DefineConstants>ARM64;BIT64;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Common\src\Internal\NativeFormat\NativeFormatReader.cs">
+      <Link>System\Runtime\Bootstrap\NativeFormatReader.cs</Link>
+    </Compile>
     <Compile Include="..\..\Common\src\System\SR.Core.cs">
       <Link>Resources\Common</Link>
     </Compile>
@@ -91,7 +94,9 @@
     <Compile Include="Interop\Interop.manual.cs" />
     <Compile Include="Microsoft\Win32\SafeHandles\SafeWaitHandle.cs" />
     <Compile Include="Microsoft\Win32\SafeHandles\Win32SafeHandles.cs" />
-    <Compile Include="BootstrapHelpers.cs" />
+    <Compile Include="System\Runtime\Bootstrap\BootstrapHelpers.cs" />
+    <Compile Include="System\Runtime\Bootstrap\BootstrapUTF8Encoding.cs" />
+    <Compile Include="System\Runtime\Bootstrap\StringFixup.cs" />
     <Compile Include="System\__Canon.cs" />
     <Compile Include="System\Action.cs" />
     <Compile Include="System\Activator.cs" />
@@ -452,13 +457,13 @@
       <Compile Include="..\..\Common\src\Interop\Windows\Interop.BOOL.cs" />
   </ItemGroup>
   <ItemGroup>
-    <!-- CORERT-TODO: Port to Unix -->
-    <Compile Include="..\..\Common\src\Interop\Windows\Interop.Libraries.cs" />
-    <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.Errors.cs" />
-    <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.MEMORY_BASIC_INFORMATION.cs" />
-    <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.VirtualQuery.cs" />
-    <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.SYSTEM_INFO.cs" />
-    <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.GetNativeSystemInfo.cs" />
+      <!-- CORERT-TODO: Port to Unix -->
+      <Compile Include="..\..\Common\src\Interop\Windows\Interop.Libraries.cs" />
+      <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.Errors.cs" />
+      <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.MEMORY_BASIC_INFORMATION.cs" />
+      <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.VirtualQuery.cs" />
+      <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.SYSTEM_INFO.cs" />
+      <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.GetNativeSystemInfo.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetsUnix)'=='true'">
       <Compile Include="System\Globalization\CultureInfo.Dummy.cs" />

@@ -212,21 +212,14 @@ namespace ILCompiler
 
         private void AddCompilationRootsForBootstrap()
         {
+            if (Options.IsCppCodeGen)
+                return;
+
             if (_mainMethod == null)
                 return;
 
             var owningType = _typeSystemContext.GetWellKnownType(WellKnownType.Object);
-            var stringType = _typeSystemContext.GetWellKnownType(WellKnownType.String);
-
-            var data = new BootstrapData();
-            data.MainMethod = _mainMethod;
-            data.OwningType = owningType;
-            data.StringEEType = _nodeFactory.NecessaryTypeSymbol(stringType);
-            data.StringFixupStart = _nodeFactory.StringTable.StartSymbol;
-            data.StringFixupEnd = _nodeFactory.StringTable.EndSymbol;
-
-            var bootstrapMain = new BootstrapMainMethod(data);
-
+            var bootstrapMain = new BootstrapMainMethod(owningType, _mainMethod);
             AddCompilationRoot(bootstrapMain, "Bootstrap Main Method", "__managed__Main");
         }
 

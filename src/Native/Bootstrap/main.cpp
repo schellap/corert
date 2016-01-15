@@ -60,7 +60,6 @@ void __range_check_fail()
 {
     throw "ThrowRangeOverflowException";
 }
-
 #endif // CPPCODEGEN
 
 
@@ -246,6 +245,8 @@ extern "C" void RhReRegisterForFinalize()
     throw "RhReRegisterForFinalize";
 }
 
+extern "C" void * g_pDispatchMapTemporaryWorkaround;
+void * g_pDispatchMapTemporaryWorkaround;
 #ifdef CPPCODEGEN
 Object * __get_commandline_args(int argc, char * argv[])
 {
@@ -259,7 +260,7 @@ Object * __get_commandline_args(int argc, char * argv[])
 
 	return (Object *)args;
 }
-#else // CPPCODEGEN
+#else // !CPPCODEGEN
 SimpleModuleHeader __module = { NULL, NULL /* &__gcStatics, &__gcStaticsDescs */ };
 
 extern "C" int __managed__Main(int argc, char* argv[]);
@@ -267,6 +268,8 @@ extern "C" int __managed__Main(int argc, char* argv[]);
 extern "C" void* __InterfaceDispatchMapTable;
 extern "C" void* __GCStaticRegionStart;
 extern "C" void* __GCStaticRegionEnd;
+extern "C" void __StringTableStart();
+extern "C" void __StringTableEnd();
 int __statics_fixup()
 {
     for (void** currentBlock = &__GCStaticRegionStart; currentBlock < &__GCStaticRegionEnd; currentBlock++)
@@ -277,6 +280,28 @@ int __statics_fixup()
     }
 
     return 0;
+}
+
+extern "C" void* GetModuleSection(int id, int* length)
+{
+    struct ModuleSectionSymbol
+    {
+        void* symbolId;
+        size_t length;
+    };
+
+    // TODO: make this table global?
+    // !!!
+    // The order should be kept in sync with ModuleSectionIds in BootstrapHelpers.cs in ILC.
+    static ModuleSectionSymbol symbols[] = {
+        { __EEType_System_Private_CoreLib_System_String,
+                sizeof(void*) },
+        { __StringTableStart,
+                (uint8_t*)__StringTableEnd - (uint8_t*)__StringTableStart }
+    };
+
+    *length = (int) symbols[id].length;
+    return symbols[id].symbolId;
 }
 
 int main(int argc, char * argv[]) {

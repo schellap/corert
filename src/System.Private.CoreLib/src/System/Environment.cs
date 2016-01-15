@@ -111,6 +111,9 @@ namespace System
             }
         }
 
+        // Assume default initial 0 if never set.
+        public static int ExitCode { get; set; }
+
         static Environment()
         {
             RuntimeImports.RhEnableShutdownFinalization(0xffffffffu);
