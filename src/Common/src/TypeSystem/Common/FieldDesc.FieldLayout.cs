@@ -12,7 +12,7 @@ namespace Internal.TypeSystem
     {
         private int _offset = FieldAndOffset.InvalidOffset;
 
-        public virtual int Offset
+        public int Offset
         {
             get
             {
