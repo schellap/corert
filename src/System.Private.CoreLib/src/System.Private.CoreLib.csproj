@@ -39,7 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Common\src\Internal\NativeFormat\NativeFormatReader.cs">
-      <Link>System\Runtime\Bootstrap\NativeFormatReader.cs</Link>
+      <Link>Internal\Runtime\CompilerHelpers\StartupCode\NativeFormatReader.cs</Link>
     </Compile>
     <Compile Include="..\..\Common\src\System\SR.Core.cs">
       <Link>Resources\Common</Link>
@@ -48,6 +48,8 @@
   <ItemGroup>
     <Compile Include="Internal\Diagnostics\ExceptionExtensions.cs" />
     <Compile Include="Internal\Diagnostics\StackTraceHelper.cs" />
+    <Compile Include="Internal\Runtime\CompilerHelpers\StartupCode\LowLevelUTF8Encoding.cs" />
+    <Compile Include="Internal\Runtime\CompilerHelpers\StartupCode\StartupCodeHelpers.cs" />
     <Compile Include="Internal\Runtime\CompilerHelpers\ThrowHelpers.cs" />
     <Compile Include="Internal\Runtime\CompilerHelpers\MathHelpers.cs" />
     <Compile Include="Internal\Runtime\CompilerServices\FixupRuntimeTypeHandle.cs" />
@@ -95,9 +97,6 @@
     <Compile Include="Interop\Interop.manual.cs" />
     <Compile Include="Microsoft\Win32\SafeHandles\SafeWaitHandle.cs" />
     <Compile Include="Microsoft\Win32\SafeHandles\Win32SafeHandles.cs" />
-    <Compile Include="System\Runtime\Bootstrap\BootstrapHelpers.cs" />
-    <Compile Include="System\Runtime\Bootstrap\BootstrapUTF8Encoding.cs" />
-    <Compile Include="System\Runtime\Bootstrap\StringFixup.cs" />
     <Compile Include="System\__Canon.cs" />
     <Compile Include="System\Action.cs" />
     <Compile Include="System\Activator.cs" />
@@ -471,14 +470,14 @@
       <Compile Include="..\..\Common\src\Interop\Windows\mincore\Interop.CoCreateGuid.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetsUnix)'=='true'">
-      <Compile Include="System\Globalization\CultureInfo.Dummy.cs" />
-      <Compile Include="System\Globalization\CompareInfo.Dummy.cs" />
-      <Compile Include="System\Globalization\CultureData.Dummy.cs" />
-      <Compile Include="System\Globalization\TextInfo.Dummy.cs" />
-      <Compile Include="System\Globalization\CalendarData.Dummy.cs" />
-      <Compile Include="System\Environment.Unix.cs" />
-      <Compile Include="..\..\Common\src\Interop\Unix\System.Private.CoreLib.Native\Interop.Environment.cs" />
-      <Compile Include="..\..\Common\src\Interop\Unix\System.Private.CoreLib.Native\Interop.Libraries.cs" />
+    <Compile Include="System\Globalization\CultureInfo.Dummy.cs" />
+    <Compile Include="System\Globalization\CompareInfo.Dummy.cs" />
+    <Compile Include="System\Globalization\CultureData.Dummy.cs" />
+    <Compile Include="System\Globalization\TextInfo.Dummy.cs" />
+    <Compile Include="System\Globalization\CalendarData.Dummy.cs" />
+    <Compile Include="System\Environment.Unix.cs" />
+    <Compile Include="..\..\Common\src\Interop\Unix\System.Private.CoreLib.Native\Interop.Environment.cs" />
+    <Compile Include="..\..\Common\src\Interop\Unix\System.Private.CoreLib.Native\Interop.Libraries.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Internal\Reflection\Tracing\ReflectionTrace.Public.cs" />
@@ -550,8 +549,7 @@
   -->
   <PropertyGroup>
     <!-- Exclude AssemblyInfoPartialFile -->
-    <AssemblyInfoPartialFile>
-    </AssemblyInfoPartialFile>
+    <AssemblyInfoPartialFile></AssemblyInfoPartialFile>
   </PropertyGroup>
   <Target Name="AddDesignTimeFacadeReferences" />
 </Project>

@@ -14,7 +14,7 @@ using Internal.IL;
 using Internal.JitInterface;
 using ILCompiler.DependencyAnalysis;
 using ILCompiler.DependencyAnalysisFramework;
-using Internal.IL.Stubs.Bootstrap;
+using Internal.IL.Stubs.StartupCode;
 
 namespace ILCompiler
 {
@@ -99,6 +99,21 @@ namespace ILCompiler
             get
             {
                 return _mainMethod;
+            }
+        }
+
+        private MethodDesc _startupCodeMainMethod;
+
+        internal MethodDesc StartupCodeMainMethod
+        {
+            get
+            {
+                if (_startupCodeMainMethod == null)
+                {
+                    var owningType = _typeSystemContext.SystemModule.GetGlobalModuleType();
+                    _startupCodeMainMethod = new StartupCodeMainMethod(owningType, _mainMethod);
+                }
+                return _startupCodeMainMethod;
             }
         }
 
@@ -205,22 +220,7 @@ namespace ILCompiler
                 AddCompilationRootsForRuntimeExports(module);
            }
 
-            AddCompilationRootsForBootstrap();
-
             AddCompilationRootsForRuntimeExports((EcmaModule)_typeSystemContext.SystemModule);
-        }
-
-        private void AddCompilationRootsForBootstrap()
-        {
-            if (Options.IsCppCodeGen)
-                return;
-
-            if (_mainMethod == null)
-                return;
-
-            var owningType = _typeSystemContext.GetWellKnownType(WellKnownType.Object);
-            var bootstrapMain = new BootstrapMainMethod(owningType, _mainMethod);
-            AddCompilationRoot(bootstrapMain, "Bootstrap Main Method", "__managed__Main");
         }
 
         private void AddCompilationRootsForMainMethod(EcmaModule module)
@@ -231,7 +231,7 @@ namespace ILCompiler
             int entryPointToken = module.PEReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
             _mainMethod = module.GetMethod(MetadataTokens.EntityHandle(entryPointToken));
 
-            AddCompilationRoot(_mainMethod, "Main method", "__program__Main");
+            AddCompilationRoot(StartupCodeMainMethod, "Startup Code Main Method", "__managed__Main");
         }
 
         private void AddCompilationRootsForRuntimeExports(EcmaModule module)

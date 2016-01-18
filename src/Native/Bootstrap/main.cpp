@@ -247,29 +247,40 @@ extern "C" void RhReRegisterForFinalize()
 
 extern "C" void * g_pDispatchMapTemporaryWorkaround;
 void * g_pDispatchMapTemporaryWorkaround;
-#ifdef CPPCODEGEN
-Object * __get_commandline_args(int argc, char * argv[])
+
+extern "C" void __StringTableStart();
+extern "C" void __StringTableEnd();
+extern "C" void* GetModuleSection(int id, int* length)
 {
-	MethodTable * pStringArrayMT = System::String__Array::__getMethodTable();
-	System::Array * args = (System::Array *)__allocate_array(argc, pStringArrayMT);
+    struct ModuleSectionSymbol
+    {
+        void* symbolId;
+        size_t length;
+    };
 
-	for (int i = 0; i < argc; i++)
-	{
-		__stelem_ref(args, i, __load_string_literal(argv[i]));
-	}
+    // TODO: emit this table from the compiler per module.
+    // !!!
+    // The order should be kept in sync with ModuleSectionIds in BootstrapHelpers.cs in ILC.
+    static ModuleSectionSymbol symbols[] = {
+#ifdef CPPCODEGEN
+        { System::String::__getMethodTable(), sizeof(void*) },
+        { nullptr, 0 },
+#else
+        { __EEType_System_Private_CoreLib_System_String, sizeof(void*) },
+        { __StringTableStart, (uint8_t*)__StringTableEnd - (uint8_t*)__StringTableStart },
+#endif
+    };
 
-	return (Object *)args;
+    *length = (int) symbols[id].length;
+    return symbols[id].symbolId;
 }
-#else // !CPPCODEGEN
-SimpleModuleHeader __module = { NULL, NULL /* &__gcStatics, &__gcStaticsDescs */ };
 
-extern "C" int __managed__Main(int argc, char* argv[]);
+#ifndef CPPCODEGEN
+SimpleModuleHeader __module = { NULL, NULL /* &__gcStatics, &__gcStaticsDescs */ };
 
 extern "C" void* __InterfaceDispatchMapTable;
 extern "C" void* __GCStaticRegionStart;
 extern "C" void* __GCStaticRegionEnd;
-extern "C" void __StringTableStart();
-extern "C" void __StringTableEnd();
 int __statics_fixup()
 {
     for (void** currentBlock = &__GCStaticRegionStart; currentBlock < &__GCStaticRegionEnd; currentBlock++)
@@ -282,29 +293,14 @@ int __statics_fixup()
     return 0;
 }
 
-extern "C" void* GetModuleSection(int id, int* length)
+#if defined(_WIN32)
+extern "C" int __managed__Main(int argc, wchar_t* argv[]);
+int wmain(int argc, wchar_t* argv[])
+#else
+extern "C" int __managed__Main(int argc, char* argv[]);
+int main(int argc, char* argv[])
+#endif
 {
-    struct ModuleSectionSymbol
-    {
-        void* symbolId;
-        size_t length;
-    };
-
-    // TODO: make this table global?
-    // !!!
-    // The order should be kept in sync with ModuleSectionIds in BootstrapHelpers.cs in ILC.
-    static ModuleSectionSymbol symbols[] = {
-        { __EEType_System_Private_CoreLib_System_String,
-                sizeof(void*) },
-        { __StringTableStart,
-                (uint8_t*)__StringTableEnd - (uint8_t*)__StringTableStart }
-    };
-
-    *length = (int) symbols[id].length;
-    return symbols[id].symbolId;
-}
-
-int main(int argc, char * argv[]) {
     if (__initialize_runtime() != 0) return -1;
     __register_module(&__module);
     g_pDispatchMapTemporaryWorkaround = (void*)&__InterfaceDispatchMapTable;

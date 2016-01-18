@@ -13,6 +13,10 @@ elseif(CLR_CMAKE_PLATFORM_UNIX)
         ../platform.unix.cpp)
 endif()
 
+if(WIN32)
+    add_compile_options(/Zc:wchar_t)
+endif()
+
 add_library(bootstrapper STATIC ${SOURCES})
 
 # Install the static bootstrapper library

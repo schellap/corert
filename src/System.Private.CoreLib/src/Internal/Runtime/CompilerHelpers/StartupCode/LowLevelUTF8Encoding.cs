@@ -1,13 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#define FASTLOOP
+
+using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Text;
 
-namespace System.Runtime.Bootstrap
+namespace Internal.Runtime.CompilerHelpers
 {
+    // !!!!
     // This code is primarily copied from UTF8Encoding.cs' GetCharCount and GetChars
-    class BootstrapUTF8Encoding
+    // but has all the string literals removed. The code is used for runtime startup and
+    // primarily for loading static string literals. So do not put anything here
+    // that would require the runtime or strings to be already initialized.
+    class LowLevelUTF8Encoding
     {
         class UTF8DecodeException : Exception
         {
