@@ -98,6 +98,8 @@ install_dotnet_cli()
         if [ "${__build_os_lowercase}" == "linux" ]; then
             __build_os_lowercase="ubuntu"
         fi
+
+        export NUGET_PACKAGES=${__packageroot}/nuget
         
         local __cli_version=1.0.0.000973
         local __build_arch_lowercase=$(echo "${__BuildArch}" | tr '[:upper:]' '[:lower:]')
