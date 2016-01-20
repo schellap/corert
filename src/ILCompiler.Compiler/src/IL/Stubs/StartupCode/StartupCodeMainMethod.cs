@@ -56,8 +56,10 @@ namespace Internal.IL.Stubs.StartupCode
             codeStream.Emit(ILOpcode.call, emitter.NewToken(startup.GetMethod("Initialize", null)));
 
             // Initialize command line args
+            // TODO: For Windows change to "InitializeCommandLineArgsW" with wmain wchar_t change.
             string initArgsName = (Context.Target.OperatingSystem == TargetOS.Windows)
-                                ? "InitializeCommandLineArgsW" : "InitializeCommandLineArgs";
+                                ? "InitializeCommandLineArgs"
+                                : "InitializeCommandLineArgs";
             MethodDesc initArgs = startup.GetMethod(initArgsName, null);
             codeStream.Emit(ILOpcode.ldarg_0); // argc
             codeStream.Emit(ILOpcode.ldarg_1); // argv

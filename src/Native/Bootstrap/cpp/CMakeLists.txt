@@ -15,12 +15,6 @@ elseif(CLR_CMAKE_PLATFORM_UNIX)
         ../platform.unix.cpp)
 endif()
 
-if(WIN32)
-    add_compile_options(/Zc:wchar_t)
-    add_definitions(-DUNICODE)
-    add_definitions(-D_UNICODE)
-endif()
-
 add_library(bootstrappercpp STATIC ${SOURCES})
 
 # Install the static bootstrappercpp library
