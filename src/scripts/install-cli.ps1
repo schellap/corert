@@ -5,8 +5,7 @@
 
 param (
     [string] $InstallDir = $null,
-    [string] $TargetPlatform = "x64",
-    [string] $Version = "Latest"
+    [string] $TargetPlatform = "x64"
 )
 
 # The below code is from dotnet/cli install.ps1
@@ -16,8 +15,8 @@ $ProgressPreference="SilentlyContinue"
 
 $Feed="https://dotnetcli.blob.core.windows.net/dotnet"
 $Channel="dev"
-$DotNetFileName="dotnet-win-" + $TargetPlatform + ".$Version.zip"
-$DotNetUrl="$Feed/$Channel/Binaries/$Version"
+$DotNetFileName="dotnet-win-" + $TargetPlatform + ".latest.zip"
+$DotNetUrl="$Feed/$Channel/Binaries/Latest"
 
 function say($str)
 {
