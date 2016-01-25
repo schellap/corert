@@ -18,7 +18,7 @@
         <Task>
             <Code><![CDATA[
                 TimeZoneInfo tzPST = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneId);
-                NightlyDateSuffix = TimeZoneInfo.ConvertTime(System.DateTime.UtcNow, tzPST).ToString("MMddHH");
+                NightlyDateSuffix = TimeZoneInfo.ConvertTime(System.DateTime.UtcNow, tzPST).ToString("MMdd");
             ]]>
             </Code>
         </Task>
@@ -36,13 +36,17 @@
         <GetNightlyDateSuffix Condition="'$(ToolchainMilestone)'=='nightly'" TimeZoneId="$(PacificTimeZoneId)">
             <Output PropertyName="NightlyDateSuffix" TaskParameter="NightlyDateSuffix" />
         </GetNightlyDateSuffix>
+        <Exec Condition="'$(ToolchainMilestone)'=='nightly'" ConsoleToMSBuild="true" Command="git rev-list --count HEAD">
+            <Output PropertyName="NightlySourceSuffix" TaskParameter="ConsoleOutput" />
+        </Exec>
 
         <!-- Property needed for creating nupkgs -->
         <PropertyGroup>
             <VerIncSuffix>00001</VerIncSuffix>
+            <NightlySourceSuffix>$([System.String]::Copy('$(NightlySourceSuffix)').PadLeft(6, '0'))</NightlySourceSuffix>
+            <VerIncSuffix Condition="'$(ToolchainMilestone)'=='nightly'">$(NightlyDateSuffix)-$(NightlySourceSuffix)</VerIncSuffix>
             <MilestoneVer>$(ToolchainMilestone)-$(VerIncSuffix)</MilestoneVer>
             <MilestoneVer Condition="'$(ToolchainMilestone)'==''">prerelease-$(VerIncSuffix)</MilestoneVer>
-            <MilestoneVer Condition="'$(ToolchainMilestone)'=='nightly'">$(ToolchainMilestone)-$(NightlyDateSuffix)</MilestoneVer>
             <ToolchainVersion>1.0.4-$(MilestoneVer)</ToolchainVersion>
             <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
             <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)</NuPkgRid>
