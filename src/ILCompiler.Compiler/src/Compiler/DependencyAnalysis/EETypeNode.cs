@@ -177,6 +177,17 @@ namespace ILCompiler.DependencyAnalysis
             }
 
             dependencyList.Add(factory.EETypeOptionalFields(_optionalFieldsBuilder), "EEType optional fields");
+
+            if (_type is MetadataType)
+            {
+                var module = ((MetadataType)_type).Module;
+                MethodDesc cctor = module.GetGlobalModuleType().GetStaticConstructor();
+                if (cctor != null)
+                {
+                    dependencyList.Add(factory.ModuleCtorIndirection(module), "Module initializer");
+                }
+            }
+
             return dependencyList;
         }
 
@@ -184,6 +195,15 @@ namespace ILCompiler.DependencyAnalysis
         {
             get
             {
+                if (_type is MetadataType)
+                {
+                    MethodDesc cctor = ((MetadataType)_type).Module.GetGlobalModuleType().GetStaticConstructor();
+                    if (cctor != null)
+                    {
+                        return true;
+                    }
+                }
+
                 // non constructed types don't have vtables
                 if (!_constructed)
                     return false;

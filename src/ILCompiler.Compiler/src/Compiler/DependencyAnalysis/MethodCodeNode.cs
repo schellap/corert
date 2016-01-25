@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using Internal.TypeSystem;
+using ILCompiler.DependencyAnalysisFramework;
 
 namespace ILCompiler.DependencyAnalysis
 {
@@ -53,6 +54,22 @@ namespace ILCompiler.DependencyAnalysis
                 return _methodCode != null;
             }
         }
+
+        protected override DependencyList ComputeNonRelocationBasedDependencies(NodeFactory factory)
+        {
+            DependencyList dependencyList = new DependencyNodeCore<NodeFactory>.DependencyList();
+            if (_method.OwningType is MetadataType)
+            {
+                var module = ((MetadataType)_method.OwningType).Module;
+                MethodDesc cctor = module.GetGlobalModuleType().GetStaticConstructor();
+                if (cctor != null)
+                {
+                    dependencyList.Add(factory.ModuleCtorIndirection(module), "Module initializer");
+                }
+            }
+            return dependencyList;
+        }
+
 
         string ISymbolNode.MangledName
         {

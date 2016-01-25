@@ -95,6 +95,16 @@ namespace ILCompiler
                 return null;
             }
         }
+
+        public IEnumerable<EcmaModule> GetModules()
+        {
+            var enumerator = ModuleHashtable.Enumerator.Get(_moduleHashtable);
+            while (enumerator.MoveNext())
+            {
+                yield return enumerator.Current.Module;
+            }
+        }
+
         private ModuleHashtable _moduleHashtable = new ModuleHashtable();
 
         private class SimpleNameHashtable : LockFreeReaderHashtable<string, ModuleData>

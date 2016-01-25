@@ -159,6 +159,11 @@ namespace ILCompiler.DependencyAnalysis
             {
                 return new InterfaceDispatchMapNode(type);
             });
+
+            _moduleCtors = new NodeCache<ModuleDesc, ModuleCtorTableNode>((ModuleDesc module) =>
+            {
+                return new ModuleCtorTableNode(module);
+            });
         }
 
         private NodeCache<TypeDesc, EETypeNode> _typeSymbols;
@@ -185,6 +190,13 @@ namespace ILCompiler.DependencyAnalysis
         public ISymbolNode TypeCctorContextSymbol(MetadataType type)
         {
             return _nonGCStatics.GetOrAdd(type).ClassConstructorContext;
+        }
+
+        private NodeCache<ModuleDesc, ModuleCtorTableNode> _moduleCtors;
+
+        internal ISymbolNode ModuleCtorIndirection(ModuleDesc cctor)
+        {
+            return _moduleCtors.GetOrAdd(cctor);
         }
 
         private NodeCache<MetadataType, GCStaticsNode> _GCStatics;
@@ -397,6 +409,10 @@ namespace ILCompiler.DependencyAnalysis
             NameMangler.CompilationUnitPrefix + "__StringTableStart",
             NameMangler.CompilationUnitPrefix + "__StringTableEnd", 
             null);
+        public ArrayOfEmbeddedDataNode ModuleCtorTable = new ArrayOfEmbeddedDataNode(
+            NameMangler.CompilationUnitPrefix + "__ModuleCtorTableStart",
+            NameMangler.CompilationUnitPrefix + "__ModuleCtorTableEnd",
+            null); // TODO: Add a graph topo sorter.
 
         public InterfaceDispatchMapTableNode DispatchMapTable;
 

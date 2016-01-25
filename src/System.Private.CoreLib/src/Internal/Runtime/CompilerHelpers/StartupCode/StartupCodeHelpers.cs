@@ -17,6 +17,7 @@ namespace Internal.Runtime.CompilerHelpers
         internal static void Initialize()
         {
             InitializeStringTable();
+            InitializeModuleCtors();
             RuntimeImports.RhEnableShutdownFinalization(0xffffffffu);
         }
 
@@ -75,6 +76,20 @@ namespace Internal.Runtime.CompilerHelpers
             }
         }
 
+        private static unsafe void InitializeModuleCtors()
+        {
+            int length = 0;
+            IntPtr ctorTableStart = GetModuleSection((int)ModuleSectionIds.ModuleCtorTable, out length);
+            Contract.Assert(length % IntPtr.Size == 0);
+
+            IntPtr ctorTableEnd = (IntPtr)((byte*)ctorTableStart + length);
+
+            for (IntPtr* tab = (IntPtr*)ctorTableStart; tab < (IntPtr*)ctorTableEnd; tab++)
+            {
+                
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static unsafe int CStrLen(byte* str)
         {
@@ -87,7 +102,8 @@ namespace Internal.Runtime.CompilerHelpers
         internal enum ModuleSectionIds
         {
             StringEETypePtr,
-            StringFixupStart
+            StringFixupStart,
+            ModuleCtorTable
         };
 
         [RuntimeImport(".", "GetModuleSection")]

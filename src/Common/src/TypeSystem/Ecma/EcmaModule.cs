@@ -281,6 +281,15 @@ namespace Internal.TypeSystem.Ecma
             return field;
         }
 
+        public IEnumerable<EcmaModule> GetAssemblyReferences()
+        {
+            var enumerator = _metadataReader.AssemblyReferences.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                yield return (EcmaModule)ResolveAssemblyReference(enumerator.Current);
+            }
+        }
+
         public Object GetObject(EntityHandle handle)
         {
             IEntityHandleObject obj = _resolvedTokens.GetOrCreateValue(handle);
