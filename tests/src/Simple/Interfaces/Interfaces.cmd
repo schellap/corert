@@ -10,4 +10,3 @@ IF "%ErrorCode%"=="100" (
     EXIT /b 1
 )
 endlocal
-

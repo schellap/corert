@@ -220,6 +220,8 @@ build_native_corert()
     # processors available to a single process.
     if [ `uname` = "FreeBSD" ]; then
         NumProc=`sysctl hw.ncpu | awk '{ print $2+1 }'`
+    elif [ `uname` = "NetBSD" ]; then
+        NumProc=$(($(getconf NPROCESSORS_ONLN)+1))
     else
         NumProc=$(($(getconf _NPROCESSORS_ONLN)+1))
     fi
@@ -288,10 +290,6 @@ esac
 # Use uname to determine what the OS is.
 OSName=$(uname -s)
 case $OSName in
-    Linux)
-        __BuildOS=Linux
-        ;;
-
     Darwin)
         __BuildOS=OSX
         __ToolNugetRuntimeId=osx.10.10-x64
@@ -300,6 +298,18 @@ case $OSName in
 
     FreeBSD)
         __BuildOS=FreeBSD
+        # TODO: Add proper FreeBSD target
+        __ToolNugetRuntimeId=osx.10.10-x64
+        __TestNugetRuntimeId=osx.10.10-x64
+        ;;
+
+    Linux)
+        __BuildOS=Linux
+        ;;
+
+    NetBSD)
+        __BuildOS=NetBSD
+        # TODO: Add proper NetBSD target
         __ToolNugetRuntimeId=osx.10.10-x64
         __TestNugetRuntimeId=osx.10.10-x64
         ;;

@@ -78,16 +78,20 @@ CoreRT_BuildExtRepo=
 # Use uname to determine what the OS is.
 OSName=$(uname -s)
 case $OSName in
-    Linux)
-        CoreRT_BuildOS=Linux
-        ;;
-
     Darwin)
         CoreRT_BuildOS=OSX
         ;;
 
     FreeBSD)
         CoreRT_BuildOS=FreeBSD
+        ;;
+
+    Linux)
+        CoreRT_BuildOS=Linux
+        ;;
+
+    NetBSD)
+        CoreRT_BuildOS=NetBSD
         ;;
 
     *)
@@ -177,7 +181,9 @@ do
     __restore=1
     run_test_dir ${json} ${__restore} "Jit"
     __restore=0
-    run_test_dir ${json} ${__restore} "Cpp"
+    if [ ! -e `dirname ${json}`/no_cpp ]; then
+        run_test_dir ${json} ${__restore} "Cpp"
+    fi
 done
 
 __TotalTests=$((${__JitTotalTests} + ${__CppTotalTests}))
@@ -212,5 +218,3 @@ if [ ${__CppTotalTests} -gt ${__CppPassedTests} ]; then
 fi
 
 exit 0
-
-

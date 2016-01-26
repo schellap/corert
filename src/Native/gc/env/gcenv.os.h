@@ -178,7 +178,7 @@ public:
     //  true if it has succeeded, false if it has failed
     static bool SetCurrentThreadIdealAffinity(GCThreadAffinity* affinity);
 
-    // Get numeric id of the current thread if possible on the 
+    // Get numeric id of the current thread if possible on the
     // current platform. It is indended for logging purposes only.
     // Return:
     //  Numeric id of the current thread or 0 if the 
@@ -257,18 +257,6 @@ public:
     // Return:
     //  Time stamp in milliseconds
     static uint32_t GetLowPrecisionTimeStamp();
-
-    //
-    // File
-    //
-
-    // Open a file
-    // Parameters:
-    //  filename - name of the file to open
-    //  mode     - mode to open the file in (like in the CRT fopen)
-    // Return:
-    //  FILE* of the opened file
-    static FILE* OpenFile(const WCHAR* filename, const WCHAR* mode);
 };
 
 #endif // __GCENV_OS_H__
