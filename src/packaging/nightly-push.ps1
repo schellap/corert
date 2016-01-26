@@ -42,7 +42,7 @@ function main()
     $MaxAttempts = 5
     $PushedPackages = $False
     $ExpectedMatches = $PackageGrepStr.length
-    $AttemptAfterSec = 600
+    $AttemptAfterSec = 300
     $Attempt = 0
     While ($True) {
         $Attempt++
@@ -67,7 +67,7 @@ function main()
         If ($TotalMatches -eq $ExpectedMatches) {
             Push-Packages -PushPackages $RootPackages -NuPkgDir $NuPkgDir -Version $Version
             $PushedPackages = $True
-            Write-Host "Packages $RootPackages.length pushed successfully!"
+            Write-Host "Packages $(RootPackages.Length) pushed successfully!"
             Break
         } ElseIf ($Attempt -lt $MaxAttempts) {
             Write-Host "Attempt $Attempt/$MaxAttempts couldn't find all packages. Will retry after $AttemptAfterSec seconds..."
