@@ -361,7 +361,7 @@
         <Exec Command="&quot;$(NuGetToolPath)&quot; push &quot;$(NuPkgFilesDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_NightlyFeedAuth) -Source $(CoreRT_NightlyPushUrl)"
               Condition="'$(CoreRT_NightlyFeedAuth)'!=''" />
 
-        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;$(ProjectDir)/src/packaging/nightly-push.ps1&quot; -NuGetExe &apos;$(NuGetToolPath)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_NightlyFeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_NightlyFeedAuth)&apos; -Configuration &apos;$(Configuration)&apos; -Version &apos;$(ToolchainVersion)&apos; -ErrorAction Stop"
+        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;$(ProjectDir)/src/scripts/vso/nightly-push.ps1&quot; -NuGetExe &apos;$(NuGetToolPath)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_NightlyFeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_NightlyFeedAuth)&apos; -Configuration &apos;$(Configuration)&apos; -Version &apos;$(ToolchainVersion)&apos; -ErrorAction Stop"
               Condition="'$(CoreRT_NightlyFeedAuth)'!='' And '$(OsEnvironment)'=='Windows_NT'">
         </Exec>
     </Target>
