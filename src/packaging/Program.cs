@@ -297,6 +297,8 @@ public class Packaging
         {
             DownloadFile("https://api.nuget.org/downloads/nuget.exe", NuGetPath);
         }
+        Directory.Delete(PackageDir, true);
+        Directory.CreateDirectory(PackageDir);
         string packageVersion = Version();
         string ilcPkgStr = "Microsoft.DotNet.ILCompiler";
         string ilcPkgStrSdk = "Microsoft.DotNet.ILCompiler.SDK";
