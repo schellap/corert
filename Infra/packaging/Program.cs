@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +10,7 @@ using System.Net.Http;
 public class Packaging
 {
     private string[] args;
+    private string IlcVersion = "1.0.4";
 
     public Packaging(string[] args)
     {
@@ -31,6 +32,40 @@ public class Packaging
         ProductBin = Path.Combine(RootDir, "bin", "Product", $"{Platform}.{Arch}.{Flavor}");
         PackageDir = Path.Combine(ProductBin, ".nuget");
         NuGetPath = Path.Combine(RootDir, "packages", "NuGet.exe");
+    }
+
+        private IEnumerable<KeyValuePair<string, string>> GetDependencies()
+    {
+        return new Dictionary<string, string>() {
+            { "Microsoft.DiaSymReader", "1.0.6" },
+            { "Microsoft.DotNet.ObjectWriter", "1.0.4-prerelease-00001" },
+            { "Microsoft.DotNet.RyuJit", "1.0.3-prerelease-00001" },
+            { "System.AppContext", "4.0.0" },
+            { "System.Collections", "4.0.10" },
+            { "System.Collections.Concurrent", "4.0.10" },
+            { "System.Collections.Immutable", "1.1.37" },
+            { "System.Console", "4.0.0-rc2-23616" },
+            { "System.Diagnostics.Debug", "4.0.10" },
+            { "System.Diagnostics.Tracing", "4.0.20" },
+            { "System.IO", "4.0.10" },
+            { "System.IO.FileSystem", "4.0.0" },
+            { "System.IO.MemoryMappedFiles", "4.0.0-rc2-23616" },
+            { "System.Linq", "4.0.0" },
+            { "System.Reflection", "4.0.10" },
+            { "System.Reflection.Extensions", "4.0.0" },
+            { "System.Reflection.Metadata", "1.1.0" },
+            { "System.Reflection.Primitives", "4.0.0" },
+            { "System.Resources.ResourceManager", "4.0.0" },
+            { "System.Runtime", "4.0.20" },
+            { "System.Runtime.Extensions", "4.0.10" },
+            { "System.Runtime.InteropServices", "4.0.20" },
+            { "System.Text.Encoding", "4.0.10" },
+            { "System.Text.Encoding.Extensions", "4.0.10" },
+            { "System.Threading", "4.0.10" },
+            { "System.Threading.Tasks", "4.0.10" },
+            { "System.Xml.ReaderWriter", "4.0.0" },
+            { "System.Runtime.InteropServices.RuntimeInformation", "4.0.0-beta-23504" }
+        };
     }
 
     private string LibPrefix
@@ -257,40 +292,6 @@ public class Packaging
         return libSpec.Concat(headerSpec).Concat(managedSpec);
     }
 
-    private IEnumerable<KeyValuePair<string, string>> GetDependencies()
-    {
-        return new Dictionary<string, string>() {
-            { "Microsoft.DiaSymReader", "1.0.6" },
-            { "Microsoft.DotNet.ObjectWriter", "1.0.4-prerelease-00001" },
-            { "Microsoft.DotNet.RyuJit", "1.0.3-prerelease-00001" },
-            { "System.AppContext", "4.0.0" },
-            { "System.Collections", "4.0.10" },
-            { "System.Collections.Concurrent", "4.0.10" },
-            { "System.Collections.Immutable", "1.1.37" },
-            { "System.Console", "4.0.0-rc2-23616" },
-            { "System.Diagnostics.Debug", "4.0.10" },
-            { "System.Diagnostics.Tracing", "4.0.20" },
-            { "System.IO", "4.0.10" },
-            { "System.IO.FileSystem", "4.0.0" },
-            { "System.IO.MemoryMappedFiles", "4.0.0-rc2-23616" },
-            { "System.Linq", "4.0.0" },
-            { "System.Reflection", "4.0.10" },
-            { "System.Reflection.Extensions", "4.0.0" },
-            { "System.Reflection.Metadata", "1.1.0" },
-            { "System.Reflection.Primitives", "4.0.0" },
-            { "System.Resources.ResourceManager", "4.0.0" },
-            { "System.Runtime", "4.0.20" },
-            { "System.Runtime.Extensions", "4.0.10" },
-            { "System.Runtime.InteropServices", "4.0.20" },
-            { "System.Text.Encoding", "4.0.10" },
-            { "System.Text.Encoding.Extensions", "4.0.10" },
-            { "System.Threading", "4.0.10" },
-            { "System.Threading.Tasks", "4.0.10" },
-            { "System.Xml.ReaderWriter", "4.0.0" },
-            { "System.Runtime.InteropServices.RuntimeInformation", "4.0.0-beta-23504" }
-        };
-    }
-
     public void Package()
     {
         if (!File.Exists(NuGetPath))
@@ -393,14 +394,12 @@ public class Packaging
     {
         string output;
         string error;
-        string version = "1.0.4";
         Execute("git", "rev-list --count HEAD", out output, out error);
         string timeZoneId = (string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase))
                           ? "Pacific Standard Time" : "America/Los_Angeles";
         TimeZoneInfo tzPST = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
         string dateSuffix = TimeZoneInfo.ConvertTime(DateTime.UtcNow, tzPST).ToString("MMdd");
-        return version + "-" + Milestone + "-" + dateSuffix + "-" + output.Trim().PadLeft(6, '0');
+        return IlcVersion + "-" + Milestone + "-" + dateSuffix + "-" + output.Trim().PadLeft(6, '0');
     }
 }
-
 
