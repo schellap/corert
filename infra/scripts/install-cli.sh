@@ -43,10 +43,11 @@ install()
         fi
         
         local __cli_version=latest
+        local __cli_version_uri_part=$(echo ${__cli_version} | sed -e 's/^[a-z]/\u&/')
         local __build_arch_lowercase=$(echo "${__BuildArch}" | tr '[:upper:]' '[:lower:]')
         local __cli_tarball=dotnet-${__build_os_lowercase}-${__build_arch_lowercase}.${__cli_version}.tar.gz
         local __cli_tarball_path=${__tools_dir}/${__cli_tarball}
-        download_file ${__cli_tarball_path} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/${__cli_version}/${__cli_tarball}"
+        download_file ${__cli_tarball_path} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/${__cli_version_uri_part}/${__cli_tarball}"
         tar -xzf ${__cli_tarball_path} -C ${__cli_dir}
         export DOTNET_HOME=${__cli_dir}
         #
