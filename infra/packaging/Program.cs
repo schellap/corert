@@ -114,6 +114,13 @@ namespace Packaging
         private string PublishProjectDir { get { return Path.Combine(PackageDir, "stage1"); } }
         private bool PushJsonPkg;
         private string NuGetPath;
+        private string NuGetHost
+        {
+            get
+            {
+                return Platform.ToLower().Equals("Windows_NT".ToLower()) ? null : "mono";
+            }
+        }
         private string DotNetPath;
  
         public Packer(string[] args)
@@ -235,8 +242,8 @@ namespace Packaging
     
             if (!PushJsonPkg)
             {
-                ilCompiler.Pack(PackageDir, NuGetPath, RootDir);
-                ilCompilerSdk.Pack(PackageDir, NuGetPath, RootDir);
+                ilCompiler.Pack(PackageDir, NuGetPath, RootDir, NuGetHost);
+                ilCompilerSdk.Pack(PackageDir, NuGetPath, RootDir, NuGetHost);
             }
     
             // runtime.json packages
@@ -252,7 +259,7 @@ namespace Packaging
     
                 files[i].Id = names[i];
                 files[i].Files = new List<NuSpecFileTag> { new NuSpecFileTag($"{PackageDir}/{runtimeJson}") };
-                files[i].Pack(PackageDir, NuGetPath, RootDir);
+                files[i].Pack(PackageDir, NuGetPath, RootDir, NuGetHost);
             }
 
             Console.WriteLine("Pack completed... " + Version);

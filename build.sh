@@ -89,7 +89,7 @@ install_dotnet_cli()
         fi
     fi
 
-    source ${__scriptpath}/infra/scripts/install-cli.sh
+    source ${__scriptpath}/infra/scripts/install-cli.sh --install-dir ${__cli_dir} --build-os ${__BuildOS} --build-arch ${__BuildArch}
 
     if [ $? -ne 0 ]; then
         echo "Failed to install CLI."

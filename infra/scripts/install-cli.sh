@@ -5,31 +5,28 @@ usage()
     echo "Usage: $0 --build-os [OSX, Linux] --build-arch [x64, x86, arm , arm64] --install-dir [dir path to CLI install]"
 }
 
-get_options()
-{
-    while [ "$1" != "" ]; do
-        lowerI="$(echo $1 | awk '{print tolower($0)}')"
-        case $lowerI in
-            -h|--help)
-                usage
-                exit 1
-                ;;
-            --build-os)
-                shift
-                __BuildOs=$1
-                ;;
-            --build-arch)
-                shift
-                __BuildArch=$1
-                ;;
-            --install-dir) 
-                shift
-                __CliDir=$1
+while [ "$1" != "" ]; do
+    lowerI="$(echo $1 | awk '{print tolower($0)}')"
+    case $lowerI in
+        -h|--help)
+            usage
+            return 1
             ;;
-        esac
-        shift
-    done
-}
+        --build-os)
+            shift
+            __BuildOs=$1
+            ;;
+        --build-arch)
+            shift
+            __BuildArch=$1
+            ;;
+        --install-dir) 
+            shift
+            __CliDir=$1
+        ;;
+    esac
+    shift
+done
 
 install()
 {
@@ -66,10 +63,9 @@ install()
     
     if [ ! -f "${__cli_dir}/bin/dotnet" ]; then
         echo "CLI could not be installed or not present."
-        exit 1
+        return 1
     fi
-    exit 0
+    return 0
 }
 
-get_options
 install

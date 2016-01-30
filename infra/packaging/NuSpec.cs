@@ -67,16 +67,17 @@ namespace Packaging
             File.WriteAllText(filePath, ToString());
         }
 
-        public int Pack(string packageDir, string nugetPath, string basePath)
+        public int Pack(string packageDir, string nugetPath, string basePath, string nugetHost)
         {
-            string nuspecFile = Path.Combine(packageDir, $"{Id}.nuspec");
+            string nuspecFile = $"{Id}.nuspec";
             Write(nuspecFile);
             string output;
             string error;
-            return Utils.Execute(
-                nugetPath,
-                $"pack \"{nuspecFile}\" -NoPackageAnalysis -NoDefaultExcludes -BasePath \"{basePath}\" -OutputDirectory \"{packageDir}\"",
-                out output, out error);
+            string command = (string.IsNullOrEmpty(nugetHost)) ? nugetPath : nugetHost;
+            string hosted = (string.IsNullOrEmpty(nugetHost)) ? "" : nugetPath;
+            return Utils.Execute(command,
+                $"{hosted} pack \"{nuspecFile}\" -NoPackageAnalysis -NoDefaultExcludes -BasePath \"{basePath}\" -OutputDirectory \"{packageDir}\"",
+                out output, out error, packageDir);
         }
     }
 

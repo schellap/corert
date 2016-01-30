@@ -13,13 +13,19 @@ namespace Packaging
     {
         public static int Execute(string command, string arguments, out string output, out string error)
         {
+            return Execute(command, arguments, out output, out error, null);
+        }
+
+        public static int Execute(string command, string arguments, out string output, out string error, string workingDir)
+        {
             Console.WriteLine(command + " " + arguments);
             var psi = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = command,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true
+                RedirectStandardError = true,
+                WorkingDirectory = workingDir ?? Directory.GetCurrentDirectory()
             };
             var process = new Process
             {
