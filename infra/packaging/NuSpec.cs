@@ -69,7 +69,7 @@ namespace Packaging
 
         public int Pack(string packageDir, string nugetPath, string basePath, string nugetHost)
         {
-            string nuspecFile = $"{Id}.nuspec";
+            string nuspecFile = Path.Combine(packageDir, $"{Id}.nuspec");
             Write(nuspecFile);
             string output;
             string error;

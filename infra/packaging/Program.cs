@@ -108,7 +108,7 @@ namespace Packaging
         private string Milestone;
         private string Flavor;
         private string Arch;
-        private string ProductBin { get; set; }
+        private string RelProdBin { get; set; }
         private string PackageDir { get; set; }
         private string PublishDir        { get { return Path.Combine(PackageDir, "publish1"); } }
         private string PublishProjectDir { get { return Path.Combine(PackageDir, "stage1"); } }
@@ -140,8 +140,8 @@ namespace Packaging
                 syntax.DefineOption("json-only", ref PushJsonPkg, "Pack or push the json package if true or the rid package");
             });
     
-            ProductBin = Path.Combine(RootDir, "bin", "Product", $"{Platform}.{Arch}.{Flavor}");
-            PackageDir = Path.Combine(ProductBin, ".nuget");
+            RelProdBin = Path.Combine("bin", "Product", $"{Platform}.{Arch}.{Flavor}");
+            PackageDir = Path.Combine(RootDir, RelProdBin, ".nuget");
             NuGetPath = Path.Combine(RootDir, "packages", "NuGet.exe");
             DotNetPath = Path.Combine(Path.Combine(RootDir, "bin", "tools", "cli"), "bin", "dotnet" + ExeExt);
         }
@@ -161,10 +161,10 @@ namespace Packaging
             };
     
             var managedSpec = managed.Select(s => new NuSpecFileTag(
-                $"{ProductBin}/{s}",
+                $"{RelProdBin}/{s}",
                 $"runtimes/any/lib/dotnet/{s}"));
             var nativeSpec = native.Select(s => new NuSpecFileTag(
-                $"{ProductBin}/{s}",
+                $"{RelProdBin}/{s}",
                 $"runtimes/{RuntimeId}/native/{s}"));
     
             return managedSpec.Concat(nativeSpec);
@@ -200,12 +200,12 @@ namespace Packaging
             };
     
             var libSpec = libFiles.Select(s => new NuSpecFileTag(
-                $"{ProductBin}/lib/{LibPrefix}{s}.{StaticLibExt}",
+                $"{RelProdBin}/lib/{LibPrefix}{s}.{StaticLibExt}",
                 $"runtimes/{RuntimeId}/native/sdk/{LibPrefix}{s}.{StaticLibExt}"));
             var headerSpec = headerFiles.Select(s => new NuSpecFileTag(
                 $"src/{s}", $"runtimes/{RuntimeId}/native/inc/{Path.GetFileName(s)}"));
             var managedSpec = managedFiles.Select(s => new NuSpecFileTag(
-                $"{ProductBin}/{s}.dll",
+                $"{RelProdBin}/{s}.dll",
                 $"runtimes/{RuntimeId}/native/sdk/{s}.dll"));
             return libSpec.Concat(headerSpec).Concat(managedSpec);
         }
@@ -258,8 +258,8 @@ namespace Packaging
                     GetRuntimeJson(names[i], Version));
     
                 files[i].Id = names[i];
-                files[i].Files = new List<NuSpecFileTag> { new NuSpecFileTag($"{PackageDir}/{runtimeJson}") };
-                files[i].Pack(PackageDir, NuGetPath, RootDir, NuGetHost);
+                files[i].Files = new List<NuSpecFileTag> { new NuSpecFileTag(runtimeJson) };
+                files[i].Pack(PackageDir, NuGetPath, PackageDir, NuGetHost);
             }
 
             Console.WriteLine("Pack completed... " + Version);
