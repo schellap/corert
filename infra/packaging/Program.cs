@@ -45,7 +45,7 @@ namespace Packaging
         {
             get
             {
-                return $"{IlcStr}.{Uid}";
+                return string.IsNullOrEmpty(Uid) ? IlcStr : $"{IlcStr}.{Uid}";
             }
         }
         private string IlcSdkPkgStr
