@@ -15,13 +15,8 @@ param (
 
 function Main
 {
-    Push-Location "$ProjectRoot\infra\packaging"
-
-    Issue-Command "$DotNet restore"
-    Issue-Command "$DotNet build -c Release"
-    Issue-Command "bin\Release\dnxcore50\packaging.exe push -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`"" --json-only $JsonOnly
-
-    Pop-Location
+    $Packaging = Ensure-Packaging
+    Issue-Command "$Packaging push -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`"" --json-only $JsonOnly
 }
 
 function Issue-Command

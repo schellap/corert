@@ -151,6 +151,7 @@
     <!-- list of directories to perform batch restore -->
   <ItemGroup>
     <DnuRestoreDir Include="&quot;$(MSBuildProjectDirectory)\src&quot;" />
+    <DnuRestoreDir Include="&quot;$(MSBuildProjectDirectory)\infra\buildtools&quot;" />
   </ItemGroup>
 
   <PropertyGroup>
