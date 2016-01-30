@@ -304,10 +304,10 @@
           These overrides are for $(PackagesDir)\Microsoft.DotNet.BuildTools.1.0.25-prerelease-00111\lib\tool-runtime\project.json and test-runtime\project.json
           This is similar to how CoreFX handles these files.
       -->
-      <TestRuntimeProjectJson>$(ProjectDir)src/packaging/buildtools/test-runtime/project.json</TestRuntimeProjectJson>
-      <TestRuntimeProjectLockJson>$(ProjectDir)src/packaging/buildtools/test-runtime/project.lock.json</TestRuntimeProjectLockJson>
-      <ToolRuntimeProjectJson>$(ProjectDir)src/packaging/buildtools/tool-runtime/project.json</ToolRuntimeProjectJson>
-      <ToolRuntimeProjectLockJson>$(ProjectDir)src/packaging/buildtools/tool-runtime/project.lock.json</ToolRuntimeProjectLockJson>
+      <TestRuntimeProjectJson>$(ProjectDir)infra/buildtools/test-runtime/project.json</TestRuntimeProjectJson>
+      <TestRuntimeProjectLockJson>$(ProjectDir)infra/buildtools/test-runtime/project.lock.json</TestRuntimeProjectLockJson>
+      <ToolRuntimeProjectJson>$(ProjectDir)infra/buildtools/tool-runtime/project.json</ToolRuntimeProjectJson>
+      <ToolRuntimeProjectLockJson>$(ProjectDir)infra/buildtools/tool-runtime/project.lock.json</ToolRuntimeProjectLockJson>
     </PropertyGroup>
   </Target>
 </Project>
