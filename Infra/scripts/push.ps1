@@ -6,7 +6,9 @@ param (
     [Parameter(Mandatory=$true)]
     [string]$BuildArch,
     [Parameter(Mandatory=$true)]
-    [string]$Milestone
+    [string]$Milestone,
+    [Parameter(Mandatory=$true)]
+    [string]$JsonOnly
 )
 
 . "$PSScriptRoot/common.ps1"
@@ -17,7 +19,7 @@ function Main
 
     Issue-Command "$DotNet restore"
     Issue-Command "$DotNet build -c Release"
-    Issue-Command "bin\Release\dnxcore50\packaging.exe -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`""
+    Issue-Command "bin\Release\dnxcore50\packaging.exe push -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`"" --json-only $JsonOnly
 
     Pop-Location
 }

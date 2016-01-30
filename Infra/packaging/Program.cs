@@ -7,399 +7,407 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 
-public class Packaging
+namespace Packaging
 {
-    private string[] args;
-    private string IlcVersion = "1.0.4";
-
-    public Packaging(string[] args)
+    public class Packer
     {
-        this.args = args;
-        ParseArgs(args);
-    }
-
-    private void ParseArgs(string[] args)
-    {
-        ArgumentSyntax.Parse(args, syntax =>
+        private static Dictionary<string, string> RuntimeIds = new Dictionary<string, string>()
         {
-            syntax.DefineOption("m|milestone", ref Milestone, "Toolchain milestone: nightly, testing, prerelease");
-            syntax.DefineOption("os", ref Platform, "Supported: Windows_NT, Linux, OSX");
-            syntax.DefineOption("type", ref Flavor, "Debug/Release");
-            syntax.DefineOption("arch", ref Arch, "x64/x86/arm/arm64");
-            syntax.DefineOption("root", ref RootDir, "RootDir of the repo");
-        });
-
-        ProductBin = Path.Combine(RootDir, "bin", "Product", $"{Platform}.{Arch}.{Flavor}");
-        PackageDir = Path.Combine(ProductBin, ".nuget");
-        NuGetPath = Path.Combine(RootDir, "packages", "NuGet.exe");
-    }
-
-        private IEnumerable<KeyValuePair<string, string>> GetDependencies()
-    {
-        return new Dictionary<string, string>() {
-            { "Microsoft.DiaSymReader", "1.0.6" },
-            { "Microsoft.DotNet.ObjectWriter", "1.0.4-prerelease-00001" },
-            { "Microsoft.DotNet.RyuJit", "1.0.3-prerelease-00001" },
-            { "System.AppContext", "4.0.0" },
-            { "System.Collections", "4.0.10" },
-            { "System.Collections.Concurrent", "4.0.10" },
-            { "System.Collections.Immutable", "1.1.37" },
-            { "System.Console", "4.0.0-rc2-23616" },
-            { "System.Diagnostics.Debug", "4.0.10" },
-            { "System.Diagnostics.Tracing", "4.0.20" },
-            { "System.IO", "4.0.10" },
-            { "System.IO.FileSystem", "4.0.0" },
-            { "System.IO.MemoryMappedFiles", "4.0.0-rc2-23616" },
-            { "System.Linq", "4.0.0" },
-            { "System.Reflection", "4.0.10" },
-            { "System.Reflection.Extensions", "4.0.0" },
-            { "System.Reflection.Metadata", "1.1.0" },
-            { "System.Reflection.Primitives", "4.0.0" },
-            { "System.Resources.ResourceManager", "4.0.0" },
-            { "System.Runtime", "4.0.20" },
-            { "System.Runtime.Extensions", "4.0.10" },
-            { "System.Runtime.InteropServices", "4.0.20" },
-            { "System.Text.Encoding", "4.0.10" },
-            { "System.Text.Encoding.Extensions", "4.0.10" },
-            { "System.Threading", "4.0.10" },
-            { "System.Threading.Tasks", "4.0.10" },
-            { "System.Xml.ReaderWriter", "4.0.0" },
-            { "System.Runtime.InteropServices.RuntimeInformation", "4.0.0-beta-23504" }
+            { "Windows_NT".ToLower(), "win7-x64" },
+            { "Linux".ToLower(), "ubuntu.14.04-x64" },
+            { "OSX".ToLower(), "osx.10.10-x64" }
         };
-    }
-
-    private string LibPrefix
-    {
-        get
-        {
-            return string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase) ? "lib" : "";
-        }
-    }
-    private string StaticLibExt
-    {
-        get
-        {
-            return string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase) ? "lib" : "a";
-        }
-    }
-
-    Dictionary<string, string> RuntimeIds = new Dictionary<string, string>()
-    {
-        { "Windows_NT".ToLower(), "win7-x64" },
-        { "Linux".ToLower(), "ubuntu.14.04-x64" },
-        { "OSX".ToLower(), "osx.10.10-x64" }
-    };
-
-    public string RootDir;
-    public string Platform;
-    public string Milestone;
-    public string Flavor;
-    public string Arch;
-    public string ProductBin { get; private set; }
-    public string PackageDir { get; private set; }
-    public string RuntimeId
-    {
-        get
-        {
-            return RuntimeIds[Platform.ToLower()];
-        }
-    }
-    public string NuGetPath;
-
-    private static int Execute(string command, string arguments, out string output, out string error)
-    {
-        var psi = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = command,
-            Arguments = arguments,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-        var process = new Process
-        {
-            StartInfo = psi
-        };
-        process.EnableRaisingEvents = true;
-        process.Start();
-        output = process.StandardOutput.ReadToEnd();
-        error = process.StandardError.ReadToEnd();
-        process.WaitForExit();
-        if (output.Length > 0)
-        {
-            Console.WriteLine(output);
-        }
-        if (error.Length > 0)
-        {
-            Console.WriteLine(error);
-        }
-        return process.ExitCode;
-    }
-
-    struct NuSpecFile
-    {
-        public string Id;
-        public string Version;
-        public string Title;
-        public string Description;
-        public IEnumerable<NuSpecFileTag> Files;
-        public IEnumerable<KeyValuePair<string, string>> Dependencies;
-
-        public string FilesString
+ 
+        private string _version;
+        private string Version
         {
             get
             {
-                return string.Join(Environment.NewLine, Files.Select(f => f.ToString()));
+                if (_version == null)
+                    _version = Utils.Version(Platform, Milestone);
+                return _version;
             }
         }
 
-        public string DependenciesString
+        private string _uid = "";
+        private string Uid
         {
             get
             {
-                return string.Join(Environment.NewLine, Dependencies.Select(s => $"<dependency id=\"{s.Key}\" version=\"{s.Value}\" />"));
+                if (_uid.Length == 0 && Milestone.Equals("testing"))
+                    _uid = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 8);
+                return _uid;
             }
         }
 
-        public override string ToString()
+        private string IlcStr = "Microsoft.DotNet.ILCompiler";
+        private string IlcPkgStr
         {
-            return $@"<?xml version=""1.0""?>
-<package>
-  <metadata>
-    <id>{Id}</id>
-    
-    <version>{Version}</version>
-    <title>{Title}</title>
-    <authors>Microsoft</authors>
-    <owners>Microsoft</owners>
-    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
-    <projectUrl>https://github.com/dotnet/corert</projectUrl>
-    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
-    <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>{Description}</description>
-    <releaseNotes>Initial release</releaseNotes>
-    <copyright>Copyright &#169; Microsoft Corporation</copyright>
-    <dependencies>
-    {DependenciesString}
-    </dependencies>
-  </metadata>
-  <files>
-  {FilesString}
-  </files>
-</package>";
+            get
+            {
+                return $"{IlcStr}.{Uid}";
+            }
+        }
+        private string IlcSdkPkgStr
+        {
+            get
+            {
+                return $"{IlcStr}.SDK.{Uid}";
+            }
+        }
+   
+        private string LibPrefix
+        {
+            get
+            {
+                return string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase) ? "" : "lib";
+            }
         }
 
-        public void Write(string filePath)
+        private string StaticLibExt
         {
-            File.WriteAllText(filePath, ToString());
+            get
+            {
+                return string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase) ? "lib" : "a";
+            }
         }
 
-        public int Pack(string packageDir, string nugetPath, string basePath)
+        private string RuntimeId
         {
-            string nuspecFile = Path.Combine(packageDir, $"{Id}.nuspec");
-            Write(nuspecFile);
-            string output;
-            string error;
-            return Execute(
-                nugetPath,
-                $"pack \"{nuspecFile}\" -NoPackageAnalysis -NoDefaultExcludes -BasePath \"{basePath}\" -OutputDirectory \"{packageDir}\"",
-                out output, out error);
+            get
+            {
+                return RuntimeIds[Platform.ToLower()];
+            }
         }
-    }
 
-    struct NuSpecFileTag
-    {
-        public string Source { get; internal set; }
-        public string Target { get; internal set; }
-        public NuSpecFileTag(string src, string target = "")
-        {
-            Source = src;
-            Target = target;
-        }
-        public override string ToString()
-        {
-            return string.IsNullOrEmpty(Target)
-                ? $"<file src=\"{Source}\" />"
-                : $"<file src=\"{Source}\" target=\"{Target}\" />";
-        }
-    }
-
-    private IEnumerable<NuSpecFileTag> GetILCompilerFiles()
-    {
-        List<string> managed = new List<string> {
-            "ilc.exe",
-            "ILCompiler.Compiler.dll",
-            "ILCompiler.DependencyAnalysisFramework.dll",
-            "ILCompiler.TypeSystem.dll"
-        };
-
-
-        Dictionary<string, string> extension = new Dictionary<string, string>()
+        private static Dictionary<string, string> LibExts = new Dictionary<string, string>()
         {
             { "Windows_NT".ToLower(), "dll" },
             { "Linux".ToLower(), "so" },
             { "OSX".ToLower(), "dylib" },
         };
 
-        List<string> native = new List<string>
+        private string ExeExt
         {
-            "jitinterface." + extension[Platform.ToLower()]
-        };
-
-        var managedSpec = managed.Select(s => new NuSpecFileTag(s, $"runtimes/any/lib/dotnet/{s}"));
-        var nativeSpec = native.Select(s => new NuSpecFileTag(
-            $"{ProductBin}/{s}",
-            $"runtimes/{RuntimeId}/native/{s}"));
-
-        return managedSpec.Concat(nativeSpec);
-    }
-
-    private IEnumerable<NuSpecFileTag> GetILCompilerSdkFiles()
-    {
-        var libFiles = new List<string> {
-            "Runtime",
-            "PortableRuntime",
-            "bootstrapper",
-            "bootstrappercpp"
-        };
-        if (string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase))
-        {
-            libFiles.Add("System.Private.CoreLib.Native");
-        }
-
-        var headerFiles = new List<string> {
-            "Native/Bootstrap/common.h"
-        };
-
-        var managedFiles = new List<string> {
-            "System.Private.CoreLib",
-            "System.Private.DeveloperExperience.Console",
-            "System.Private.Interop",
-            "System.Private.Reflection",
-            "System.Private.Reflection.Core",
-            "System.Private.Reflection.Execution",
-            "System.Private.Reflection.Metadata",
-            "System.Private.StackTraceGenerator",
-            "System.Private.Threading"
-        };
-
-        var libSpec = libFiles.Select(s => new NuSpecFileTag(
-            $"{ProductBin}/lib/{LibPrefix}{s}.{StaticLibExt}"));
-        var headerSpec = headerFiles.Select(s => new NuSpecFileTag(
-            $"src/{s}", $"runtimes/{RuntimeId}/native/inc/{Path.GetFileName(s)}"));
-        var managedSpec = managedFiles.Select(s => new NuSpecFileTag(
-            $"{ProductBin}/{s}.dll",
-            $"runtimes/{RuntimeId}/native/sdk/{s}.dll"));
-        return libSpec.Concat(headerSpec).Concat(managedSpec);
-    }
-
-    public void Package()
-    {
-        if (!File.Exists(NuGetPath))
-        {
-            DownloadFile("https://api.nuget.org/downloads/nuget.exe", NuGetPath);
-        }
-        Directory.Delete(PackageDir, true);
-        Directory.CreateDirectory(PackageDir);
-        string packageVersion = Version();
-        string ilcPkgStr = "Microsoft.DotNet.ILCompiler";
-        string ilcPkgStrSdk = "Microsoft.DotNet.ILCompiler.SDK";
-        if (Milestone.Equals("testing"))
-        {
-            var guid = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 8);
-            ilcPkgStr = ilcPkgStr + "." + guid;
-            ilcPkgStrSdk = ilcPkgStrSdk + "." + guid;
-        }
-        NuSpecFile ilCompiler = new NuSpecFile
-        {
-            Id = $"toolchain.{RuntimeId}.{ilcPkgStr}",
-            Version = packageVersion,
-            Title = "Microsoft .NET Native Toolchain",
-            Description = "Provides the toolchain to compile managed code to native.",
-            Files = GetILCompilerFiles(),
-            Dependencies = GetDependencies()
-        };
-        NuSpecFile ilCompilerSdk = new NuSpecFile
-        {
-            Id = $"toolchain.{RuntimeId}.{ilcPkgStrSdk}",
-            Version = packageVersion,
-            Title = "Microsoft .NET Native Toolchain",
-            Description = "Provides the toolchain to compile managed code to native.",
-            Files = GetILCompilerFiles(),
-            Dependencies = new Dictionary<string, string>() {
-                { "Microsoft.DotNet.ILCompiler", packageVersion }
-            }
-        };
-
-        ilCompiler.Pack(PackageDir, NuGetPath, RootDir);
-        ilCompilerSdk.Pack(PackageDir, NuGetPath, RootDir);
-
-        // runtime.json packages
-        string[] names = { ilcPkgStr, ilcPkgStrSdk };
-        NuSpecFile[] files = { ilCompiler, ilCompilerSdk };
-
-        for (int i = 0; i < names.Length; ++i)
-        {
-            string runtimeJson = Path.Combine(PackageDir, $"{names[i]}.runtime.json");
-            File.WriteAllText(runtimeJson, GetRuntimeJson(names[i], packageVersion));
-
-            var file = files[i];
-            file.Id = names[i];
-            file.Files = new List<NuSpecFileTag> { new NuSpecFileTag(runtimeJson) };
-            file.Pack(PackageDir, NuGetPath, RootDir);
-        }
-    }
-
-    private async void DownloadFile(string requestUri, string filePath)
-    {
-        using (var httpClient = new HttpClient())
-        {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            get
             {
-                using (
-                    Stream contentStream = await (await httpClient.SendAsync(request)).Content.ReadAsStreamAsync(),
-                    stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 1024*1024, true))
+                return Platform.ToLower().Equals("Windows_NT".ToLower()) ? ".exe" : "";
+            }
+        }
+
+        private string LibExt
+        {
+            get
+            {
+                return LibExts[Platform.ToLower()];
+            }
+        }
+
+        private string RootDir;
+        private string Platform;
+        private string Milestone;
+        private string Flavor;
+        private string Arch;
+        private string ProductBin { get; set; }
+        private string PackageDir { get; set; }
+        private string PublishDir        { get { return Path.Combine(PackageDir, "publish1"); } }
+        private string PublishProjectDir { get { return Path.Combine(PackageDir, "stage1"); } }
+        private bool PushJsonPkg;
+        private string NuGetPath;
+        private string DotNetPath;
+ 
+        public Packer(string[] args)
+        {
+            ParseArgs(args);
+        }
+   
+        private void ParseArgs(string[] args)
+        {
+            ArgumentSyntax.Parse(args, syntax =>
+            {
+                syntax.DefineOption("m|milestone", ref Milestone, "Toolchain milestone: nightly, testing, prerelease");
+                syntax.DefineOption("os", ref Platform, "Supported: Windows_NT, Linux, OSX");
+                syntax.DefineOption("type", ref Flavor, "Debug/Release");
+                syntax.DefineOption("arch", ref Arch, "x64/x86/arm/arm64");
+                syntax.DefineOption("root", ref RootDir, "RootDir of the repo");
+                syntax.DefineOption("json-only", ref PushJsonPkg, "Pack or push the json package if true or the rid package");
+            });
+    
+            ProductBin = Path.Combine(RootDir, "bin", "Product", $"{Platform}.{Arch}.{Flavor}");
+            PackageDir = Path.Combine(ProductBin, ".nuget");
+            NuGetPath = Path.Combine(RootDir, "packages", "NuGet.exe");
+            DotNetPath = Path.Combine(Path.Combine(RootDir, "bin", "tools", "cli"), "bin", "dotnet" + ExeExt);
+        }
+        
+        private IEnumerable<NuSpecFileTag> GetILCompilerFiles()
+        {
+            List<string> managed = new List<string> {
+                "ilc.exe",
+                "ILCompiler.Compiler.dll",
+                "ILCompiler.DependencyAnalysisFramework.dll",
+                "ILCompiler.TypeSystem.dll"
+            };
+        
+            List<string> native = new List<string>
+            {
+                "jitinterface." + LibExt
+            };
+    
+            var managedSpec = managed.Select(s => new NuSpecFileTag(
+                $"{ProductBin}/{s}",
+                $"runtimes/any/lib/dotnet/{s}"));
+            var nativeSpec = native.Select(s => new NuSpecFileTag(
+                $"{ProductBin}/{s}",
+                $"runtimes/{RuntimeId}/native/{s}"));
+    
+            return managedSpec.Concat(nativeSpec);
+        }
+    
+        private IEnumerable<NuSpecFileTag> GetILCompilerSdkFiles()
+        {
+            var libFiles = new List<string> {
+                "Runtime",
+                "PortableRuntime",
+                "bootstrapper",
+                "bootstrappercpp"
+            };
+            if (!string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase))
+            {
+                libFiles.Add("System.Private.CoreLib.Native");
+            }
+    
+            var headerFiles = new List<string> {
+                "Native/Bootstrap/common.h"
+            };
+    
+            var managedFiles = new List<string> {
+                "System.Private.CoreLib",
+                "System.Private.DeveloperExperience.Console",
+                "System.Private.Interop",
+                "System.Private.Reflection",
+                "System.Private.Reflection.Core",
+                "System.Private.Reflection.Execution",
+                "System.Private.Reflection.Metadata",
+                "System.Private.StackTraceGenerator",
+                "System.Private.Threading"
+            };
+    
+            var libSpec = libFiles.Select(s => new NuSpecFileTag(
+                $"{ProductBin}/lib/{LibPrefix}{s}.{StaticLibExt}",
+                $"runtimes/{RuntimeId}/native/sdk/{LibPrefix}{s}.{StaticLibExt}"));
+            var headerSpec = headerFiles.Select(s => new NuSpecFileTag(
+                $"src/{s}", $"runtimes/{RuntimeId}/native/inc/{Path.GetFileName(s)}"));
+            var managedSpec = managedFiles.Select(s => new NuSpecFileTag(
+                $"{ProductBin}/{s}.dll",
+                $"runtimes/{RuntimeId}/native/sdk/{s}.dll"));
+            return libSpec.Concat(headerSpec).Concat(managedSpec);
+        }
+    
+        public string Pack()
+        {
+            if (!File.Exists(NuGetPath))
+            {
+                Utils.DownloadFile("https://api.nuget.org/downloads/nuget.exe", NuGetPath);
+            }
+            Directory.Delete(PackageDir, true);
+            Directory.CreateDirectory(PackageDir);
+    
+            NuSpecFile ilCompiler = new NuSpecFile
+            {
+                Id = $"toolchain.{RuntimeId}.{IlcPkgStr}",
+                Version = Version,
+                Title = "Microsoft .NET Native Toolchain",
+                Description = "Provides the toolchain to compile managed code to native.",
+                Files = GetILCompilerFiles(),
+                Dependencies = Constants.Dependencies
+            };
+            NuSpecFile ilCompilerSdk = new NuSpecFile
+            {
+                Id = $"toolchain.{RuntimeId}.{IlcSdkPkgStr}",
+                Version = Version,
+                Title = "Microsoft .NET Native Toolchain SDK",
+                Description = "Provides the toolchain SDK to compile managed code to native.",
+                Files = GetILCompilerSdkFiles(),
+                Dependencies = new Dictionary<string, string>() {
+                    { $"toolchain.{RuntimeId}.{IlcPkgStr}", Version }
+                }
+            };
+    
+            if (!PushJsonPkg)
+            {
+                ilCompiler.Pack(PackageDir, NuGetPath, RootDir);
+                ilCompilerSdk.Pack(PackageDir, NuGetPath, RootDir);
+            }
+    
+            // runtime.json packages
+            string[] names = { IlcPkgStr, IlcSdkPkgStr };
+            NuSpecFile[] files = { ilCompiler, ilCompilerSdk };
+    
+            for (int i = 0; i < names.Length; ++i)
+            {
+                string runtimeJson = $"{names[i]}.runtime.json";
+                File.WriteAllText(
+                    Path.Combine(PackageDir, runtimeJson),
+                    GetRuntimeJson(names[i], Version));
+    
+                files[i].Id = names[i];
+                files[i].Files = new List<NuSpecFileTag> { new NuSpecFileTag($"{PackageDir}/{runtimeJson}") };
+                files[i].Pack(PackageDir, NuGetPath, RootDir);
+            }
+
+            Console.WriteLine("Pack completed... " + Version);
+            return Version;
+        }
+
+        private void Publish()
+        {
+            if (Directory.Exists(PublishProjectDir))
+                Directory.Delete(PublishProjectDir, true);
+            Directory.CreateDirectory(PublishProjectDir);
+
+            string output;
+            string error;
+            File.WriteAllText(
+                Path.Combine(PublishProjectDir, "Program.cs"),
+                "class H { static void Main() { } }");
+            File.WriteAllText(
+                Path.Combine(PublishProjectDir, "project.json"),
+                GetProjectJson());
+
+            string[] sources = new string[] {
+                "https://www.myget.org/F/dotnet-core/",
+                "https://www.myget.org/F/dotnet-coreclr/",
+                "https://www.myget.org/F/dotnet-corefxtestdata/",
+                "https://www.myget.org/F/dotnet/",
+                "https://www.nuget.org/api/v2/"
+            };
+            string srcArg = string.Join(" ", sources.Select(s => $"-s \"{s}\""));
+            Utils.Execute(DotNetPath, $"restore --quiet -s \"{PackageDir}\" {srcArg} \"{PublishProjectDir}\" --runtime \"{RuntimeId}\"", out output, out error);
+            Utils.Execute(DotNetPath, $"publish \"{PublishProjectDir}\" --native-subdirectory -o \"{PublishDir}\" -f \"dnxcore50\" --runtime \"{RuntimeId}\"", out output, out error);
+        }
+
+        private bool EnsureRidPackages(string feedUrl)
+        {
+            string output;
+            string error;
+            if (Utils.Execute(NuGetPath, $"list -Source {feedUrl} {IlcStr} -PreRelease", out output, out error) != 0)
+            {
+                return false;
+            }
+            foreach (var pkg in new string[] { IlcPkgStr, IlcSdkPkgStr })
+            {
+                foreach (var rid in RuntimeIds.Values)
                 {
-                    await contentStream.CopyToAsync(stream);
+                    if (!output.Contains($"toolchain.{rid}.{pkg}.{Version}"))
+                    {
+                        return false;
+                    }
                 }
             }
+            return true;
         }
-    }
 
-    private string GetRuntimeJson(string name, string version, string prefix = "toolchain")
-    {
-        List<string> parts = new List<string>();
-        foreach (var rid in RuntimeIds.Values)
+        private void Push()
         {
-            parts.Add($@"""{rid}"": {{
-                ""{name}"": {{
-                    ""{prefix}.{rid}.{name}"": ""{version}""
-                }}
-            }}");
+            if (Milestone.Equals("testing"))
+            {
+                Console.WriteLine("Won't push test packages as the package names have UIDs");
+                return;
+            }
+            string feedUrl = Environment.GetEnvironmentVariable("CoreRT_FeedUrl");
+            string feedAuth = Environment.GetEnvironmentVariable("CoreRT_FeedAuth");
+            string[] names = new string[] {
+                $"{IlcPkgStr}.{Version}.nupkg", 
+                $"{IlcSdkPkgStr}.{Version}.nupkg"
+            };
+            if (PushJsonPkg && !EnsureRidPackages(feedUrl))
+            {
+                Console.WriteLine("Could not push json package as the rid packages were not all found");
+                return;
+            }
+            string output, error;
+            foreach (var name in names)
+            {
+                var pkg = (PushJsonPkg) ? name : $"toolchain.{RuntimeId}.{name}";
+                var pushPkg = Path.Combine(PackageDir, pkg);
+                Utils.Execute(NuGetPath, $"push \"{pushPkg}\" {feedAuth} -Source \"{feedUrl}\"", out output, out error);
+            }
         }
-
-        return $@"{{ ""runtimes"":
-    {{
-        {string.Join(",", parts)}
+    
+        private string GetProjectJson()
+        {
+            return $@"{{
+    ""version"": ""1.0.0-*"",
+    ""compilationOptions"": {{
+        ""emitEntryPoint"": true,
+    }},
+    ""dependencies"": {{
+        ""NETStandard.Library"": ""1.0.0-rc2-23704"",
+        ""Microsoft.NETCore.TestHost"": ""1.0.0-beta-23504"",
+        ""toolchain.{RuntimeId}.{IlcSdkPkgStr}"": ""{Version}"",
+    }},
+    ""frameworks"": {{
+        ""dnxcore50"": {{
+            ""imports"": ""portable-net451+win8""
+        }}
     }}
 }}";
-    }
-    public static int Main(string[] args)
-    {
-        Packaging p = new Packaging(args);
-        p.Package();
-        return 0;
-    }
+        }
 
-    private string Version()
-    {
-        string output;
-        string error;
-        Execute("git", "rev-list --count HEAD", out output, out error);
-        string timeZoneId = (string.Equals(Platform, "Windows_NT", StringComparison.OrdinalIgnoreCase))
-                          ? "Pacific Standard Time" : "America/Los_Angeles";
-        TimeZoneInfo tzPST = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-        string dateSuffix = TimeZoneInfo.ConvertTime(DateTime.UtcNow, tzPST).ToString("MMdd");
-        return IlcVersion + "-" + Milestone + "-" + dateSuffix + "-" + output.Trim().PadLeft(6, '0');
+        private string GetRuntimeJson(string name, string version, string prefix = "toolchain")
+        {
+            List<string> parts = new List<string>();
+            foreach (var rid in RuntimeIds.Values)
+            {
+                parts.Add($@"""{rid}"": {{
+                    ""{name}"": {{
+                        ""{prefix}.{rid}.{name}"": ""{version}""
+                    }}
+                }}");
+            }
+    
+            return $@"{{ ""runtimes"":
+        {{
+            {string.Join(",", parts)}
+        }}
+    }}";
+        }
+    
+        public static int Main(string[] args)
+        {
+            switch (args[0])
+            {
+                case "pack":
+                {
+                    Packer packer = new Packer(args.Skip(1).ToArray());
+                    packer.Pack();
+                }
+                break;
+
+                case "publish":
+                {
+                    Packer packer = new Packer(args.Skip(1).ToArray());
+                    packer.Publish();
+                }
+                break;
+
+                case "push":
+                {
+                    Packer packer = new Packer(args.Skip(1).ToArray());
+                    packer.Push();
+                }
+                break;
+
+                default:
+                {
+                    Packer pack = new Packer(args);
+                    pack.Pack();
+
+                    pack.Publish();
+                }
+                break;
+            }
+            return 0;
+        }
     }
 }
-
