@@ -52,7 +52,7 @@ namespace Packaging
         {
             get
             {
-                return $"{IlcStr}.SDK.{Uid}";
+                return string.IsNullOrEmpty(Uid) ? $"{IlcStr}.SDK" : $"{IlcStr}.SDK.{Uid}";
             }
         }
    
