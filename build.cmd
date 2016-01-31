@@ -154,11 +154,7 @@ if NOT "%__DotNetCliPath%" == "" goto SetupManagedBuild
 
 set "__DotNetCliPath=%__RootBinDir%\tools\cli"
 if "%__CleanBuild%"=="1" (
-    if exist "%__DotNetCliPath%" (rmdir /s /q "%__DotNetCliPath%")
-    if exist "%__DotNetCliPath%" (
-        echo "Exiting... could not clean %__DotNetCliPath%"
-        exit /b 1
-    )
+    call :CleanOrExit "%__DotNetCliPath%"
 )
 
 if not exist "%__DotNetCliPath%" (
@@ -211,6 +207,7 @@ exit /b %TEST_EXIT_CODE%
     set __Item=%~1
     if exist "%__Item%" (rmdir /s /q "%__Item%")
     if exist "%__Item%" (
-        echo "Exiting... could not clean %__Item%"
+        echo Exiting... could not clean "%__Item%"
         exit /b 1
     )
+    echo Cleaned "%__Item%"
