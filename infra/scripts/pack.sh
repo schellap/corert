@@ -32,18 +32,12 @@ while [ "$1" != "" ]; do
     shift
 done
 
-source  "./common.sh"
+__script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source ${__script_dir}/common.sh
 
 pack()
 {
-    local __script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-    pushd ${__ProjectRoot}/infra/packaging
-
-    ${__DotNet} restore
-    ${__DotNet} build -c Release
-    ./bin/Release/dnxcore50/packaging -m ${__Milestone} --os ${__BuildOs} --type ${__BuildType} --arch ${__BuildArch} --root "${__ProjectRoot}"
-
-    popd
+    ${__Packaging} -m ${__Milestone} --os ${__BuildOs} --type ${__BuildType} --arch ${__BuildArch} --root "${__ProjectRoot}"
 }
 
 pack
