@@ -188,7 +188,15 @@ exit /b 1
 
 :AfterILCompilerBuild
 
-powershell %__ProjectDir%\infra\scripts\pack.ps1 -BuildType %__BuildType% -BuildArch %__BuildArch% -BuildOS %__BuildOS% -Milestone %__ToolchainMilestone%
+if "%__CleanBuild%"=="1" (
+    call :CleanOrExit "%__ProjectDir%\bin\infra"
+)
+
+powershell "%__ProjectDir%\infra\scripts\build.ps1"
+if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
+
+powershell "%__ProjectDir%\infra\scripts\pack.ps1" -BuildType %__BuildType% -BuildArch %__BuildArch% -BuildOS %__BuildOS% -Milestone %__ToolchainMilestone%
+if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
 
 if defined __SkipTestBuild exit /b 0
 
@@ -197,3 +205,12 @@ call "runtest.cmd" %__BuildType% %__BuildArch% /dotnetclipath %__DotNetCliPath%
 set TEST_EXIT_CODE=%ERRORLEVEL%
 popd
 exit /b %TEST_EXIT_CODE%
+
+
+:CleanOrExit
+    set __Item=%~1
+    if exist "%__Item%" (rmdir /s /q "%__Item%")
+    if exist "%__Item%" (
+        echo "Exiting... could not clean %__Item%"
+        exit /b 1
+    )

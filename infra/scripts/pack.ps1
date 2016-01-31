@@ -14,8 +14,12 @@ param (
 
 function Main
 {
-    $Packaging = Ensure-Packaging
+    Write-Host $Packaging
+    If (-Not (Test-Path($Packaging))) {
+        Exit 1
+    }
     Issue-Command "$Packaging -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`""
+    Exit $LastExitCode
 }
 
 function Issue-Command
