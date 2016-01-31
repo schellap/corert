@@ -24,7 +24,7 @@ namespace Packaging
             get
             {
                 if (_version == null)
-                    _version = "1.0.4-nightly-0125-001051"; //Utils.Version(Platform, Milestone);
+                    _version = Utils.Version(Platform, Milestone);
                 return _version;
             }
         }
