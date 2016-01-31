@@ -15,8 +15,8 @@ param (
 
 function Main
 {
-    $Packaging = Ensure-Packaging
-    Issue-Command "$Packaging push -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`"" --json-only $JsonOnly
+    Issue-Command "$Packaging pack -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`" --json-only $JsonOnly"
+    Issue-Command "$Packaging push -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`" --json-only $JsonOnly"
 }
 
 function Issue-Command
@@ -27,6 +27,9 @@ function Issue-Command
     $str = $(Get-Location -stack) + "$" + $CmdString
     Write-Host $str -Foreground Cyan
     Invoke-Expression $CmdString
+    If ($LastExitCode -ne 0) {
+        Exit 1
+    }
 }
 
 Main

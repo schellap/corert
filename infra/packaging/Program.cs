@@ -24,7 +24,7 @@ namespace Packaging
             get
             {
                 if (_version == null)
-                    _version = Utils.Version(Platform, Milestone);
+                    _version = "1.0.4-nightly-0125-001051"; //Utils.Version(Platform, Milestone);
                 return _version;
             }
         }
@@ -130,6 +130,7 @@ namespace Packaging
    
         private void ParseArgs(string[] args)
         {
+            string pushJsonPkg = null;
             ArgumentSyntax.Parse(args, syntax =>
             {
                 syntax.DefineOption("m|milestone", ref Milestone, "Toolchain milestone: nightly, testing, prerelease");
@@ -137,13 +138,13 @@ namespace Packaging
                 syntax.DefineOption("type", ref Flavor, "Debug/Release");
                 syntax.DefineOption("arch", ref Arch, "x64/x86/arm/arm64");
                 syntax.DefineOption("root", ref RootDir, "RootDir of the repo");
-                syntax.DefineOption("json-only", ref PushJsonPkg, "Pack or push the json package if true or the rid package");
+                syntax.DefineOption("json-only", ref pushJsonPkg, "Pack or push the json package if true or the rid package");
             });
-    
             RelProdBin = Path.Combine("bin", "Product", $"{Platform}.{Arch}.{Flavor}");
             PackageDir = Path.Combine(RootDir, RelProdBin, ".nuget");
             NuGetPath = Path.Combine(RootDir, "packages", "NuGet.exe");
             DotNetPath = Path.Combine(Path.Combine(RootDir, "bin", "tools", "cli"), "bin", "dotnet" + ExeExt);
+            Boolean.TryParse(pushJsonPkg, out PushJsonPkg);
         }
         
         private IEnumerable<NuSpecFileTag> GetILCompilerFiles()
@@ -300,25 +301,34 @@ namespace Packaging
         {
             string output;
             string error;
-            if (Utils.Execute(NuGetPath, $"list -Source {feedUrl} {IlcStr} -PreRelease", out output, out error) != 0)
+            if (Utils.Execute(NuGetPath, $"list -Source {feedUrl} {IlcStr} -AllVersions -PreRelease", out output, out error) != 0)
             {
                 return false;
             }
+            bool foundAll = true;
             foreach (var pkg in new string[] { IlcPkgStr, IlcSdkPkgStr })
             {
                 foreach (var rid in RuntimeIds.Values)
                 {
-                    if (!output.Contains($"toolchain.{rid}.{pkg}.{Version}"))
+                    var ridPkg = $"toolchain.{rid}.{pkg} {Version}";
+                    if (!output.Contains(ridPkg))
                     {
-                        return false;
+                        Console.WriteLine($"Did not find {ridPkg}");
+                        foundAll = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Found {ridPkg}");
                     }
                 }
             }
-            return true;
+            Console.WriteLine((foundAll ? "Found" : "Didn't find") + " all packages");
+            return foundAll;
         }
 
         private void Push()
         {
+            Console.WriteLine("Push only JSON packages is: " + PushJsonPkg);
             if (Milestone.Equals("testing"))
             {
                 Console.WriteLine("Won't push test packages as the package names have UIDs");
@@ -326,14 +336,17 @@ namespace Packaging
             }
             string feedUrl = Environment.GetEnvironmentVariable("CoreRT_FeedUrl");
             string feedAuth = Environment.GetEnvironmentVariable("CoreRT_FeedAuth");
+            if (feedUrl == null || feedAuth == null || feedUrl.Length == 0 || feedAuth.Length == 0)
+            {
+                throw new InvalidOperationException("Need feed url and auth to push");
+            }
             string[] names = new string[] {
                 $"{IlcPkgStr}.{Version}.nupkg", 
                 $"{IlcSdkPkgStr}.{Version}.nupkg"
             };
             if (PushJsonPkg && !EnsureRidPackages(feedUrl))
             {
-                Console.WriteLine("Could not push json package as the rid packages were not all found");
-                return;
+                throw new InvalidOperationException("Could not push json package as the rid packages were not all found");
             }
             string output, error;
             foreach (var name in names)
