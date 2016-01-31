@@ -326,9 +326,8 @@ namespace Packaging
             return foundAll;
         }
 
-        private void Push()
+        private void Push(bool optional = false)
         {
-            Console.WriteLine("Push only JSON packages is: " + PushJsonPkg);
             if (Milestone.Equals("testing"))
             {
                 Console.WriteLine("Won't push test packages as the package names have UIDs");
@@ -338,12 +337,19 @@ namespace Packaging
             string feedAuth = Environment.GetEnvironmentVariable("CoreRT_FeedAuth");
             if (feedUrl == null || feedAuth == null || feedUrl.Length == 0 || feedAuth.Length == 0)
             {
+                if (optional)
+                {
+                    return;
+                }
                 throw new InvalidOperationException("Need feed url and auth to push");
             }
+            
             string[] names = new string[] {
                 $"{IlcPkgStr}.{Version}.nupkg", 
                 $"{IlcSdkPkgStr}.{Version}.nupkg"
             };
+            
+            Console.WriteLine("Push only JSON packages is: " + PushJsonPkg);
             if (PushJsonPkg && !EnsureRidPackages(feedUrl))
             {
                 throw new InvalidOperationException("Could not push json package as the rid packages were not all found");
@@ -427,6 +433,8 @@ namespace Packaging
                     pack.Pack();
 
                     pack.Publish();
+
+                    pack.Push(true);
                 }
                 break;
             }
