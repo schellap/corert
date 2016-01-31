@@ -45,6 +45,10 @@ namespace Packaging
             {
                 Console.WriteLine(error);
             }
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException(command + " " + arguments + " exited with code: " + process.ExitCode);
+            }
             return process.ExitCode;
         }
 

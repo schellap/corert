@@ -216,7 +216,10 @@ namespace Packaging
             {
                 Utils.DownloadFile("https://api.nuget.org/downloads/nuget.exe", NuGetPath);
             }
-            Directory.Delete(PackageDir, true);
+            if (Directory.Exists(PackageDir))
+            {
+                Directory.Delete(PackageDir, true);
+            }
             Directory.CreateDirectory(PackageDir);
     
             NuSpecFile ilCompiler = new NuSpecFile
