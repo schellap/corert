@@ -188,7 +188,7 @@ namespace Packaging
                 "Native/Bootstrap/common.h"
             };
     
-            var managedFiles = new List<string> {
+            var privateFiles = new List<string> {
                 "System.Private.CoreLib",
                 "System.Private.DeveloperExperience.Console",
                 "System.Private.Interop",
@@ -205,10 +205,10 @@ namespace Packaging
                 $"runtimes/{RuntimeId}/native/sdk/{LibPrefix}{s}.{StaticLibExt}"));
             var headerSpec = headerFiles.Select(s => new NuSpecFileTag(
                 $"src/{s}", $"runtimes/{RuntimeId}/native/inc/{Path.GetFileName(s)}"));
-            var managedSpec = managedFiles.Select(s => new NuSpecFileTag(
+            var privateSpec = privateFiles.Select(s => new NuSpecFileTag(
                 $"{RelProdBin}/{s}.dll",
                 $"runtimes/{RuntimeId}/native/sdk/{s}.dll"));
-            return libSpec.Concat(headerSpec).Concat(managedSpec);
+            return libSpec.Concat(headerSpec).Concat(privateSpec);
         }
     
         public string Pack()
