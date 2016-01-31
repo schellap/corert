@@ -2,4 +2,4 @@
 
 . "$PSScriptRoot\install-cli.ps1" -installdir "$BinRoot\tools"
 . "$PSScriptRoot\build.ps1"
-. "$PSScriptRoot\push.ps1" -BuildOs Windows_NT -BuildType Debug -BuildArch x64 -Milestone nightly -JsonOnly true
+. "$PSScriptRoot\push.ps1" -BuildOs Windows_NT -BuildType Release -BuildArch x64 -Milestone nightly -JsonOnly true
