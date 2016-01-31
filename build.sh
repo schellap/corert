@@ -461,7 +461,7 @@ fi
 if [ ${__CleanBuild} == 1 ]; then
     rm -rf ${__ProjectRoot}/bin/infra
 fi
-infra/scripts/build.sh
+${__ProjectRoot}/infra/scripts/build.sh
 packaging
 
 pushd ${__scriptpath}/tests

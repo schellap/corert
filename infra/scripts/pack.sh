@@ -2,7 +2,7 @@
 
 usage()
 {
-    echo "Usage: $0 --build-os [OSX, Linux] --build-arch [x64, x86, arm , arm64] --install-dir [dir path to CLI install]"
+    echo "Usage: $0 --build-os [OSX, Linux] --build-arch [x64, x86, arm , arm64] --milestone [testing nightly prerelease]"
 }
 
 while [ "$1" != "" ]; do
