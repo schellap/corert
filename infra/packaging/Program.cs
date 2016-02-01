@@ -333,13 +333,13 @@ namespace Packaging
                 Console.WriteLine("Won't push test packages as the package names have UIDs");
                 return;
             }
-            string feedUrl = Environment.GetEnvironmentVariable("CoreRT_FeedUrl");
-            string feedAuth = Environment.GetEnvironmentVariable("CoreRT_FeedAuth");
+            string feedUrl = Environment.GetEnvironmentVariable("CORERT_FEEDURL");
+            string feedAuth = Environment.GetEnvironmentVariable("CORERT_FEEDAUTH");
             if (feedUrl == null || feedAuth == null || feedUrl.Length == 0 || feedAuth.Length == 0)
             {
                 if (optional)
                 {
-                    Console.WriteLine("Feed information not set in CoreRT_FeedUrl/Auth");
+                    Console.WriteLine("Feed information not set in CORERT_FEEDURL/AUTH");
                     return;
                 }
                 throw new InvalidOperationException("Need feed url and auth to push");
