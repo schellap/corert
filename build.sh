@@ -214,7 +214,7 @@ packaging()
         __ToolchainMilestone=testing
     fi
     ${__scriptpath}/infra/scripts/pack.sh --build-type $__BuildType --build-arch $__BuildArch --build-os $__BuildOS --milestone $__ToolchainMilestone
-    if [$? != 0]; then
+    if [ $? != 0 ]; then
         echo "An error was encountered in packaging."
     fi
 }
