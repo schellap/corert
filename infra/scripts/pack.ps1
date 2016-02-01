@@ -29,7 +29,7 @@ function Issue-Command
     $str = $(Get-Location -stack) + "$" + $CmdString
     Write-Host $str -Foreground Cyan
     Invoke-Expression $CmdString
-    $Code = $?
+    $Code = $LastExitCode
     If ($Code -ne 0) {
         Exit $Code
     }
