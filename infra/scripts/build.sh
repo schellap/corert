@@ -36,6 +36,6 @@ fi
 source ${__script_dir}/common.sh
 
 if [ ! -f "${__Packaging}" ] || [ $__clean == 1 ]; then
-    ${__DotNet} restore ${__ProjectRoot}/infra/packaging -s https://www.myget.org/F/dotnet-core/ -s https://www.myget.org/F/dotnet-corefxlab/ -s https://www.nuget.org/api/v2/  --framework dnxcore50 --runtime ${__build_rid}-${__build_arch_lowcase}
+    ${__DotNet} restore ${__ProjectRoot}/infra/packaging -s https://www.myget.org/F/dotnet-core/ -s https://www.myget.org/F/dotnet-corefxlab/ -s https://www.nuget.org/api/v2/ --runtime ${__build_rid}-${__build_arch_lowcase}
     ${__DotNet} publish ${__ProjectRoot}/infra/packaging -c Release -o ${__BinRoot}/infra/packaging --framework dnxcore50 --runtime ${__build_rid}-${__build_arch_lowcase}
 fi
