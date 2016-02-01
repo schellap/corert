@@ -43,7 +43,7 @@ install()
         fi
         
         local __cli_version=latest
-        local __cli_version_uri_part=$(echo ${__cli_version} | sed -e 's/^[a-z]/\u&/')
+        local __cli_version_uri_part=Latest
         local __build_arch_lowercase=$(echo "${__BuildArch}" | tr '[:upper:]' '[:lower:]')
         local __cli_tarball=dotnet-${__build_os_lowercase}-${__build_arch_lowercase}.${__cli_version}.tar.gz
         local __cli_tarball_path=${__tools_dir}/${__cli_tarball}
