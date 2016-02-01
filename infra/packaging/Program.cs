@@ -339,6 +339,7 @@ namespace Packaging
             {
                 if (optional)
                 {
+                    Console.WriteLine("Feed information not set in CoreRT_FeedUrl/Auth");
                     return;
                 }
                 throw new InvalidOperationException("Need feed url and auth to push");
