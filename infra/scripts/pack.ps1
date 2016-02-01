@@ -19,7 +19,6 @@ function Main
         Exit 1
     }
     Issue-Command "$Packaging -m $Milestone --os $BuildOs --type $BuildType --arch $BuildArch --root `"$ProjectRoot`""
-    Exit $LastExitCode
 }
 
 function Issue-Command
@@ -30,6 +29,10 @@ function Issue-Command
     $str = $(Get-Location -stack) + "$" + $CmdString
     Write-Host $str -Foreground Cyan
     Invoke-Expression $CmdString
+    $Code = $?
+    If ($Code -ne 0) {
+        Exit $Code
+    }
 }
 
 Main
