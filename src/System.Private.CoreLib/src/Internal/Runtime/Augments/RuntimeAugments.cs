@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 //Internal.Runtime.Augments
 //-------------------------------------------------
@@ -216,7 +217,11 @@ namespace Internal.Runtime.Augments
 
         public static RuntimeTypeHandle CreateRuntimeTypeHandle(IntPtr ldTokenResult)
         {
+#if CORERT // CORERT-TODO: RuntimeTypeHandle
+            throw new NotImplementedException();
+#else
             return new RuntimeTypeHandle(new EETypePtr(ldTokenResult));
+#endif
         }
 
         public unsafe static IntPtr GetThreadStaticFieldAddress(RuntimeTypeHandle typeHandle, IntPtr fieldCookie)
@@ -786,8 +791,7 @@ namespace Internal.Runtime.Augments
 
         public unsafe static RuntimeTypeHandle GetRuntimeTypeHandleFromObjectReference(object obj)
         {
-            IntPtr type = obj.EETypePtr.RawValue;
-            return *((RuntimeTypeHandle*)&type);
+            return new RuntimeTypeHandle(obj.EETypePtr);
         }
 
         public static int GetCorElementType(RuntimeTypeHandle type)
@@ -814,6 +818,10 @@ namespace Internal.Runtime.Augments
             Debug.Assert(gcHandle.IsPinned());
 
             Object target = gcHandle.Target;
+
+            if (target == null)
+                return IntPtr.Zero;
+
             fixed (IntPtr* pTargetEEType = &target.m_pEEType)
             {
                 return (IntPtr)pTargetEEType;

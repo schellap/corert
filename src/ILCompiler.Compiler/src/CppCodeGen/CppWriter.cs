@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -1050,8 +1051,7 @@ namespace ILCompiler.CppCodeGen
                 // Stub for main method
                 if (_compilation.TypeSystemContext.Target.OperatingSystem == TargetOS.Windows)
                 {
-                    // TODO: Use wmain and wchar_t
-                    Out.WriteLine("int main(int argc, char * argv[]) { ");
+                    Out.WriteLine("int wmain(int argc, wchar_t * argv[]) { ");
                 }
                 else
                 {

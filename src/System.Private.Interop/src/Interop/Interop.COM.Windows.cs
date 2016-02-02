@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 //
 
@@ -34,6 +35,66 @@ namespace System.Runtime.InteropServices
             internal const string CORE_COM_AUT = "OleAut32.dll";
         }
 
+#if CORECLR
+
+        public static unsafe void* CoTaskMemAlloc(IntPtr size)
+        {
+            return Marshal.AllocHGlobal(size).ToPointer();
+        }
+
+        public static unsafe void CoTaskMemFree(void* pv)
+        {
+            Marshal.FreeHGlobal(new IntPtr(pv));
+        }
+
+        public static unsafe IntPtr SysAllocStringLen(char* pStrIn, UInt32 dwSize)
+        {
+            string srcString = new string(pStrIn, 0, checked((int)dwSize));
+            return Marshal.StringToBSTR(srcString);
+        }
+        
+        public static unsafe void SysFreeString(void* pBSTR)
+        {
+          SysFreeString(new IntPtr(pBSTR));
+        }
+
+        public static unsafe void SysFreeString(IntPtr pBSTR)
+        {
+            Marshal.FreeBSTR(pBSTR);
+        }
+
+        static internal void VariantClear(IntPtr pObject)
+        {
+            //Nop
+        }
+
+        static internal unsafe int CoGetMarshalSizeMax(out ulong pulSize, ref Guid iid, IntPtr pUnk, Interop.COM.MSHCTX dwDestContext, IntPtr pvDestContext, Interop.COM.MSHLFLAGS mshlflags)
+        {
+            throw new PlatformNotSupportedException("CoGetMarshalSizeMax");
+        }       
+
+        static internal unsafe int CoGetObjectContext(ref Guid iid, out IntPtr ppv)
+        {
+            throw new PlatformNotSupportedException("CoGetObjectContext");
+        }
+               
+        static internal unsafe int CoMarshalInterface(IntPtr pStream, ref Guid iid, IntPtr pUnk, Interop.COM.MSHCTX dwDestContext, IntPtr pvDestContext, Interop.COM.MSHLFLAGS mshlflags)
+        {
+            throw new PlatformNotSupportedException("CoMarshalInterface");
+        }
+
+        static internal unsafe int CoUnmarshalInterface(IntPtr pStream, ref Guid iid, out IntPtr ppv)
+        {
+            throw new PlatformNotSupportedException("CoUnmarshalInterface");
+        }
+        
+        static internal int CoReleaseMarshalData(IntPtr pStream)
+        {
+            // Nop in CoreCLR
+            return 0;
+        }
+
+#else 
         [DllImport(Libraries.CORE_COM)]
         [McgGeneratedNativeCallCodeAttribute]
         public static extern unsafe void* CoTaskMemAlloc(IntPtr size);
@@ -191,5 +252,6 @@ namespace System.Runtime.InteropServices
             if (pv != null)
                 CoTaskMemFree(pv);
         }
+#endif //CORECLR
     }
 }

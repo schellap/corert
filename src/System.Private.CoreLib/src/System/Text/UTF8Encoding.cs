@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // The worker functions in this file was optimized for performance. If you make changes
 // you should use care to consider all of the interesting cases.
@@ -1314,7 +1315,7 @@ namespace System.Text
             if (encoder != null)
             {
                 Contract.Assert(!encoder.MustFlush || ch == 0,
-                    "[UTF8Encoding.GetBytes] Expected no mustflush or 0 leftover ch " + ch.ToString("X2", FormatProvider.InvariantCulture));
+                    "[UTF8Encoding.GetBytes] Expected no mustflush or 0 leftover ch");
 
                 encoder.surrogateChar = ch;
                 encoder.m_charsUsed = (int)(pSrc - chars);

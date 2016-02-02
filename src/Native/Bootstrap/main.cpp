@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #include "common.h"
 
@@ -256,7 +257,6 @@ extern "C" void* GetModuleSection(int id, int* length)
     };
 
     // TODO: emit this table from the compiler per module.
-    // !!!
     // The order should be kept in sync with ModuleSectionIds in StartupCodeHelpers.cs in CoreLib.
     static ModuleSectionSymbol symbols[] = {
 #ifdef CPPCODEGEN
@@ -264,7 +264,7 @@ extern "C" void* GetModuleSection(int id, int* length)
         { nullptr, 0 },
 #else
         { &__EEType_System_Private_CoreLib_System_String, sizeof(void*) },
-        { &__StringTableStart, (uint8_t*)&__StringTableEnd - (uint8_t*)&__StringTableStart },
+        { &__StringTableStart, (size_t)((uint8_t*)&__StringTableEnd - (uint8_t*)&__StringTableStart) },
 #endif
     };
 
@@ -291,8 +291,8 @@ int __statics_fixup()
 }
 
 #if defined(_WIN32)
-extern "C" int __managed__Main(int argc, char* argv[]); // TODO: Use wchar_t
-int main(int argc, char* argv[]) // TODO: Use wmain and wchar_t
+extern "C" int __managed__Main(int argc, wchar_t* argv[]);
+int wmain(int argc, wchar_t* argv[])
 #else
 extern "C" int __managed__Main(int argc, char* argv[]);
 int main(int argc, char* argv[])

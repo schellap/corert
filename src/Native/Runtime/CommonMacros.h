@@ -1,7 +1,6 @@
-//
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // Some of our header files are shared with the binder, which needs the _TARGET_* macros defined
 #if defined(_TARGET_AMD64_)
@@ -209,7 +208,7 @@ bool inline FitsInI4(__int64 val)
 
 #ifndef GCENV_INCLUDED
 #if !defined(_INC_WINDOWS) && !defined(BINDER)
-#ifdef WIN32
+#ifdef _WIN32
 // this must exactly match the typedef used by windows.h
 typedef long HRESULT;
 #else

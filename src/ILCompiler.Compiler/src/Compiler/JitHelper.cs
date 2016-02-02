@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -167,10 +168,26 @@ namespace ILCompiler
                     mangledName = "memset"; // TODO: Null reference handling
                     break;
 
-                case JitHelperId.GetRuntimeTypeHandle: // TODO: Reflection
-                case JitHelperId.GetRuntimeMethodHandle:
-                case JitHelperId.GetRuntimeFieldHandle:
+                case JitHelperId.GetRuntimeTypeHandle:
+                    methodDesc = context.GetHelperEntryPoint("LdTokenHelpers", "GetRuntimeTypeHandle");
+                    break;
+                case JitHelperId.GetRuntimeMethodHandle: // TODO: Reflection
+                case JitHelperId.GetRuntimeFieldHandle: // TODO: Reflection
                     mangledName = "__fail_fast";
+                    break;
+
+                case JitHelperId.Lng2Dbl:
+                    mangledName = "RhpLng2Dbl";
+                    break;
+                case JitHelperId.ULng2Dbl:
+                    mangledName = "RhpULng2Dbl";
+                    break;
+
+                case JitHelperId.Dbl2Lng:
+                    mangledName = "RhpDbl2Lng";
+                    break;
+                case JitHelperId.Dbl2ULng:
+                    mangledName = "RhpDbl2ULng";
                     break;
 
                 case JitHelperId.Dbl2IntOvf:
