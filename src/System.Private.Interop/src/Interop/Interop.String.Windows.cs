@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 //
 
@@ -35,6 +36,58 @@ namespace System.Runtime.InteropServices
             internal const string CORE_STRING = "kernel32.dll";
 #endif //TARGET_CORE_API_SET
         }
+
+#if CORECLR
+
+        internal static unsafe uint SysStringLen(void* pBSTR)
+        {
+            throw new PlatformNotSupportedException("SysStringLen");
+        }
+
+        internal static unsafe uint SysStringLen(IntPtr pBSTR)
+        {
+            throw new PlatformNotSupportedException("SysStringLen");
+        }
+
+        unsafe public static int ConvertWideCharToMultiByte(char* wideCharStr, 
+                                                            int   wideCharLen,
+                                                            IntPtr multiByteStr, 
+                                                            int multiByteLen,
+                                                            uint flags,
+                                                            IntPtr usedDefaultChar)
+        {
+            return System.Text.Encoding.UTF8.GetBytes(wideCharStr, wideCharLen,(byte*)multiByteStr, multiByteLen);
+        }
+
+        unsafe public static int ConvertWideCharToMultiByte(char* wideCharStr, int wideCharLen, IntPtr multiByteStr, int multiByteLen)
+        {
+            return System.Text.Encoding.UTF8.GetBytes(wideCharStr, wideCharLen,(byte*)multiByteStr, multiByteLen);
+        }
+
+        unsafe public static int GetByteCount(char* wideCharStr, int wideCharLen)
+        {
+            return System.Text.Encoding.UTF8.GetByteCount(wideCharStr, wideCharLen);
+        }
+
+        unsafe public static int ConvertMultiByteToWideChar(IntPtr multiByteStr,
+                                                            int multiByteLen,
+                                                            IntPtr wideCharStr,
+                                                            int wideCharLen)
+        {
+            return System.Text.Encoding.UTF8.GetChars((byte*)multiByteStr, multiByteLen, (char*)wideCharStr, wideCharLen);
+        }
+
+        public static unsafe int GetCharCount(IntPtr multiByteStr, int multiByteLen)
+        {
+            return System.Text.Encoding.UTF8.GetCharCount((byte*)multiByteStr, multiByteLen);
+        }
+        
+        // Do nothing
+        internal static unsafe void OutputDebugString(string outputString)
+        {
+
+        }
+#else 
 
         [DllImport(Libraries.CORE_STRING, CallingConvention = CallingConvention.StdCall)]
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -119,5 +172,6 @@ namespace System.Runtime.InteropServices
                                        usedDefaultChar
                                        );
         }
+#endif //CORECLR
     }
 }

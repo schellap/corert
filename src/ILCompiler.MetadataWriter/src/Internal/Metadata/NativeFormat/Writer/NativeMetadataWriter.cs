@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #pragma warning disable 649
 
@@ -307,7 +308,7 @@ namespace Internal.Metadata.NativeFormat.Writer
     {
         internal MetadataHeader _metadataHeader = new MetadataHeader();
 
-        public List<TypeReference> UnreachableTypeReferences { get; private set; }
+        public List<MetadataRecord> AdditionalRootRecords { get; private set; }
 
         public List<ScopeDefinition> ScopeDefinitions
         {
@@ -318,7 +319,7 @@ namespace Internal.Metadata.NativeFormat.Writer
 
         public MetadataWriter()
         {
-            UnreachableTypeReferences = new List<TypeReference>();
+            AdditionalRootRecords = new List<MetadataRecord>();
         }
 
         public int GetRecordHandle(MetadataRecord rec)
@@ -335,7 +336,7 @@ namespace Internal.Metadata.NativeFormat.Writer
             _visitor = new RecordVisitor();
 
             _visitor.Run(ScopeDefinitions.AsEnumerable());
-            _visitor.Run(UnreachableTypeReferences.AsEnumerable());
+            _visitor.Run(AdditionalRootRecords.AsEnumerable());
 
             IEnumerable<MetadataRecord> records = _visitor.Graph.Vertices.Where(v => v != _visitor.MetaSourceVertex);
 
@@ -757,6 +758,14 @@ namespace Internal.Metadata.NativeFormat.Writer
         }
     }
 
+    public partial class QualifiedMethod
+    {
+        public override string ToString()
+        {
+            return EnclosingType.ToString(false) + "." + Method.ToString();
+        }
+    }
+
     public partial class Property
     {
         public override string ToString()
@@ -841,9 +850,9 @@ namespace Internal.Metadata.NativeFormat.Writer
     {
         public override string ToString()
         {
-            string str = Type.ToString(false) + "..ctor";
+            string str = Constructor.ToString();
             str += "(" + String.Join(", ", FixedArguments.Select(fa => fa.ToString()).Concat(NamedArguments.Select(na => na.ToString())).ToArray()) + ")";
-            str += "(type: " + Type.Handle.ToString() + ", ctor: " + Constructor.Handle.ToString();
+            str += "(ctor: " + Constructor.Handle.ToString();
             return str;
         }
     }

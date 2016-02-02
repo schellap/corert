@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -655,10 +656,12 @@ namespace System.Runtime
         internal static extern double fabs(double x);
 #endif // CORERT
 
+#if !CORERT
         [Intrinsic]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "_copysign")]
         internal static extern double _copysign(double x, double y);
+#endif // !CORERT
 
         [Intrinsic]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -755,9 +758,11 @@ namespace System.Runtime
         [RuntimeImport(RuntimeLibrary, "modf")]
         internal static unsafe extern double modf(double x, double* intptr);
 
+#if !PLATFORM_UNIX
         // ExactSpelling = 'true' to force MCG to resolve it to default
         [DllImport(RuntimeImports.RuntimeLibrary, ExactSpelling = true)]
         internal static unsafe extern void _ecvt_s(byte* buffer, int sizeInBytes, double value, int count, int* dec, int* sign);
+#endif
 
 #if BIT64
         [DllImport(RuntimeImports.RuntimeLibrary, ExactSpelling = true)]

@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 //
 
@@ -33,6 +34,13 @@ namespace System.Runtime.InteropServices
         internal const string CORE_ERRORHANDLING = "kernel32.dll";
 #endif //TARGET_CORE_API_SET
         }
+#if CORECLR
+        
+        static internal int GetLastWin32Error()
+        {
+           throw new PlatformNotSupportedException("GetLastWin32Error");
+        }
+#else 
 
         [DllImport(Libraries.CORE_DEBUG, EntryPoint = "OutputDebugStringW")]
         [McgGeneratedNativeCallCodeAttribute]
@@ -56,6 +64,6 @@ namespace System.Runtime.InteropServices
         [McgGeneratedNativeCallCodeAttribute]
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
         static internal extern void SetLastWin32Error(int errorCode);
-
+#endif 
     }
 }

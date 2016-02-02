@@ -1,7 +1,6 @@
-//
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #include "common.h"
 #include "CommonTypes.h"
 #include "CommonMacros.h"
@@ -27,7 +26,7 @@ void Assert(const char * expr, const char * file, UInt32 line_num, const char * 
 #else
     if (g_pRhConfig->GetBreakOnAssert())
     {
-        PalPrintf(
+        printf(
             "--------------------------------------------------\n"
             "Debug Assertion Violation\n\n"
             "%s%s%s"
@@ -41,7 +40,7 @@ void Assert(const char * expr, const char * file, UInt32 line_num, const char * 
 
         // Flush standard output before failing fast to make sure the assertion failure message
         // is retained when tests are being run with redirected stdout.
-        PalFlushStdout();
+        fflush(stdout);
 
         // If there's no debugger attached, we just FailFast
         if (!PalIsDebuggerPresent())
@@ -54,7 +53,7 @@ void Assert(const char * expr, const char * file, UInt32 line_num, const char * 
 
     char buffer[4096];
 
-    PalSprintf(buffer, COUNTOF(buffer),
+    sprintf_s(buffer, COUNTOF(buffer),
            "--------------------------------------------------\n"
            "Debug Assertion Violation\n\n"
            "%s%s%s"

@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This is a generated file - do not manually edit!
 
@@ -472,6 +473,28 @@ namespace Internal.Metadata.NativeFormat.Writer
             }
         } // Write
 
+        public static void Write(this NativeWriter writer, QualifiedMethod record)
+        {
+            if (record != null)
+                writer.WriteUnsigned((uint)record.Handle.Offset);
+            else
+                writer.WriteUnsigned(0);
+        } // Write
+
+        public static void Write(this NativeWriter writer, IEnumerable<QualifiedMethod> values)
+        {
+            if (values == null)
+            {
+                writer.WriteUnsigned(0);
+                return;
+            }
+            writer.WriteUnsigned((uint)values.Count());
+            foreach (QualifiedMethod value in values)
+            {
+                writer.Write(value);
+            }
+        } // Write
+
         public static void Write(this NativeWriter writer, MethodInstantiation record)
         {
             if (record != null)
@@ -643,6 +666,28 @@ namespace Internal.Metadata.NativeFormat.Writer
             }
             writer.WriteUnsigned((uint)values.Count());
             foreach (NamedArgument value in values)
+            {
+                writer.Write(value);
+            }
+        } // Write
+
+        public static void Write(this NativeWriter writer, ConstantBoxedEnumValue record)
+        {
+            if (record != null)
+                writer.WriteUnsigned((uint)record.Handle.Offset);
+            else
+                writer.WriteUnsigned(0);
+        } // Write
+
+        public static void Write(this NativeWriter writer, IEnumerable<ConstantBoxedEnumValue> values)
+        {
+            if (values == null)
+            {
+                writer.WriteUnsigned(0);
+                return;
+            }
+            writer.WriteUnsigned((uint)values.Count());
+            foreach (ConstantBoxedEnumValue value in values)
             {
                 writer.Write(value);
             }

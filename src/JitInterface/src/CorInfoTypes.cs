@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -1372,6 +1373,7 @@ namespace Internal.JitInterface
         CORJIT_FLG_USE_AVX2            = 0x00000800,
         CORJIT_FLG_USE_AVX_512         = 0x00001000,
         CORJIT_FLG_FEATURE_SIMD        = 0x00002000,
+        CORJIT_FLG_CFI_UNWIND          = 0x00004000,
 
         CORJIT_FLG_READYTORUN          = 0x00010000, // Use version-resilient code generation
 

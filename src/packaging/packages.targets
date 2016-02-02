@@ -10,19 +10,6 @@
             </Code>
         </Task>
     </UsingTask>
-    <UsingTask TaskName="GetNightlyDateSuffix" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.v12.0">
-        <ParameterGroup>
-            <TimeZoneId ParameterType="System.String" Required="true" />
-            <NightlyDateSuffix ParameterType="System.String" Output="true" />
-        </ParameterGroup>
-        <Task>
-            <Code><![CDATA[
-                TimeZoneInfo tzPST = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneId);
-                NightlyDateSuffix = TimeZoneInfo.ConvertTime(System.DateTime.UtcNow, tzPST).ToString("MMdd");
-            ]]>
-            </Code>
-        </Task>
-    </UsingTask>
     <Target Name="BuildNuGetPackages" AfterTargets="Build">
         <!-- This is to fool the machine local DNX cache so each build is treated as unique. %USERPROFILE%\.dnx -->
         <GetBuildUid>
@@ -33,21 +20,15 @@
             <PacificTimeZoneId Condition="'$(OSEnvironment)'=='Unix'">America/Los_Angeles</PacificTimeZoneId>
             <PacificTimeZoneId Condition="'$(OSEnvironment)'!='Unix'">Pacific Standard Time</PacificTimeZoneId>
         </PropertyGroup>
-        <GetNightlyDateSuffix Condition="'$(ToolchainMilestone)'=='nightly'" TimeZoneId="$(PacificTimeZoneId)">
-            <Output PropertyName="NightlyDateSuffix" TaskParameter="NightlyDateSuffix" />
-        </GetNightlyDateSuffix>
-        <Exec Condition="'$(ToolchainMilestone)'=='nightly'" ConsoleToMSBuild="true" Command="git rev-list --count HEAD">
-            <Output PropertyName="NightlySourceSuffix" TaskParameter="ConsoleOutput" />
+        <Exec ConsoleToMSBuild="true" Command="git rev-list --count HEAD">
+            <Output PropertyName="GitSourceSuffix" TaskParameter="ConsoleOutput" />
         </Exec>
 
         <!-- Property needed for creating nupkgs -->
         <PropertyGroup>
-            <VerIncSuffix>00001</VerIncSuffix>
-            <NightlySourceSuffix>$([System.String]::Copy('$(NightlySourceSuffix)').PadLeft(6, '0'))</NightlySourceSuffix>
-            <VerIncSuffix Condition="'$(ToolchainMilestone)'=='nightly'">$(NightlyDateSuffix)-$(NightlySourceSuffix)</VerIncSuffix>
-            <MilestoneVer>$(ToolchainMilestone)-$(VerIncSuffix)</MilestoneVer>
-            <MilestoneVer Condition="'$(ToolchainMilestone)'==''">prerelease-$(VerIncSuffix)</MilestoneVer>
-            <ToolchainVersion>1.0.4-$(MilestoneVer)</ToolchainVersion>
+            <SourceSuffix>$([System.String]::Copy('$(GitSourceSuffix)').PadLeft(6, '0'))</SourceSuffix>
+            <ToolchainMilestone Condition="'$(ToolchainMilestone)'==''">prerelease</ToolchainMilestone>
+            <ToolchainVersion>1.0.5-$(ToolchainMilestone)-$(SourceSuffix)</ToolchainVersion>
             <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
             <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)</NuPkgRid>
             
@@ -104,6 +85,10 @@
             <ILCompilerSdkBinPlace Include="@(ILCompilerSdkFiles)">
                 <Text><![CDATA[        <file src="$(RelativeProductBinDir)/lib/$(LibPrefix)%(Identity).$(StaticLibExt)" target="runtimes/$(NuPkgRid)/native/sdk/$(LibPrefix)%(Identity).$(StaticLibExt)" /> ]]></Text>
             </ILCompilerSdkBinPlace>
+            <ILCompilerSdkBinPlace Include="@(ILCompilerSdkFiles)" Condition="'$(OsEnvironment)'=='Windows_NT'">
+                <Text><![CDATA[        <file src="$(RelativeProductBinDir)/lib/$(LibPrefix)%(Identity).pdb" target="runtimes/$(NuPkgRid)/native/sdk/$(LibPrefix)%(Identity).pdb" /> ]]></Text>
+            </ILCompilerSdkBinPlace>
+
             <ILCompilerSdkBinPlace Include="@(ILCompilerSdkFilesManaged)">
                 <Text><![CDATA[        <file src="$(RelativeProductBinDir)/%(Identity).dll" target="runtimes/$(NuPkgRid)/native/sdk/%(Identity).dll" /> ]]></Text>
             </ILCompilerSdkBinPlace>
@@ -113,8 +98,8 @@
             
             <!-- ILCompiler nuspec file -->
             <NuSpecFile Include="$(ToolchainPackageName)">
-                <Stage>0</Stage>
-                <Push>0</Push>
+                <Stage>1</Stage>
+                <Push>1</Push>
                 <Push Condition="'$(Configuration)'=='Release'">1</Push>
                 <Version>$(ToolchainVersion)</Version>
                 <Title>Microsoft .NET Native Toolchain</Title>
@@ -122,34 +107,14 @@
                 <Files>@(ILCompilerBinPlace -> '%(Text)', '')</Files>
                 <!-- TODO: Obtain this from project.lock.json -->
                 <Dependencies><![CDATA[
-        <dependency id="Microsoft.DiaSymReader" version="1.0.6" />
-        <dependency id="Microsoft.DotNet.ObjectWriter" version="1.0.4-prerelease-00001" />
-        <dependency id="Microsoft.DotNet.RyuJit" version="1.0.3-prerelease-00001" />
-        <dependency id="System.AppContext" version="4.0.0" />
-        <dependency id="System.Collections" version="4.0.10" />
-        <dependency id="System.Collections.Concurrent" version="4.0.10" />
+        <dependency id="Microsoft.DotNet.ObjectWriter" version="1.0.5-prerelease-00001" />
+        <dependency id="Microsoft.DotNet.RyuJit" version="1.0.4-prerelease-00001" />
+        <dependency id="NETStandard.Library" version="1.0.0-rc2-23704" />
         <dependency id="System.Collections.Immutable" version="1.1.37" />
-        <dependency id="System.Console" version="4.0.0-rc2-23616" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
-        <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
-        <dependency id="System.IO" version="4.0.10" />
-        <dependency id="System.IO.FileSystem" version="4.0.0" />
         <dependency id="System.IO.MemoryMappedFiles" version="4.0.0-rc2-23616" />
-        <dependency id="System.Linq" version="4.0.0" />
-        <dependency id="System.Reflection" version="4.0.10" />
-        <dependency id="System.Reflection.Extensions" version="4.0.0" />
         <dependency id="System.Reflection.Metadata" version="1.1.0" />
-        <dependency id="System.Reflection.Primitives" version="4.0.0" />
-        <dependency id="System.Resources.ResourceManager" version="4.0.0" />
-        <dependency id="System.Runtime" version="4.0.20" />
-        <dependency id="System.Runtime.Extensions" version="4.0.10" />
-        <dependency id="System.Runtime.InteropServices" version="4.0.20" />
-        <dependency id="System.Text.Encoding" version="4.0.10" />
-        <dependency id="System.Text.Encoding.Extensions" version="4.0.10" />
-        <dependency id="System.Threading" version="4.0.10" />
-        <dependency id="System.Threading.Tasks" version="4.0.10" />
         <dependency id="System.Xml.ReaderWriter" version="4.0.0" />
-        <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="4.0.0-beta-23504" />
+        <dependency id="Microsoft.DiaSymReader" version="1.0.6" />
                     ]]></Dependencies>
             </NuSpecFile>
             
@@ -255,52 +220,6 @@
         <RemoveDir Directories="$(ProductPackageDir)" />
         <MakeDir Directories="$(ProductPackageDir)" Condition="!Exists('$(ProductPackageDir)')" />
 
-        <!-- =================== stage0 ==================== -->
-        <!-- Write the runtime.json redirection package and the runtime platform file -->
-        <WriteLinesToFile File="%(NuSpecCollection.RuntimeJsonFile)" Lines="%(NuSpecCollection.RuntimeJsonLines)" Overwrite="true" Condition="'%(NuSpecCollection.Stage)'=='0'" />
-        <WriteLinesToFile File="%(NuSpecCollection.PlatformFile)" Lines="%(NuSpecCollection.PlatformLines)" Overwrite="true" Condition="'%(NuSpecCollection.Stage)'=='0'" />
-        <WriteLinesToFile File="%(NuSpecCollection.RedirFile)" Lines="%(NuSpecCollection.RedirLines)" Overwrite="true" Condition="'%(NuSpecCollection.Stage)'=='0'" />
-
-        <ItemGroup>
-            <Stage0NuSpecs Include="%(NuSpecCollection.PlatformFile)" Condition="'%(NuSpecCollection.Stage)'=='0'"  />
-            <Stage0NuSpecs Include="%(NuSpecCollection.RedirFile)" Condition="'%(NuSpecCollection.Stage)'=='0'" />
-        </ItemGroup>
-
-        <Exec Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(Stage0NuSpecs.Identity)&quot; -NoPackageAnalysis -NoDefaultExcludes -BasePath &quot;$(RepoPath)&quot; -OutputDirectory &quot;$(ProductPackageDir)&quot;" />
-
-        <PropertyGroup>
-            <Stage0ProjectDir>$(ProductPackageDir)stage0/</Stage0ProjectDir>
-            <Stage0PublishDir>$(ProductPackageDir)publish0/</Stage0PublishDir>
-            <Stage0ProjectJsonFile>$(Stage0ProjectDir)project.json</Stage0ProjectJsonFile>
-            <Stage0ProjectJsonLines><![CDATA[
-{
-    "version": "1.0.0-*",
-    "compilationOptions": {
-        "emitEntryPoint": true,
-    },
-
-    "dependencies": {
-        "Microsoft.NETCore.Platforms": "1.0.1-beta-23504",
-        "Microsoft.NETCore.Runtime": "1.0.1-beta-23504",
-        "Microsoft.NETCore.TestHost": "1.0.0-beta-23504",
-        "toolchain.$(NuPkgRid).$(ToolchainPackageName)": "$(ToolchainVersion)",
-    },
-
-    "frameworks": {
-        "dnxcore50": { }
-    }
-}]]>
-            </Stage0ProjectJsonLines>
-        </PropertyGroup>
-        <MakeDir Directories="$(Stage0ProjectDir)" Condition="!Exists('$(Stage0ProjectDir)')" />
-        <WriteLinesToFile File="$(Stage0ProjectJsonFile)" Lines="$(Stage0ProjectJsonLines)" Overwrite="true" />
-        <WriteLinesToFile File="$(Stage0ProjectDir)/Program.cs" Lines="class Program { public static void Main() { } }" Overwrite="true" />
-        <Exec Command="&quot;$(DnuToolPath)&quot; restore -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage0ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" />
-        <Exec Command="&quot;$(DnuToolPath)&quot; publish &quot;$(Stage0ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage0PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" />
-
-        <!-- =================== self-host ================= -->
-        <!-- Use stage0 ilc.exe/corerun to compile stage1 runtime libs -->
-
         <!-- =================== stage1 ==================== -->
         <!-- Write the runtime.json redirection package and the runtime platform file -->
         <WriteLinesToFile File="%(NuSpecCollection.RuntimeJsonFile)" Lines="%(NuSpecCollection.RuntimeJsonLines)" Overwrite="true" Condition="'%(NuSpecCollection.Stage)'=='1'" />
@@ -326,14 +245,15 @@
     },
 
     "dependencies": {
-        "Microsoft.NETCore.Platforms": "1.0.1-beta-23504",
-        "Microsoft.NETCore.Runtime": "1.0.1-beta-23504",
+        "NETStandard.Library": "1.0.0-rc2-23704",
         "Microsoft.NETCore.TestHost": "1.0.0-beta-23504",
         "toolchain.$(NuPkgRid).$(RuntimeSdkPackageName)": "$(RuntimeSdkVersion)",
     },
 
     "frameworks": {
-        "dnxcore50": { }
+        "dnxcore50": {
+            "imports": "portable-net451+win8"
+        }
     }
 }]]>
             </Stage1ProjectJsonLines>
@@ -341,7 +261,7 @@
         <MakeDir Directories="$(Stage1ProjectDir)" Condition="!Exists('$(Stage1ProjectDir)')" />
         <WriteLinesToFile File="$(Stage1ProjectJsonFile)" Lines="$(Stage1ProjectJsonLines)" Overwrite="true" />
         <WriteLinesToFile File="$(Stage1ProjectDir)/Program.cs" Lines="class Program { public static void Main() { } }" Overwrite="true" />
-        <Exec Command="&quot;$(DnuToolPath)&quot; restore -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" />
+        <Exec Command="&quot;$(DnuToolPath)&quot; restore --quiet -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" />
         <Exec Command="&quot;$(DnuToolPath)&quot; publish &quot;$(Stage1ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" />
 
         <!-- VSO Nightly Builds -->

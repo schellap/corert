@@ -1,7 +1,6 @@
-//
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #include "common.h"
 #include "CommonTypes.h"
 #include "CommonMacros.h"
@@ -128,7 +127,7 @@ Module * Module::Create(ModuleHeader *pModuleHeader)
 
 #ifdef _DEBUG
 #ifdef LOG_MODULE_LOAD_VERIFICATION
-    PalPrintf("\r\nModule: 0x%p\r\n", pNewModule->m_hOsModuleHandle);
+    printf("\nModule: 0x%p\n", pNewModule->m_hOsModuleHandle);
 #endif // LOG_MODULE_LOAD_VERIFICATION
     //
     // Run through every byte of every method in the module and do some sanity-checking. Exclude stub code.
@@ -158,7 +157,7 @@ Module * Module::Create(ModuleHeader *pModuleHeader)
     
 
 #ifdef LOG_MODULE_LOAD_VERIFICATION
-        PalPrintf("0x%08x: %3d 0x%08x 0x%08x\r\n", 
+        printf("0x%08x: %3d 0x%08x 0x%08x\n", 
             uTextSectionOffset, uMethodIndex, uMethodStartSectionOffset, uMethodSize);
 #endif // LOG_MODULE_LOAD_VERIFICATION
 
@@ -238,7 +237,7 @@ Module * Module::Create(ModuleHeader *pModuleHeader)
         pNewModule->UnsynchronizedHijackAllLoops();
 
 #ifdef LOG_MODULE_LOAD_VERIFICATION
-    PalPrintf("0x%08x: --- 0x%08x \r\n", (uTextSectionOffset + uMethodSize), 
+    printf("0x%08x: --- 0x%08x \n", (uTextSectionOffset + uMethodSize), 
                                          (uMethodStartSectionOffset + uMethodSize));
 #endif // LOG_MODULE_LOAD_VERIFICATION
 #endif // _DEBUG

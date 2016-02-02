@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #include <cstdlib>
 #include <cstring>
@@ -33,20 +34,6 @@ extern "C"
     }
 }
 
-// UNIXTODO: Unix port of _ecvt_s and _copysign https://github.com/dotnet/corert/issues/670
-extern "C"
-{
-    void _ecvt_s()
-    {
-        throw "ecvt_s";
-    }
-
-    void _copysign()
-    {
-        throw "_copysign";
-    }
-}
-
 extern "C"
 {
     void CoCreateGuid()
@@ -67,5 +54,10 @@ extern "C"
     void GetNativeSystemInfo()
     {
         throw "GetNativeSystemInfo";
+    }
+
+    void OutputDebugStringW()
+    {
+        throw "OutputDebugStringW";
     }
 }

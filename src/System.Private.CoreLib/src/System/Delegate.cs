@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text;
 using System.Runtime;
@@ -56,13 +57,7 @@ namespace System
             // canonical delegates which use calling convention converter thunks to marshal arguments
             // for the delegate call. If we execute this version of GetThunk, we can at least assert
             // that the current delegate type is a generic type.
-            unsafe
-            {
-                fixed (IntPtr* pTargetEEType = &this.m_pEEType)
-                {
-                    Debug.Assert(Internal.Runtime.Augments.RuntimeAugments.IsGenericType(*(RuntimeTypeHandle*)pTargetEEType));
-                }
-            }
+            Debug.Assert(RuntimeImports.RhGetEETypeClassification(this.EETypePtr) == RuntimeImports.RhEETypeClassification.Generic);
 #endif
             return TypeLoaderExports.GetDelegateThunk(this, whichThunk);
         }

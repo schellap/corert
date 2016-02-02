@@ -1,7 +1,6 @@
-//
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 //
 // Implementation of the Redhawk Platform Abstraction Layer (PAL) library when Unix is the platform.
@@ -143,8 +142,6 @@ pthread_mutex_t g_flushProcessWriteBuffersMutex;
 
 extern bool PalQueryProcessorTopology();
 bool InitializeFlushProcessWriteBuffers();
-
-REDHAWK_PALEXPORT void __cdecl PalPrintf(_In_z_ _Printf_format_string_ const char * szFormat, ...);
 
 void TimeSpecAdd(timespec* time, uint32_t milliseconds)
 {
@@ -963,34 +960,6 @@ extern "C" void _mm_pause()
 extern "C" Int32 _stricmp(const char *string1, const char *string2)
 {
     return strcasecmp(string1, string2);
-}
-
-REDHAWK_PALEXPORT void __cdecl PalPrintf(_In_z_ _Printf_format_string_ const char * szFormat, ...)
-{
-#if defined(_DEBUG)
-    va_list args;
-    va_start(args, szFormat);
-    vprintf(szFormat, args);
-#endif
-}
-
-REDHAWK_PALEXPORT void __cdecl PalFlushStdout()
-{
-#if defined(_DEBUG)
-    fflush(stdout);
-#endif
-}
-
-REDHAWK_PALEXPORT int __cdecl PalSprintf(_Out_writes_z_(cchBuffer) char * szBuffer, size_t cchBuffer, _In_z_ _Printf_format_string_ const char * szFormat, ...)
-{
-    va_list args;
-    va_start(args, szFormat);
-    return vsnprintf(szBuffer, cchBuffer, szFormat, args);
-}
-
-REDHAWK_PALEXPORT int __cdecl PalVSprintf(_Out_writes_z_(cchBuffer) char * szBuffer, size_t cchBuffer, _In_z_ _Printf_format_string_ const char * szFormat, va_list args)
-{
-    return vsnprintf(szBuffer, cchBuffer, szFormat, args);
 }
 
 // Given the OS handle of a loaded module, compute the upper and lower virtual address bounds (inclusive).

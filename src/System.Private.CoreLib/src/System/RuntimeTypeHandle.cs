@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime;
@@ -9,12 +10,25 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
 using Internal.Runtime.Augments;
+using Internal.Reflection.Core.NonPortable;
 
 namespace System
 {
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct RuntimeTypeHandle
     {
+#if CORERT
+        internal RuntimeTypeHandle(RuntimeType type)
+        {
+            _type = type;
+        }
+
+        internal RuntimeTypeHandle(EETypePtr pEEType)
+        {
+            // CORERT-TODO: RuntimeTypeHandle
+            throw new NotImplementedException();
+        }
+#else
         //
         // Caution: There can be and are multiple EEType for the "same" type (e.g. int[]). That means
         // you can't use the raw IntPtr value for comparisons. 
@@ -24,6 +38,7 @@ namespace System
         {
             _value = pEEType.RawValue;
         }
+#endif
 
         public override bool Equals(Object obj)
         {
@@ -46,6 +61,9 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(RuntimeTypeHandle handle)
         {
+#if CORERT
+            return Object.ReferenceEquals(_type, handle._type);
+#else
             if (_value == handle._value)
             {
                 return true;
@@ -58,6 +76,7 @@ namespace System
             {
                 return RuntimeImports.AreTypesEquivalent(this.ToEETypePtr(), handle.ToEETypePtr());
             }
+#endif
         }
 
         public static bool operator ==(object left, RuntimeTypeHandle right)
@@ -90,7 +109,11 @@ namespace System
 
         internal EETypePtr ToEETypePtr()
         {
+#if CORERT
+            return _type.ToEETypePtr();
+#else
             return new EETypePtr(_value);
+#endif
         }
 
         internal RuntimeImports.RhEETypeClassification Classification
@@ -105,7 +128,11 @@ namespace System
         {
             get
             {
+#if CORERT
+                return _type == null;
+#else
                 return _value == new IntPtr(0);
+#endif
             }
         }
 
@@ -137,11 +164,29 @@ namespace System
         {
             get
             {
+#if CORERT
+                return ToEETypePtr().RawValue;
+#else
                 return _value;
+#endif
             }
         }
 
+#if CORERT
+        internal RuntimeType RuntimeType
+        {
+            get
+            {
+                return _type;
+            }
+        }
+#endif
+
+#if CORERT
+        private RuntimeType _type;
+#else
         private IntPtr _value;
+#endif
     }
 }
 
