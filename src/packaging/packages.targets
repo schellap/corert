@@ -19,7 +19,7 @@
         <!-- Property needed for creating nupkgs -->
         <PropertyGroup>
             <ToolchainMilestone Condition="'$(ToolchainMilestone)'==''">prerelease</ToolchainMilestone>
-            <ToolchainVersion>1.0.5-$(ToolchainMilestone)-00001</ToolchainVersion>
+            <ToolchainVersion>1.0.5-$(ToolchainMilestone)-00002</ToolchainVersion>
             <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
             <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)</NuPkgRid>
             
