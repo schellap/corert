@@ -186,7 +186,7 @@ build_managed_corert()
         __ToolchainMilestone=testing
     fi
 
-    MONO29679=1 ReferenceAssemblyRoot=$__referenceassemblyroot mono $__msbuildpath "$__buildproj" /nologo /verbosity:minimal "/fileloggerparameters:Verbosity=normal;LogFile=$__buildlog" /t:Build /p:RepoPath=$__ProjectRoot /p:RepoLocalBuild="true" /p:RelativeProductBinDir=$__RelativeProductBinDir /p:CleanedTheBuild=$__CleanBuild /p:SkipTests=true /p:TestNugetRuntimeId=$__TestNugetRuntimeId /p:ToolNugetRuntimeId=$__ToolNugetRuntimeId /p:OSEnvironment=Unix /p:OSGroup=$__BuildOS /p:Configuration=$__BuildType /p:Platform=$__BuildArch /p:UseRoslynCompiler=true /p:COMPUTERNAME=$(hostname) /p:USERNAME=$(id -un) /p:ToolchainMilestone=${__ToolchainMilestone} $__UnprocessedBuildArgs
+    MONO29679=1 ReferenceAssemblyRoot=$__referenceassemblyroot mono $__msbuildpath "$__buildproj" /nologo /verbosity:minimal "/fileloggerparameters:Verbosity=normal;LogFile=$__buildlog" /t:Build /p:RepoPath=$__ProjectRoot /p:RepoLocalBuild="true" /p:RelativeProductBinDir=$__RelativeProductBinDir /p:CleanedTheBuild=$__CleanBuild /p:SkipTests=true /p:TestNugetRuntimeId=$__TestNugetRuntimeId /p:ToolNugetRuntimeId=$__ToolNugetRuntimeId /p:OSEnvironment=Unix /p:OSGroup=$__BuildOS /p:Configuration=$__BuildType /p:Platform=$__BuildArch /p:UseRoslynCompiler=true /p:COMPUTERNAME=$(hostname) /p:USERNAME=$(id -un) $__UnprocessedBuildArgs
     BUILDERRORLEVEL=$?
 
     echo
@@ -194,6 +194,16 @@ build_managed_corert()
     # Pull the build summary from the log file
     tail -n 4 "$__buildlog"
     echo Build Exit Code = $BUILDERRORLEVEL
+}
+
+build_packages()
+{
+    __buildlog=$__scriptpath/packages.$__BuildArch.log
+    MONO29679=1 ReferenceAssemblyRoot=$__referenceassemblyroot mono $__msbuildpath "$__ProjectRoot/src/packaging/packages.targets" /nologo /verbosity:minimal "/fileloggerparameters:Verbosity=normal;LogFile=$__buildlog" /t:BuildNuGetPackages /p:RepoPath=$__ProjectRoot /p:RelativeProductBinDir=$__RelativeProductBinDir /p:OsEnvironment=Unix /p:BuildOS=$__BuildOS /p:BuildType=$__BuildType /p:BuildArch=$__BuildArch /p:ToolchainMilestone=${__ToolchainMilestone}
+    BUILDERRORLEVEL=$?
+    if [ $BUILDERRORLEVEL != 0 ]; then
+        exit $BUILDERRORLEVEL
+    fi
 }
 
 build_native_corert()
@@ -473,6 +483,9 @@ if $__buildmanaged; then
     # Build the corert native components.
 
     build_managed_corert
+
+    # Build packages
+    build_packages
 
     # Build complete
 fi

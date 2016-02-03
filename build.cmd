@@ -177,7 +177,7 @@ call "!VS%__VSProductVersion%COMNTOOLS!\VsDevCmd.bat"
 echo Commencing build of managed components for %__BuildOS%.%__BuildArch%.%__BuildType%
 echo.
 set "__ILCompilerBuildLog=%__LogsDir%\ILCompiler_%__BuildOS%__%__BuildArch%__%__BuildType%.log"
-%_msbuildexe% "%__ProjectDir%\build.proj" %__MSBCleanBuildArgs% /p:RepoPath="%__ProjectDir%" /p:RepoLocalBuild="true" /p:RelativeProductBinDir="%__RelativeProductBinDir%" /p:ToolchainMilestone=%__ToolchainMilestone% /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%__ILCompilerBuildLog%"
+%_msbuildexe% "%__ProjectDir%\build.proj" %__MSBCleanBuildArgs% /p:RepoPath="%__ProjectDir%" /p:RepoLocalBuild="true" /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%__ILCompilerBuildLog%"
 IF NOT ERRORLEVEL 1 (
   findstr /ir /c:".*Warning(s)" /c:".*Error(s)" /c:"Time Elapsed.*" "%__ILCompilerBuildLog%"
   goto AfterILCompilerBuild
@@ -185,10 +185,20 @@ IF NOT ERRORLEVEL 1 (
 echo ILCompiler build failed. Refer !__ILCompilerBuildLog! for details.
 exit /b 1
 
-
 :AfterILCompilerBuild
-if defined __SkipTestBuild exit /b 0
 
+:BuildPackages
+if exist "%__RelativeProductBinDir%\.nuget" (rmdir /s /q %__RelativeProductBinDir%\.nuget)
+set "__BuildNuGetPackagesBuildLog=%__LogsDir%\BuildNuGetPackages_%__BuildOS%__%__BuildArch%__%__BuildType%.log"
+%_msbuildexe% "%__ProjectDir%\src\packaging\packages.targets" /t:BuildNuGetPackages /p:RepoPath="%__ProjectDir%" /p:RelativeProductBinDir="%__RelativeProductBinDir%" /p:ToolchainMilestone=%__ToolchainMilestone% /p:BuildOS=%__BuildOS% /p:BuildArch=%__BuildArch% /p:BuildType=%__BuildType% /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%__BuildNuGetPackagesBuildLog%"
+IF NOT ERRORLEVEL 1 (
+    goto AfterBuildPackages
+)
+exit /b 2
+
+:AfterBuildPackages
+
+if defined __SkipTestBuild exit /b 0
 pushd "%__ProjectDir%\tests"
 call "runtest.cmd" %__BuildType% %__BuildArch% /dotnetclipath %__DotNetCliPath%
 set TEST_EXIT_CODE=%ERRORLEVEL%
