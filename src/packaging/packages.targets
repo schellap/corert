@@ -17,6 +17,7 @@
 
         <ItemGroup>
             <RestoreFeeds Include="https:%2F%2Fwww.myget.org/F/dotnet-core/" />
+            <RestoreFeeds Include="https:%2F%2Fwww.myget.org/F/dotnet/" />
             <RestoreFeeds Include="https:%2F%2Fwww.nuget.org/api/v2/" />
         </ItemGroup>
         <PropertyGroup>
