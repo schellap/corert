@@ -25,7 +25,7 @@ sync_to_time()
         exit 1
     fi
     echo "Checking out to sync time: ${sync_time} -> hash: ${commit_hash}"
-    git checkout ${commit_hash}
+    git checkout ${commit_hash} > /dev/null 2>&1
     return $?
 }       
 
