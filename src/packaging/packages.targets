@@ -15,8 +15,11 @@
        <Error Condition="'$(BuildArch)'==''" Text="BuildArch (amd64/x86/arm/arm64) not defined"></Error>
        <Error Condition="'$(BuildType)'==''" Text="BuildType (Debug/Release) not defined"></Error>
 
-       <!-- Initialize the NuPkg name specific RuntimeStr -->
-       <PropertyGroup>
+        <ItemGroup>
+            <RestoreFeeds Include="https:%2F%2Fwww.myget.org/F/dotnet-core/" />
+            <RestoreFeeds Include="https:%2F%2Fwww.nuget.org/api/v2/" />
+        </ItemGroup>
+        <PropertyGroup>
            <OsEnvironment Condition="'$(OsEnvironment)'==''">$(OS)</OsEnvironment> <!-- MSBuild Built-in variable -->
            <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'==''">$(BuildOS)</NuPkgRuntimeOS>
            <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'=='Windows_NT'">win7</NuPkgRuntimeOS> 
@@ -31,6 +34,7 @@
            <DotNetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\bin\tools\cli\bin\dotnet.exe</DotNetCommand>
            <DotNetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/bin/tools/cli/bin/dotnet</DotNetCommand>
            <ProductPackageDir>$(RepoPath)/$(RelativeProductBinDir)/.nuget/</ProductPackageDir>
+           <RestoreSources>@(RestoreFeeds -> '--source %(Identity)', ' ')</RestoreSources>
         </PropertyGroup>
         <!-- This is to fool the machine local DNX cache so each build is treated as unique. %USERPROFILE%\.dnx -->
         <GetBuildUid>
@@ -275,7 +279,7 @@
         <WriteLinesToFile File="$(Stage1ProjectJsonFile)" Lines="$(Stage1ProjectJsonLines)" Overwrite="true" />
         <WriteLinesToFile File="$(Stage1ProjectDir)/Program.cs" Lines="class Program { public static void Main() { } }" Overwrite="true" />
         <!-- For VSO PublishBuiltPackage will be false to push redirection packages -->
-        <Exec Command="&quot;$(DotNetCommand)&quot; restore --quiet -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
+        <Exec Command="&quot;$(DotNetCommand)&quot; restore --quiet -s &quot;$(ProductPackageDir)&quot; $(RestoreSources) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
         <Exec Command="&quot;$(DotNetCommand)&quot; publish &quot;$(Stage1ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
 
         <!-- VSO Nightly Builds -->
