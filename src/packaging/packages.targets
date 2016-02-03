@@ -289,7 +289,7 @@
             <CoreRT_PushUrl>$(CoreRT_FeedUrl)/api/v2/package</CoreRT_PushUrl>
             <NuPkgFilesDir>$(ProductPackageDir)</NuPkgFilesDir>
             <!-- Workaround: Unix NuGet.exe doesn't like absolute paths. Fails by appending the working dir with the already absolute path. -->
-            <NuPkgFilesDir Condition="'$(OSEnvironment)'=='Unix'">../$(RelativeProductBinDir)/.nuget/</NuPkgFilesDir>
+            <NuPkgFilesDir Condition="'$(OSEnvironment)'=='Unix'">../../$(RelativeProductBinDir)/.nuget/</NuPkgFilesDir>
         </PropertyGroup>
         <ItemGroup>
             <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformNuPkg)" Condition="'$(BuildType)'=='Release' And '$(PUSH_REDIR_ONLY)'==''" />
