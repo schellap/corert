@@ -25,7 +25,9 @@
            <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'==''">$(BuildArch)</NuPkgRuntimeBuildArch>
            <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'=='AnyCPU' or '$(NuPkgRuntimeBuildArch)'=='amd64'">x64</NuPkgRuntimeBuildArch> 
            <NuGetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\packages\nuget.exe</NuGetCommand>
-           <NuGetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">mono $(RepoPath)/packages/nuget.exe</NuGetCommand>
+           <NuGetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/packages/nuget.exe</NuGetCommand>
+           <MonoRuntime Condition="'$(OsEnvironment)'=='Windows_NT'"></NuGetCommand>
+           <MonoRuntime Condition="'$(OsEnvironment)'!='Windows_NT'">mono</NuGetCommand>
            <DotNetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\bin\tools\cli\bin\dotnet.exe</DotNetCommand>
            <DotNetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/bin/tools/cli/bin/dotnet</DotNetCommand>
            <ProductPackageDir>$(RepoPath)/$(RelativeProductBinDir)/.nuget/</ProductPackageDir>
@@ -242,7 +244,7 @@
             <Stage1NuSpecs Include="%(NuSpecCollection.RedirFile)" Condition="'%(NuSpecCollection.Stage)'=='1'" />
         </ItemGroup>
 
-        <Exec Command="&quot;$(NuGetCommand)&quot; pack &quot;%(Stage1NuSpecs.Identity)&quot; -NoPackageAnalysis -NoDefaultExcludes -BasePath &quot;$(RepoPath)&quot; -OutputDirectory &quot;$(ProductPackageDir)&quot;" />
+        <Exec Command="$(MonoRuntime) &quot;$(NuGetCommand)&quot; pack &quot;%(Stage1NuSpecs.Identity)&quot; -NoPackageAnalysis -NoDefaultExcludes -BasePath &quot;$(RepoPath)&quot; -OutputDirectory &quot;$(ProductPackageDir)&quot;" />
 
         <PropertyGroup>
             <Stage1ProjectDir>$(ProductPackageDir)stage1/</Stage1ProjectDir>
@@ -290,7 +292,7 @@
         <Error
             Text="Could not push daily builds to the $(CoreRT_PushUrl) because CoreRT_FeedAuth is empty."
             Condition="'$(ToolchainMilestone)'=='nightly' And '$(CoreRT_FeedAuth)'==''" />
-        <Exec Command="&quot;$(NuGetCommand)&quot; push &quot;$(NuPkgFilesDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_FeedAuth) -Source $(CoreRT_PushUrl)"
+        <Exec Command="$(MonoRuntime) &quot;$(NuGetCommand)&quot; push &quot;$(NuPkgFilesDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_FeedAuth) -Source $(CoreRT_PushUrl)"
             Condition="'$(CoreRT_FeedAuth)'!='' And '%(NuPkgFilesToPush.Identity)'!=''" />
         <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;$(RepoPath)/src/scripts/vso/nightly-push.ps1&quot; -NuGetExe &apos;$(NuGetCommand)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_FeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_FeedAuth)&apos; -Configuration &apos;$(Configuration)&apos; -Version &apos;$(ToolchainVersion)&apos; -ErrorAction Stop"
               Condition="'$(PUSH_REDIR_ONLY)'!=''">
