@@ -199,7 +199,7 @@ build_managed_corert()
 build_packages()
 {
     __buildlog=$__scriptpath/packages.$__BuildArch.log
-    MONO29679=1 ReferenceAssemblyRoot=$__referenceassemblyroot mono $__msbuildpath "$__ProjectRoot/src/packaging/packages.targets" /nologo /verbosity:minimal "/fileloggerparameters:Verbosity=normal;LogFile=$__buildlog" /t:BuildNuGetPackages /p:RepoPath=$__ProjectRoot /p:RelativeProductBinDir=$__RelativeProductBinDir /p:OsEnvironment=Unix /p:BuildOS=$__BuildOS /p:BuildType=$__BuildType /p:BuildArch=$__BuildArch /p:ToolchainMilestone=${__ToolchainMilestone}
+    MONO29679=1 ReferenceAssemblyRoot=$__referenceassemblyroot mono $__msbuildpath "$__ProjectRoot/src/packaging/packages.targets" /nologo /verbosity:minimal "/fileloggerparameters:Verbosity=normal;LogFile=$__buildlog" /t:BuildNuGetPackages /p:RepoPath=$__ProjectRoot /p:RelativeProductBinDir=$__RelativeProductBinDir /p:OsEnvironment=Unix /p:BuildOS=$__BuildOS /p:BuildType=$__BuildType /p:BuildArch=$__BuildArch /p:ToolchainMilestone=${__ToolchainMilestone} /p:PublishBuiltPackage=1
     BUILDERRORLEVEL=$?
     if [ $BUILDERRORLEVEL != 0 ]; then
         exit $BUILDERRORLEVEL

@@ -39,7 +39,7 @@ function main()
         }
     }
     
-    $MaxAttempts = 5
+    $MaxAttempts = 3
     $PushedPackages = $False
     $ExpectedMatches = $PackageGrepStr.length
     $AttemptAfterSec = 300

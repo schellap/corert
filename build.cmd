@@ -190,7 +190,7 @@ exit /b 1
 :BuildPackages
 if exist "%__RelativeProductBinDir%\.nuget" (rmdir /s /q %__RelativeProductBinDir%\.nuget)
 set "__BuildNuGetPackagesBuildLog=%__LogsDir%\BuildNuGetPackages_%__BuildOS%__%__BuildArch%__%__BuildType%.log"
-%_msbuildexe% "%__ProjectDir%\src\packaging\packages.targets" /t:BuildNuGetPackages /p:RepoPath="%__ProjectDir%" /p:RelativeProductBinDir="%__RelativeProductBinDir%" /p:ToolchainMilestone=%__ToolchainMilestone% /p:BuildOS=%__BuildOS% /p:BuildArch=%__BuildArch% /p:BuildType=%__BuildType% /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%__BuildNuGetPackagesBuildLog%"
+%_msbuildexe% "%__ProjectDir%\src\packaging\packages.targets" /t:BuildNuGetPackages /p:RepoPath="%__ProjectDir%" /p:RelativeProductBinDir="%__RelativeProductBinDir%" /p:ToolchainMilestone=%__ToolchainMilestone% /p:BuildOS=%__BuildOS% /p:BuildArch=%__BuildArch% /p:BuildType=%__BuildType% /p:PublishBuiltPackage=1 /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%__BuildNuGetPackagesBuildLog%"
 IF NOT ERRORLEVEL 1 (
     goto AfterBuildPackages
 )

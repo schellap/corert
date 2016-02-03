@@ -113,8 +113,6 @@
             <!-- ILCompiler nuspec file -->
             <NuSpecFile Include="$(ToolchainPackageName)">
                 <Stage>1</Stage>
-                <Push>1</Push>
-                <Push Condition="'$(BuildType)'=='Release'">1</Push>
                 <Version>$(ToolchainVersion)</Version>
                 <Title>Microsoft .NET Native Toolchain</Title>
                 <Description>Provides the toolchain to compile managed code to native.</Description>
@@ -135,7 +133,6 @@
             <!-- ILCompiler.SDK nuspec file -->
             <NuSpecFile Include="$(RuntimeSdkPackageName)">
                 <Stage>1</Stage>
-                <Push>1</Push>
                 <Version>$(RuntimeSdkVersion)</Version>
                 <Title>Microsoft .NET Native Runtime SDK</Title>
                 <Description>Provides the runtime and link libraries to compile managed code to native.</Description>
@@ -148,7 +145,6 @@
             <!-- A pair of platform and runtime package info per nuspec file -->
             <NuSpecFileGroup Include="@(NuSpecFile)">
                 <Stage>%(Stage)</Stage>
-                <Push>%(Push)</Push>
                 <RedirPackage>%(Identity)</RedirPackage>
                 <RedirNuPkg>%(Identity).%(Version).nupkg</RedirNuPkg>
                 <Version>%(Version)</Version>
@@ -176,7 +172,6 @@
             <!-- NuSpecCollection: A collection of NuSpecFileGroup -->
             <NuSpecCollection Include="@(NuSpecFileGroup)">
                 <Stage>%(Stage)</Stage>
-                <Push>%(Push)</Push>
                 <RedirPackage>%(RedirPackage)</RedirPackage>
                 <PlatformPackage>%(PlatformPackage)</PlatformPackage>
                 <RuntimeJsonFile>$(ProductPackageDir)/%(RedirPackage).runtime.json</RuntimeJsonFile>
@@ -241,7 +236,9 @@
         <WriteLinesToFile File="%(NuSpecCollection.RedirFile)" Lines="%(NuSpecCollection.RedirLines)" Overwrite="true" Condition="'%(NuSpecCollection.Stage)'=='1'" />
 
         <ItemGroup>
-            <Stage1NuSpecs Include="%(NuSpecCollection.PlatformFile)" Condition="'%(NuSpecCollection.Stage)'=='1' And '$(CoreRT_PackOnlyRedir)'!='true'"  />
+            <!-- For VSO, first step will be to push the built packages as part of repo build if feedurl and feedauth are set. -->
+            <!-- For VSO, the second step is to just push the redirection packages and not the platform files == PUSH_REDIR_ONLY -->
+            <Stage1NuSpecs Include="%(NuSpecCollection.PlatformFile)" Condition="'%(NuSpecCollection.Stage)'=='1' And '$(PUSH_REDIR_ONLY)'==''"  />
             <Stage1NuSpecs Include="%(NuSpecCollection.RedirFile)" Condition="'%(NuSpecCollection.Stage)'=='1'" />
         </ItemGroup>
 
@@ -275,24 +272,28 @@
         <MakeDir Directories="$(Stage1ProjectDir)" Condition="!Exists('$(Stage1ProjectDir)')" />
         <WriteLinesToFile File="$(Stage1ProjectJsonFile)" Lines="$(Stage1ProjectJsonLines)" Overwrite="true" />
         <WriteLinesToFile File="$(Stage1ProjectDir)/Program.cs" Lines="class Program { public static void Main() { } }" Overwrite="true" />
-        <Exec Command="&quot;$(DotNetCommand)&quot; restore --quiet -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" />
-        <Exec Command="&quot;$(DotNetCommand)&quot; publish &quot;$(Stage1ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" />
+        <!-- For VSO PublishBuiltPackage will be false to push redirection packages -->
+        <Exec Command="&quot;$(DotNetCommand)&quot; restore --quiet -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
+        <Exec Command="&quot;$(DotNetCommand)&quot; publish &quot;$(Stage1ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
 
         <!-- VSO Nightly Builds -->
         <PropertyGroup>
             <CoreRT_FeedUrl Condition="'$(CoreRT_FeedUrl)'==''">https://www.myget.org/F/dotnet-corert-nightly</CoreRT_FeedUrl>
             <CoreRT_PushUrl>$(CoreRT_FeedUrl)/api/v2/package</CoreRT_PushUrl>
             <NuPkgFilesDir>$(ProductPackageDir)</NuPkgFilesDir>
-            <!-- OSX NuGet.exe doesn't like absolute paths. Fails by appending the working dir with the already absolute path. -->
-            <NuPkgFilesDir Condition="'$(OSEnvironment)'=='Unix'">../bin/Product/$(OsPlatformConfig)/.nuget/</NuPkgFilesDir>
+            <!-- Workaround: Unix NuGet.exe doesn't like absolute paths. Fails by appending the working dir with the already absolute path. -->
+            <NuPkgFilesDir Condition="'$(OSEnvironment)'=='Unix'">../$(RelativeProductBinDir)/.nuget/</NuPkgFilesDir>
         </PropertyGroup>
         <ItemGroup>
-            <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformNuPkg)" Condition="'%(NuSpecCollection.Push)'=='1'" />
+            <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformNuPkg)" Condition="'$(BuildType)'=='Release' And '$(PUSH_REDIR_ONLY)'==''" />
         </ItemGroup>
         <Error
             Text="Could not push daily builds to the $(CoreRT_PushUrl) because CoreRT_FeedAuth is empty."
             Condition="'$(ToolchainMilestone)'=='nightly' And '$(CoreRT_FeedAuth)'==''" />
         <Exec Command="&quot;$(NuGetCommand)&quot; push &quot;$(NuPkgFilesDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_FeedAuth) -Source $(CoreRT_PushUrl)"
-              Condition="'$(CoreRT_FeedAuth)'!=''" />
+            Condition="'$(CoreRT_FeedAuth)'!='' And '%(NuPkgFilesToPush.Identity)'!=''" />
+        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;$(RepoPath)/src/scripts/vso/nightly-push.ps1&quot; -NuGetExe &apos;$(NuGetCommand)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_FeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_FeedAuth)&apos; -Configuration &apos;$(Configuration)&apos; -Version &apos;$(ToolchainVersion)&apos; -ErrorAction Stop"
+              Condition="'$(PUSH_REDIR_ONLY)'!=''">
+        </Exec>        
     </Target>
 </Project>
