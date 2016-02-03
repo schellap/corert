@@ -26,8 +26,8 @@
            <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'=='AnyCPU' or '$(NuPkgRuntimeBuildArch)'=='amd64'">x64</NuPkgRuntimeBuildArch> 
            <NuGetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\packages\nuget.exe</NuGetCommand>
            <NuGetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/packages/nuget.exe</NuGetCommand>
-           <MonoRuntime Condition="'$(OsEnvironment)'=='Windows_NT'"></NuGetCommand>
-           <MonoRuntime Condition="'$(OsEnvironment)'!='Windows_NT'">mono</NuGetCommand>
+           <MonoRuntime Condition="'$(OsEnvironment)'=='Windows_NT'"></MonoRuntime>
+           <MonoRuntime Condition="'$(OsEnvironment)'!='Windows_NT'">mono</MonoRuntime>
            <DotNetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\bin\tools\cli\bin\dotnet.exe</DotNetCommand>
            <DotNetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/bin/tools/cli/bin/dotnet</DotNetCommand>
            <ProductPackageDir>$(RepoPath)/$(RelativeProductBinDir)/.nuget/</ProductPackageDir>
