@@ -28,8 +28,8 @@
            <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'=='OSX'">osx.10.10</NuPkgRuntimeOS> 
            <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'==''">$(BuildArch)</NuPkgRuntimeBuildArch>
            <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'=='AnyCPU' or '$(NuPkgRuntimeBuildArch)'=='amd64'">x64</NuPkgRuntimeBuildArch> 
-           <NuGetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\packages\nuget.exe</NuGetCommand>
-           <NuGetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/packages/nuget.exe</NuGetCommand>
+           <NuGetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\packages\NuGet.exe</NuGetCommand>
+           <NuGetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/packages/NuGet.exe</NuGetCommand>
            <MonoRuntime Condition="'$(OsEnvironment)'=='Windows_NT'"></MonoRuntime>
            <MonoRuntime Condition="'$(OsEnvironment)'!='Windows_NT'">mono</MonoRuntime>
            <DotNetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\bin\tools\cli\bin\dotnet.exe</DotNetCommand>
