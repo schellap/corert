@@ -10,22 +10,52 @@
             </Code>
         </Task>
     </UsingTask>
-    <Target Name="BuildNuGetPackages" AfterTargets="Build">
+    <Target Name="BuildNuGetPackages">
+       <Error Condition="'$(BuildOS)'==''" Text="BuildOS (Windows_NT/Linux/OSX) not defined"></Error>
+       <Error Condition="'$(BuildArch)'==''" Text="BuildArch (amd64/x86/arm/arm64) not defined"></Error>
+       <Error Condition="'$(BuildType)'==''" Text="BuildType (Debug/Release) not defined"></Error>
+
+        <ItemGroup>
+            <RestoreFeeds Include="https:%2F%2Fwww.myget.org/F/dotnet-core/" />
+            <RestoreFeeds Include="https:%2F%2Fwww.myget.org/F/dotnet/" />
+            <RestoreFeeds Include="https:%2F%2Fwww.nuget.org/api/v2/" />
+        </ItemGroup>
+        <PropertyGroup>
+           <OsEnvironment Condition="'$(OsEnvironment)'==''">$(OS)</OsEnvironment> <!-- MSBuild Built-in variable -->
+           <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'==''">$(BuildOS)</NuPkgRuntimeOS>
+           <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'=='Windows_NT'">win7</NuPkgRuntimeOS> 
+           <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'=='Linux'">ubuntu.14.04</NuPkgRuntimeOS> 
+           <NuPkgRuntimeOS Condition="'$(NuPkgRuntimeOS)'=='OSX'">osx.10.10</NuPkgRuntimeOS> 
+           <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'==''">$(BuildArch)</NuPkgRuntimeBuildArch>
+           <NuPkgRuntimeBuildArch Condition="'$(NuPkgRuntimeBuildArch)'=='AnyCPU' or '$(NuPkgRuntimeBuildArch)'=='amd64'">x64</NuPkgRuntimeBuildArch> 
+           <NuGetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\packages\NuGet.exe</NuGetCommand>
+           <NuGetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/packages/NuGet.exe</NuGetCommand>
+           <MonoRuntime Condition="'$(OsEnvironment)'=='Windows_NT'"></MonoRuntime>
+           <MonoRuntime Condition="'$(OsEnvironment)'!='Windows_NT'">mono</MonoRuntime>
+           <DotNetCommand Condition="'$(OsEnvironment)'=='Windows_NT'">$(RepoPath)\bin\tools\cli\bin\dotnet.exe</DotNetCommand>
+           <DotNetCommand Condition="'$(OsEnvironment)'!='Windows_NT'">$(RepoPath)/bin/tools/cli/bin/dotnet</DotNetCommand>
+           <ProductPackageDir>$(RepoPath)/$(RelativeProductBinDir)/.nuget/</ProductPackageDir>
+           <RestoreSources>@(RestoreFeeds -> '--source %(Identity)', ' ')</RestoreSources>
+        </PropertyGroup>
         <!-- This is to fool the machine local DNX cache so each build is treated as unique. %USERPROFILE%\.dnx -->
         <GetBuildUid>
             <Output PropertyName="BuildUid" TaskParameter="BuildUid" />
         </GetBuildUid>
+        <Exec ConsoleToMSBuild="true" Command="git rev-list --count HEAD">
+            <Output PropertyName="GitSourceSuffix" TaskParameter="ConsoleOutput" />
+        </Exec>
 
         <!-- Property needed for creating nupkgs -->
         <PropertyGroup>
+            <SourceSuffix>$([System.String]::Copy('$(GitSourceSuffix)').PadLeft(6, '0'))</SourceSuffix>
             <ToolchainMilestone Condition="'$(ToolchainMilestone)'==''">prerelease</ToolchainMilestone>
-            <ToolchainVersion>1.0.4-$(ToolchainMilestone)-00001</ToolchainVersion>
+            <ToolchainVersion>1.0.5-$(ToolchainMilestone)-$(SourceSuffix)</ToolchainVersion>
             <RuntimeSdkVersion>$(ToolchainVersion)</RuntimeSdkVersion>
-            <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimePlatform)</NuPkgRid>
+            <NuPkgRid>$(NuPkgRuntimeOS)-$(NuPkgRuntimeBuildArch)</NuPkgRid>
             
             <ToolchainPackageName>Microsoft.DotNet.ILCompiler</ToolchainPackageName>
             
-            <RuntimeSdkPackageNameSuffix Condition="'$(Configuration)'=='Debug'">.Debug</RuntimeSdkPackageNameSuffix>
+            <RuntimeSdkPackageNameSuffix Condition="'$(BuildType)'=='Debug'">.Debug</RuntimeSdkPackageNameSuffix>
             <RuntimeSdkPackageName>Microsoft.DotNet.ILCompiler.SDK$(RuntimeSdkPackageNameSuffix)</RuntimeSdkPackageName>
 
             <!-- Uniqify package name per machine-local DNX cache for development purposes -->
@@ -46,9 +76,9 @@
                 <Text><![CDATA[        <file src="$(RelativeProductBinDir)/%(Identity)" target="runtimes/any/lib/dotnet/%(Identity)" /> ]]></Text>
             </ILCompilerBinPlace>
 
-            <ILCompilerNativeFiles Include="jitinterface.dll" Condition="'$(OSGroup)'=='Windows_NT'" />
-            <ILCompilerNativeFiles Include="jitinterface.so" Condition="'$(OSGroup)'=='Linux'" />
-            <ILCompilerNativeFiles Include="jitinterface.dylib" Condition="'$(OSGroup)'=='OSX'" />
+            <ILCompilerNativeFiles Include="jitinterface.dll" Condition="'$(BuildOS)'=='Windows_NT'" />
+            <ILCompilerNativeFiles Include="jitinterface.so" Condition="'$(BuildOS)'=='Linux'" />
+            <ILCompilerNativeFiles Include="jitinterface.dylib" Condition="'$(BuildOS)'=='OSX'" />
             <ILCompilerBinPlace Include="@(ILCompilerNativeFiles)">
                 <Text><![CDATA[        <file src="$(RelativeProductBinDir)/%(Identity)" target="runtimes/$(NuPkgRid)/native/%(Identity)" /> ]]></Text>
             </ILCompilerBinPlace>
@@ -143,8 +173,10 @@
             <NuSpecFileGroup Include="@(NuSpecFile)">
                 <Stage>%(Stage)</Stage>
                 <RedirPackage>%(Identity)</RedirPackage>
+                <RedirNuPkg>%(Identity).%(Version).nupkg</RedirNuPkg>
                 <Version>%(Version)</Version>
                 <PlatformPackage>toolchain.$(NuPkgRid).%(Identity)</PlatformPackage>
+                <PlatformNuPkg>toolchain.$(NuPkgRid).%(Identity).%(Version).nupkg</PlatformNuPkg>
                 <NuSpecPackageMetadata><![CDATA[
     <version>%(Version)</version>
     <title>%(Title)</title>
@@ -167,6 +199,8 @@
             <!-- NuSpecCollection: A collection of NuSpecFileGroup -->
             <NuSpecCollection Include="@(NuSpecFileGroup)">
                 <Stage>%(Stage)</Stage>
+                <RedirPackage>%(RedirPackage)</RedirPackage>
+                <PlatformPackage>%(PlatformPackage)</PlatformPackage>
                 <RuntimeJsonFile>$(ProductPackageDir)/%(RedirPackage).runtime.json</RuntimeJsonFile>
                 <RuntimeJsonLines><![CDATA[
 {
@@ -275,11 +309,13 @@
         <WriteLinesToFile File="%(NuSpecCollection.RedirFile)" Lines="%(NuSpecCollection.RedirLines)" Overwrite="true" Condition="'%(NuSpecCollection.Stage)'=='1'" />
 
         <ItemGroup>
-            <Stage1NuSpecs Include="%(NuSpecCollection.PlatformFile)" Condition="'%(NuSpecCollection.Stage)'=='1'"  />
+            <!-- For VSO, first step will be to push the built packages as part of repo build if feedurl and feedauth are set. -->
+            <!-- For VSO, the second step is to just push the redirection packages and not the platform files == PUSH_REDIR_ONLY -->
+            <Stage1NuSpecs Include="%(NuSpecCollection.PlatformFile)" Condition="'%(NuSpecCollection.Stage)'=='1' And '$(PUSH_REDIR_ONLY)'==''"  />
             <Stage1NuSpecs Include="%(NuSpecCollection.RedirFile)" Condition="'%(NuSpecCollection.Stage)'=='1'" />
         </ItemGroup>
 
-        <Exec Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(Stage1NuSpecs.Identity)&quot; -NoPackageAnalysis -NoDefaultExcludes -BasePath &quot;$(RepoPath)&quot; -OutputDirectory &quot;$(ProductPackageDir)&quot;" />
+        <Exec Command="$(MonoRuntime) &quot;$(NuGetCommand)&quot; pack &quot;%(Stage1NuSpecs.Identity)&quot; -NoPackageAnalysis -NoDefaultExcludes -BasePath &quot;$(RepoPath)&quot; -OutputDirectory &quot;$(ProductPackageDir)&quot;" />
 
         <PropertyGroup>
             <Stage1ProjectDir>$(ProductPackageDir)stage1/</Stage1ProjectDir>
@@ -308,8 +344,28 @@
         <MakeDir Directories="$(Stage1ProjectDir)" Condition="!Exists('$(Stage1ProjectDir)')" />
         <WriteLinesToFile File="$(Stage1ProjectJsonFile)" Lines="$(Stage1ProjectJsonLines)" Overwrite="true" />
         <WriteLinesToFile File="$(Stage1ProjectDir)/Program.cs" Lines="class Program { public static void Main() { } }" Overwrite="true" />
-        <Exec Command="&quot;$(DnuToolPath)&quot; restore -s &quot;$(ProductPackageDir)&quot; $(DnuRestoreSource) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" />
-        <Exec Command="&quot;$(DnuToolPath)&quot; publish &quot;$(Stage1ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" />
+        <!-- For VSO PublishBuiltPackage will be false to push redirection packages -->
+        <Exec Command="&quot;$(DotNetCommand)&quot; restore --quiet -s &quot;$(ProductPackageDir)&quot; $(RestoreSources) &quot;$(Stage1ProjectDir)&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
+        <Exec Command="&quot;$(DotNetCommand)&quot; publish &quot;$(Stage1ProjectDir)&quot; --native-subdirectory -o &quot;$(Stage1PublishDir)&quot; -f &quot;dnxcore50&quot; --runtime &quot;$(NuPkgRid)&quot;" Condition="'$(PublishBuiltPackage)'=='1'" />
 
+        <!-- VSO Nightly Builds -->
+        <PropertyGroup>
+            <CoreRT_FeedUrl Condition="'$(CoreRT_FeedUrl)'==''">https://www.myget.org/F/dotnet-corert-nightly</CoreRT_FeedUrl>
+            <CoreRT_PushUrl>$(CoreRT_FeedUrl)/api/v2/package</CoreRT_PushUrl>
+            <NuPkgFilesDir>$(ProductPackageDir)</NuPkgFilesDir>
+            <!-- Workaround: Unix NuGet.exe doesn't like absolute paths. Fails by appending the working dir with the already absolute path. -->
+            <NuPkgFilesDir Condition="'$(OSEnvironment)'=='Unix'">../../$(RelativeProductBinDir)/.nuget/</NuPkgFilesDir>
+        </PropertyGroup>
+        <ItemGroup>
+            <NuPkgFilesToPush Include="%(NuSpecCollection.PlatformNuPkg)" Condition="'$(BuildType)'=='Release' And '$(PUSH_REDIR_ONLY)'==''" />
+        </ItemGroup>
+        <Error
+            Text="Could not push daily builds to the $(CoreRT_PushUrl) because CoreRT_FeedAuth is empty."
+            Condition="'$(ToolchainMilestone)'=='nightly' And '$(CoreRT_FeedAuth)'==''" />
+        <Exec Command="$(MonoRuntime) &quot;$(NuGetCommand)&quot; push &quot;$(NuPkgFilesDir)%(NuPkgFilesToPush.Identity)&quot; $(CoreRT_FeedAuth) -Source $(CoreRT_PushUrl)"
+            Condition="'$(CoreRT_FeedAuth)'!='' And '%(NuPkgFilesToPush.Identity)'!=''" />
+        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;$(RepoPath)/src/scripts/vso/nightly-push.ps1&quot; -NuGetExe &apos;$(NuGetCommand)&apos; -NuPkgDir &apos;$(ProductPackageDir)&apos; -NuGetSrc &apos;$(CoreRT_FeedUrl)&apos; -NuGetAuth &apos;$(CoreRT_FeedAuth)&apos; -Configuration &apos;$(Configuration)&apos; -Version &apos;$(ToolchainVersion)&apos; -ErrorAction Stop"
+              Condition="'$(PUSH_REDIR_ONLY)'!=''">
+        </Exec>        
     </Target>
 </Project>
