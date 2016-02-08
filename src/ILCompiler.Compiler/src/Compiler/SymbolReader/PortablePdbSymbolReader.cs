@@ -18,12 +18,15 @@ namespace ILCompiler.SymbolReader
     {
         private static unsafe MetadataReader TryOpenMetadataFile(string filePath, MetadataStringDecoder stringDecoder, out MemoryMappedViewAccessor mappedViewAccessor)
         {
+            FileStream fileStream = null;
             MemoryMappedFile mappedFile = null;
             MemoryMappedViewAccessor accessor = null;
-
             try
             {
-                mappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+                fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                mappedFile = MemoryMappedFile.CreateFromFile(
+                    fileStream, null, fileStream.Length, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
+
                 accessor = mappedFile.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
 
                 var safeBuffer = accessor.SafeMemoryMappedViewHandle;
@@ -54,6 +57,8 @@ namespace ILCompiler.SymbolReader
                     accessor.Dispose();
                 if (mappedFile != null)
                     mappedFile.Dispose();
+                if (fileStream != null)
+                    fileStream.Dispose();
             }
         }
 

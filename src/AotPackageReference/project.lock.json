@@ -1393,6 +1393,10 @@
       ]
     },
     "runtime.win7.System.Diagnostics.Debug/4.0.11-rc2-23610": {
+<<<<<<< HEAD
+=======
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "uX/XQhAOk7Xqpem95HMMwFC8Zxntqytz2H6b/whp5aKIGmxyChoBEdjCePjAF+6aysclJGCsdomqd2x3H7DjEg==",
       "type": "package",
       "files": [
@@ -1405,6 +1409,10 @@
       ]
     },
     "runtime.win7.System.Private.Uri/4.0.1-rc2-23610": {
+<<<<<<< HEAD
+=======
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "o4dLzUEAJA6rACk9PNOTlsVEbaBC0jWHqDlrdA68/6Ez2g09pv9I79AugP8KDYJoaYZInhY3tc1EvBmy70UPSA==",
       "type": "package",
       "files": [
@@ -1417,6 +1425,10 @@
       ]
     },
     "runtime.win7.System.Runtime.Extensions/4.0.11-rc2-23610": {
+<<<<<<< HEAD
+=======
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "g/CmuYtgQwmNjRZHjVnn+TOhhSGtjKHDD6BPBs6TSJzC0KaaEmkOhgdYScSeJ7+rKT2vJkXY7ywoqxheqGRmIg==",
       "type": "package",
       "files": [
@@ -1429,6 +1441,10 @@
       ]
     },
     "runtime.win7.System.Threading/4.0.11-rc2-23610": {
+<<<<<<< HEAD
+=======
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "abFCFVOZ+8Eoeg3bLoYVBYBcUHrAZjZA5vSMmjbPEzxDqbp6HXIKjW+fmdPi/uxmsbQLrfmIHiiExr2ZTp8hAA==",
       "type": "package",
       "files": [
@@ -1441,6 +1457,10 @@
       ]
     },
     "System.Collections/4.0.10": {
+<<<<<<< HEAD
+=======
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "ux6ilcZZjV/Gp7JEZpe+2V1eTueq6NuoGRM3eZCFuPM25hLVVgCRuea6STW8hvqreIOE59irJk5/ovpA5xQipw==",
       "type": "package",
       "files": [
@@ -1469,10 +1489,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Collections.dll"
       ]
     },
     "System.Collections/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Collections.dll",
+        "System.Collections.4.0.10.nupkg.sha512",
+        "System.Collections.nuspec"
+      ]
+    },
+    "System.Collections/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "BnawDI+aox/pHRfnMKMLrg525ESEaniy9s68Vc+zHV71eIemcFgUfSPh1MLkZm1jeYo7kQvD5IST5tAhJ9+09A==",
       "type": "package",
       "files": [
@@ -1529,7 +1559,13 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Collections.dll"
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Collections.dll",
+        "System.Collections.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Collections.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     },
     "System.Diagnostics.Contracts/4.0.0": {
@@ -1561,10 +1597,20 @@
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Contracts.dll"
       ]
     },
     "System.Diagnostics.Contracts/4.0.1-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Contracts.dll",
+        "System.Diagnostics.Contracts.4.0.0.nupkg.sha512",
+        "System.Diagnostics.Contracts.nuspec"
+      ]
+    },
+    "System.Diagnostics.Contracts/4.0.1-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "eF1tmSQK+9HABYKAXnFSagQXIyRgVWjyUJ0Hv1P9soDV5EERrBI9kI1Zx7LGtHfe03hYrN+x4TnTSYqr3jzddQ==",
       "type": "package",
       "files": [
@@ -1610,10 +1656,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Contracts.dll"
       ]
     },
     "System.Diagnostics.Debug/4.0.10": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Contracts.dll",
+        "System.Diagnostics.Contracts.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Diagnostics.Contracts.nuspec"
+      ]
+    },
+    "System.Diagnostics.Debug/4.0.10": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "pi2KthuvI2LWV2c2V+fwReDsDiKpNl040h6DcwFOb59SafsPT/V1fCy0z66OKwysurJkBMmp5j5CBe3Um+ub0g==",
       "type": "package",
       "files": [
@@ -1642,10 +1698,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Debug.dll"
       ]
     },
     "System.Diagnostics.Debug/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Debug.dll",
+        "System.Diagnostics.Debug.4.0.10.nupkg.sha512",
+        "System.Diagnostics.Debug.nuspec"
+      ]
+    },
+    "System.Diagnostics.Debug/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "m6hTXaxs4jXsEfSTsWUUD8npnEhFMtuJDvTddk0GB7g8yCjliqVdySnmTTQ3/mWIWcWKG4R+uLE9SYfA/bGtjQ==",
       "type": "package",
       "files": [
@@ -1700,10 +1766,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtime.json"
       ]
     },
     "System.Diagnostics.Tracing/4.0.20": {
+=======
+        "runtime.json",
+        "System.Diagnostics.Debug.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Diagnostics.Debug.nuspec"
+      ]
+    },
+    "System.Diagnostics.Tracing/4.0.20": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "gn/wexGHc35Fv++5L1gYHMY5g25COfiZ0PGrL+3PfwzoJd4X2LbTAm/U8d385SI6BKQBI/z4dQfvneS9J27+Tw==",
       "type": "package",
       "files": [
@@ -1732,10 +1808,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tracing.dll"
       ]
     },
     "System.Diagnostics.Tracing/4.0.21-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tracing.dll",
+        "System.Diagnostics.Tracing.4.0.20.nupkg.sha512",
+        "System.Diagnostics.Tracing.nuspec"
+      ]
+    },
+    "System.Diagnostics.Tracing/4.0.21-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "qT8SpXMJrJjmQoyubMBmeJ3+6/xNGdYjH6fkRxKPjnNjAYSjxoelQQFRIKD0jWb3eXjBBR6hdziJ9s5UbfxspQ==",
       "type": "package",
       "files": [
@@ -1801,7 +1887,13 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tracing.dll"
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tracing.dll",
+        "System.Diagnostics.Tracing.4.0.21-rc2-23610.nupkg.sha512",
+        "System.Diagnostics.Tracing.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     },
     "System.Globalization/4.0.10": {
@@ -1833,10 +1925,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Globalization.dll"
       ]
     },
     "System.Globalization/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Globalization.dll",
+        "System.Globalization.4.0.10.nupkg.sha512",
+        "System.Globalization.nuspec"
+      ]
+    },
+    "System.Globalization/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "dKmA9sbhXTCKRysaiz9rAozPD3UPyKevazlPQc0QQIjR+89tS4+KB1nRcw1NgG8yhgcS611Bw64bSsKJXyd99Q==",
       "type": "package",
       "files": [
@@ -1893,10 +1995,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Globalization.dll"
       ]
     },
     "System.IO/4.0.10": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Globalization.dll",
+        "System.Globalization.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Globalization.nuspec"
+      ]
+    },
+    "System.IO/4.0.10": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "kghf1CeYT+W2lw8a50/GxFz5HR9t6RkL4BvjxtTp1NxtEFWywnMA9W8FH/KYXiDNThcw9u/GOViDON4iJFGXIQ==",
       "type": "package",
       "files": [
@@ -1925,10 +2037,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.IO.dll"
       ]
     },
     "System.IO/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.IO.dll",
+        "System.IO.4.0.10.nupkg.sha512",
+        "System.IO.nuspec"
+      ]
+    },
+    "System.IO/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "/661ms6FT2LS+eVFM4p722JfHF70aafJSIWivb1hh9U2lVa0MfK6hyqjBRaDAukp0UsqjOs/NmRbXaKd74bFxA==",
       "type": "package",
       "files": [
@@ -1985,10 +2107,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.IO.dll"
       ]
     },
     "System.Linq/4.0.0": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.IO.dll",
+        "System.IO.4.0.11-rc2-23610.nupkg.sha512",
+        "System.IO.nuspec"
+      ]
+    },
+    "System.Linq/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "r6Hlc+ytE6m/9UBr+nNRRdoJEWjoeQiT3L3lXYFDHoXk3VYsRBCDNXrawcexw7KPLaH0zamQLiAb6avhZ50cGg==",
       "type": "package",
       "files": [
@@ -2016,10 +2148,20 @@
         "ref/netcore50/System.Linq.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
+<<<<<<< HEAD
         "ref/wpa81/_._"
       ]
     },
     "System.Linq/4.0.1-rc2-23610": {
+=======
+        "ref/wpa81/_._",
+        "System.Linq.4.0.0.nupkg.sha512",
+        "System.Linq.nuspec"
+      ]
+    },
+    "System.Linq/4.0.1-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "dfb6geDowf1+WP+CU/IC3ywFV2eACQ/1sL13pfuTGxOd9FTCLjhJSS0F+N1SghtLWPUBWjRsQD3MThw4oTIeLA==",
       "type": "package",
       "files": [
@@ -2064,10 +2206,20 @@
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
+<<<<<<< HEAD
         "ref/xamarinmac20/_._"
       ]
     },
     "System.Private.Uri/4.0.0": {
+=======
+        "ref/xamarinmac20/_._",
+        "System.Linq.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Linq.nuspec"
+      ]
+    },
+    "System.Private.Uri/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "CtuxaCKcRIvPcsqquVl3mPp79EDZPMr2UogfiFCxCs+t2z1VjbpQsKNs1GHZ8VQetqbk1mr0V1yAfMe6y8CHDA==",
       "type": "package",
       "files": [
@@ -2077,7 +2229,13 @@
         "lib/netcore50/System.Private.Uri.dll",
         "ref/dnxcore50/_._",
         "ref/netcore50/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Private.Uri.dll"
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Private.Uri.dll",
+        "System.Private.Uri.4.0.0.nupkg.sha512",
+        "System.Private.Uri.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     },
     "System.Private.Uri/4.0.1-rc2-23610": {
@@ -2088,7 +2246,13 @@
         "System.Private.Uri.nuspec",
         "ref/dnxcore50/_._",
         "ref/netcore50/_._",
+<<<<<<< HEAD
         "runtime.json"
+=======
+        "runtime.json",
+        "System.Private.Uri.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Private.Uri.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     },
     "System.Reflection/4.0.0": {
@@ -2135,10 +2299,20 @@
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
+<<<<<<< HEAD
         "ref/xamarinmac20/_._"
       ]
     },
     "System.Reflection/4.1.0-rc2-23610": {
+=======
+        "ref/xamarinmac20/_._",
+        "System.Reflection.4.0.0.nupkg.sha512",
+        "System.Reflection.nuspec"
+      ]
+    },
+    "System.Reflection/4.1.0-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "JpwnSdKxPaGCTItZqPtk0rqKVsnWXOQNrgXt7NwQc3EuoontZHRQPTpVY+tTLcuzPEHMcKnZCEFf0sQT97zr9Q==",
       "type": "package",
       "files": [
@@ -2197,10 +2371,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.dll"
       ]
     },
     "System.Reflection.Extensions/4.0.0": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.dll",
+        "System.Reflection.4.1.0-rc2-23610.nupkg.sha512",
+        "System.Reflection.nuspec"
+      ]
+    },
+    "System.Reflection.Extensions/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "dbYaZWCyFAu1TGYUqR2n+Q+1casSHPR2vVW0WVNkXpZbrd2BXcZ7cpvpu9C98CTHtNmyfMWCLpCclDqly23t6A==",
       "type": "package",
       "files": [
@@ -2229,10 +2413,20 @@
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll"
       ]
     },
     "System.Reflection.Extensions/4.0.1-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll",
+        "System.Reflection.Extensions.4.0.0.nupkg.sha512",
+        "System.Reflection.Extensions.nuspec"
+      ]
+    },
+    "System.Reflection.Extensions/4.0.1-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "XHjhvKdMCK4j8f9iPFtRhJLoPjjpbGGZtu88RWZMldYKvbLqHx7rOtkZLwQu9jF2UbJPTGcKNUdpYbAOZcR1cg==",
       "type": "package",
       "files": [
@@ -2278,10 +2472,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll"
       ]
     },
     "System.Reflection.Primitives/4.0.0": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll",
+        "System.Reflection.Extensions.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Reflection.Extensions.nuspec"
+      ]
+    },
+    "System.Reflection.Primitives/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "n9S0XpKv2ruc17FSnaiX6nV47VfHTZ1wLjKZlAirUZCvDQCH71mVp+Ohabn0xXLh5pK2PKp45HCxkqu5Fxn/lA==",
       "type": "package",
       "files": [
@@ -2310,10 +2514,20 @@
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.dll"
       ]
     },
     "System.Reflection.Primitives/4.0.1-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.dll",
+        "System.Reflection.Primitives.4.0.0.nupkg.sha512",
+        "System.Reflection.Primitives.nuspec"
+      ]
+    },
+    "System.Reflection.Primitives/4.0.1-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "QHAGYX8GPpypQi9OcmvJazS8FsOSrs3JkAln9+MQtKkyLTwuifl/H/u9x27OG7qQ5Y+iCbkPjA2T0/extnQ/tw==",
       "type": "package",
       "files": [
@@ -2359,10 +2573,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.dll"
       ]
     },
     "System.Reflection.TypeExtensions/4.0.0": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.dll",
+        "System.Reflection.Primitives.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Reflection.Primitives.nuspec"
+      ]
+    },
+    "System.Reflection.TypeExtensions/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "YRM/msNAM86hdxPyXcuZSzmTO0RQFh7YMEPBLTY8cqXvFPYIx2x99bOyPkuU81wRYQem1c1HTkImQ2DjbOBfew==",
       "type": "package",
       "files": [
@@ -2391,10 +2615,20 @@
         "ref/net46/System.Reflection.TypeExtensions.dll",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.TypeExtensions.dll"
       ]
     },
     "System.Reflection.TypeExtensions/4.1.0-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.TypeExtensions.dll",
+        "System.Reflection.TypeExtensions.4.0.0.nupkg.sha512",
+        "System.Reflection.TypeExtensions.nuspec"
+      ]
+    },
+    "System.Reflection.TypeExtensions/4.1.0-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "DKk4KeEbYnFZcaVbCzLXMmsNLquONfezIp+y6bVAvCZWuBmXRmH3BXZOpOXofNpnYuVvw8IaRN3WNvj8kAGG/g==",
       "type": "package",
       "files": [
@@ -2423,10 +2657,20 @@
         "ref/net46/System.Reflection.TypeExtensions.dll",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Reflection.TypeExtensions.dll"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.TypeExtensions.dll",
+        "System.Reflection.TypeExtensions.4.1.0-rc2-23610.nupkg.sha512",
+        "System.Reflection.TypeExtensions.nuspec"
+      ]
+    },
+    "System.Resources.ResourceManager/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "qmqeZ4BJgjfU+G2JbrZt4Dk1LsMxO4t+f/9HarNY6w8pBgweO6jT+cknUH7c3qIrGvyUqraBhU45Eo6UtA0fAw==",
       "type": "package",
       "files": [
@@ -2455,10 +2699,20 @@
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll"
       ]
     },
     "System.Resources.ResourceManager/4.0.1-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll",
+        "System.Resources.ResourceManager.4.0.0.nupkg.sha512",
+        "System.Resources.ResourceManager.nuspec"
+      ]
+    },
+    "System.Resources.ResourceManager/4.0.1-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "098Owx+/waXdzvqQxWsyYqmFFIboriTtSoy/CG4VOAlLtVz0afhaM5gRzuv3pS+Q7hgt+kEkDD5Ob7ztHN1xog==",
       "type": "package",
       "files": [
@@ -2504,10 +2758,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll"
       ]
     },
     "System.Runtime/4.0.20": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll",
+        "System.Resources.ResourceManager.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Resources.ResourceManager.nuspec"
+      ]
+    },
+    "System.Runtime/4.0.20": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "X7N/9Bz7jVPorqdVFO86ns1sX6MlQM+WTxELtx+Z4VG45x9+LKmWH0GRqjgKprUnVuwmfB9EJ9DQng14Z7/zwg==",
       "type": "package",
       "files": [
@@ -2536,10 +2800,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.dll"
       ]
     },
     "System.Runtime/4.0.21-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.dll",
+        "System.Runtime.4.0.20.nupkg.sha512",
+        "System.Runtime.nuspec"
+      ]
+    },
+    "System.Runtime/4.0.21-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "34P12WPl55HxjncGTtFDp5OobPz/U6h+DgFwX4H8TqzEZFEVci5EIHgWiHah/FdN9e/OutFJDXgfX8k4Yr2E0g==",
       "type": "package",
       "files": [
@@ -2607,10 +2881,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.dll"
       ]
     },
     "System.Runtime.Extensions/4.0.10": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.dll",
+        "System.Runtime.4.0.21-rc2-23610.nupkg.sha512",
+        "System.Runtime.nuspec"
+      ]
+    },
+    "System.Runtime.Extensions/4.0.10": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "5dsEwf3Iml7d5OZeT20iyOjT+r+okWpN7xI2v+R4cgd3WSj4DeRPTvPFjDpacbVW4skCAZ8B9hxXJYgkCFKJ1A==",
       "type": "package",
       "files": [
@@ -2639,10 +2923,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.Extensions.dll"
       ]
     },
     "System.Runtime.Extensions/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Extensions.dll",
+        "System.Runtime.Extensions.4.0.10.nupkg.sha512",
+        "System.Runtime.Extensions.nuspec"
+      ]
+    },
+    "System.Runtime.Extensions/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "mug+g1mx/Oj2vDk3P61tw0Wu3TjH+GxC5HbJ0+BbhtuClh8ErtEjoDcY3DIefQaRWIdfdm+N679C/hgq1/b0xg==",
       "type": "package",
       "files": [
@@ -2697,10 +2991,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtime.json"
       ]
     },
     "System.Runtime.Handles/4.0.0": {
+=======
+        "runtime.json",
+        "System.Runtime.Extensions.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Runtime.Extensions.nuspec"
+      ]
+    },
+    "System.Runtime.Handles/4.0.0": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "638VhpRq63tVcQ6HDb3um3R/J2BtR1Sa96toHo6PcJGPXEPEsleCuqhBgX2gFCz0y0qkutANwW6VPPY5wQu1XQ==",
       "type": "package",
       "files": [
@@ -2729,10 +3033,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.Handles.dll"
       ]
     },
     "System.Runtime.Handles/4.0.1-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Handles.dll",
+        "System.Runtime.Handles.4.0.0.nupkg.sha512",
+        "System.Runtime.Handles.nuspec"
+      ]
+    },
+    "System.Runtime.Handles/4.0.1-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "E/2NQjB3NJNHW4cIiea2GS/WxuOb3JbDrddVGo3X5xlhIamLESGRSsd0PrDzZWb+fEF0DZX92urXWVBhWE/jbQ==",
       "type": "package",
       "files": [
@@ -2761,10 +3075,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.Handles.dll"
       ]
     },
     "System.Runtime.InteropServices/4.0.20": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Handles.dll",
+        "System.Runtime.Handles.4.0.1-rc2-23610.nupkg.sha512",
+        "System.Runtime.Handles.nuspec"
+      ]
+    },
+    "System.Runtime.InteropServices/4.0.20": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "ZgDyBYfEnjWoz/viS6VOswA6XOkDSH2DzgbpczbW50RywhnCgTl+w3JEvtAiOGyIh8cyx1NJq80jsNBSUr8Pig==",
       "type": "package",
       "files": [
@@ -2793,10 +3117,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll"
       ]
     },
     "System.Runtime.InteropServices/4.0.21-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll",
+        "System.Runtime.InteropServices.4.0.20.nupkg.sha512",
+        "System.Runtime.InteropServices.nuspec"
+      ]
+    },
+    "System.Runtime.InteropServices/4.0.21-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "QfJ9UyBo7xPCKvKn7ZVEHDnMPNkpgJXa2GgR5tU4ER+8Ja32ZkPADweQqqGsSnyxeilj5A/LcWMo9axSC7Zuwg==",
       "type": "package",
       "files": [
@@ -2862,7 +3196,13 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll"
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll",
+        "System.Runtime.InteropServices.4.0.21-rc2-23610.nupkg.sha512",
+        "System.Runtime.InteropServices.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     },
     "System.Text.Encoding/4.0.10": {
@@ -2894,10 +3234,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.dll"
       ]
     },
     "System.Text.Encoding/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.dll",
+        "System.Text.Encoding.4.0.10.nupkg.sha512",
+        "System.Text.Encoding.nuspec"
+      ]
+    },
+    "System.Text.Encoding/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "bF+2wAnjkgFX4KYWWd1W1q6bVLpFOG7mJtnz9prhT0IRamDcQFW4xIb9uN0fQDcpkk+qH5zUvMyf9lMhfhUMWw==",
       "type": "package",
       "files": [
@@ -2954,7 +3304,13 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.dll"
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.dll",
+        "System.Text.Encoding.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Text.Encoding.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     },
     "System.Text.Encoding.Extensions/4.0.10": {
@@ -2986,10 +3342,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.Extensions.dll"
       ]
     },
     "System.Text.Encoding.Extensions/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.Extensions.dll",
+        "System.Text.Encoding.Extensions.4.0.10.nupkg.sha512",
+        "System.Text.Encoding.Extensions.nuspec"
+      ]
+    },
+    "System.Text.Encoding.Extensions/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "Zh28daQhoRaujc2GCoC2tRF/ah4Cs0tUaqeyWOeW0QuK1U5GHIVpypC/sPSoMQYJJhw4orQCJi9MfKF3MSt12g==",
       "type": "package",
       "files": [
@@ -3046,10 +3412,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.Extensions.dll"
       ]
     },
     "System.Threading/4.0.10": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.Extensions.dll",
+        "System.Text.Encoding.Extensions.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Text.Encoding.Extensions.nuspec"
+      ]
+    },
+    "System.Threading/4.0.10": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "0w6pRxIEE7wuiOJeKabkDgeIKmqf4ER1VNrs6qFwHnooEE78yHwi/bKkg5Jo8/pzGLm0xQJw0nEmPXt1QBAIUA==",
       "type": "package",
       "files": [
@@ -3078,10 +3454,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Threading.dll"
       ]
     },
     "System.Threading/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Threading.dll",
+        "System.Threading.4.0.10.nupkg.sha512",
+        "System.Threading.nuspec"
+      ]
+    },
+    "System.Threading/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "7965oAqhJlHIg5lwsV9LGJYlK9iYhfgmNgKZHyfHYTIGKmMIK6qu8PlbW1Gw9gvZTf1sQggNTgLuo4KgqZWxVw==",
       "type": "package",
       "files": [
@@ -3136,10 +3522,20 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtime.json"
       ]
     },
     "System.Threading.Tasks/4.0.10": {
+=======
+        "runtime.json",
+        "System.Threading.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Threading.nuspec"
+      ]
+    },
+    "System.Threading.Tasks/4.0.10": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "NOwJGDfk79jR0bnzosbXLVD/PdI8KzBeESoa3CofEM5v9R5EBfcI0Jyf18stx+0IYV9okmDIDxVtxq9TbnR9bQ==",
       "type": "package",
       "files": [
@@ -3168,10 +3564,20 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.dll"
       ]
     },
     "System.Threading.Tasks/4.0.11-rc2-23610": {
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.dll",
+        "System.Threading.Tasks.4.0.10.nupkg.sha512",
+        "System.Threading.Tasks.nuspec"
+      ]
+    },
+    "System.Threading.Tasks/4.0.11-rc2-23610": {
+      "type": "package",
+>>>>>>> fc4f600... Add System.CommandLine
       "sha512": "1ZLKN/lUjDcpHjIJp4zVibXVnNxJ1dgt0uR4TVqE6+Y21QO/JTj4DG/HzbHXoptViC/q53JmYYF9YTz3BJ8iqQ==",
       "type": "package",
       "files": [
@@ -3228,7 +3634,13 @@
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+<<<<<<< HEAD
         "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.dll"
+=======
+        "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.dll",
+        "System.Threading.Tasks.4.0.11-rc2-23610.nupkg.sha512",
+        "System.Threading.Tasks.nuspec"
+>>>>>>> fc4f600... Add System.CommandLine
       ]
     }
   },
