@@ -99,10 +99,11 @@ install_dotnet_cli()
             __build_os_lowercase="ubuntu"
         fi
         
+        local __cli_version=1.0.0.000973
         local __build_arch_lowercase=$(echo "${__BuildArch}" | tr '[:upper:]' '[:lower:]')
-        local __cli_tarball=dotnet-${__build_os_lowercase}-${__build_arch_lowercase}.latest.tar.gz
+        local __cli_tarball=dotnet-${__build_os_lowercase}-${__build_arch_lowercase}.${__cli_version}.tar.gz
         local __cli_tarball_path=${__tools_dir}/${__cli_tarball}
-        download_file ${__cli_tarball_path} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/Latest/${__cli_tarball}"
+        download_file ${__cli_tarball_path} "https://dotnetcli.blob.core.windows.net/dotnet/dev/Binaries/${__cli_version}/${__cli_tarball}"
         tar -xzf ${__cli_tarball_path} -C ${__cli_dir}
         export DOTNET_HOME=${__cli_dir}
         #
@@ -154,7 +155,7 @@ prepare_managed_build()
     # Grab the MSBuild package if we don't have it already
     if [ ! -e "$__msbuildpath" ]; then
         echo "Restoring MSBuild..."
-        mono "$__nugetpath" install $__msbuildpackageid -Version $__msbuildpackageversion -source "https://www.myget.org/F/dotnet-buildtools/" -OutputDirectory "$__packageroot"
+        mono "$__nugetpath" install $__msbuildpackageid -Version $__msbuildpackageversion -source "https://dotnet.myget.org/F/dotnet-buildtools/" -OutputDirectory "$__packageroot"
         if [ $? -ne 0 ]; then
             echo "Failed to restore MSBuild."
             exit 1

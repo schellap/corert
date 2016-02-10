@@ -18,6 +18,14 @@ namespace System
 {
     public static partial class Environment
     {
+        internal static long TickCount64
+        {
+            get
+            {
+                return (long)Interop.Sys.GetTickCount64();
+            }
+        }
+
         public unsafe static String ExpandEnvironmentVariables(String name)
         {
             if (name == null)
@@ -71,12 +79,19 @@ namespace System
             return Encoding.UTF8.GetString((byte*)result, size);
         }
 
-        public static string MachineName
+        private const int MAX_HOST_NAME = 256; // 255 max and null 
+        public static unsafe string MachineName
         {
             get
             {
-                // UNIXTODO: Not yet implemented. Issue: dotnet/corert#650.
-                throw new NotImplementedException();
+                byte *hostName = stackalloc byte[MAX_HOST_NAME];
+                int hostNameLength = Interop.Sys.GetMachineName(hostName, MAX_HOST_NAME);
+                if (hostNameLength < 0)
+                {
+                    throw new InvalidOperationException(SR.InvalidOperation_ComputerName);
+                }
+
+                return Encoding.UTF8.GetString(hostName, hostNameLength);
             }
         }
     }
