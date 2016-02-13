@@ -23,7 +23,8 @@ namespace ILCompiler.SymbolReader
             MemoryMappedViewAccessor accessor = null;
             try
             {
-                fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                // Create stream because CreateFromFile(string, ...) uses FileShare.None which is too strict
+                fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 mappedFile = MemoryMappedFile.CreateFromFile(
                     fileStream, null, fileStream.Length, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
 
@@ -56,9 +57,7 @@ namespace ILCompiler.SymbolReader
                 if (accessor != null)
                     accessor.Dispose();
                 if (mappedFile != null)
-                    mappedFile.Dispose();
-                if (fileStream != null)
-                    fileStream.Dispose();
+                    mappedFile.Dispose(); // Cleans up the fileStream.
             }
         }
 

@@ -24,17 +24,20 @@ namespace ILCompiler
         private Dictionary<string, string> _referenceFilePaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         private bool _help;
-        private string _helpText;
 
         private Program()
         {
         }
 
-        private void Help()
+        private void Help(string helpText)
         {
             Console.WriteLine();
-            Console.WriteLine("Microsoft .NET Native IL Compiler");
-            Console.WriteLine(_helpText);
+            Console.Write("Microsoft (R) .NET Native IL Compiler");
+            Console.Write(" ");
+            Console.Write(typeof(Program).GetTypeInfo().Assembly.GetName().Version);
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(helpText);
         }
 
         private void InitializeDefaultOptions()
@@ -66,39 +69,38 @@ namespace ILCompiler
 
         // TODO: Use System.CommandLine for command line parsing
         // https://github.com/dotnet/corert/issues/568
-        private void ParseCommandLine(string[] args)
+        private ArgumentSyntax ParseCommandLine(string[] args)
         {
-            IReadOnlyList<string> explicitInputFiles = Array.Empty<string>();
-            IReadOnlyList<string> implicitInputFiles = Array.Empty<string>();
+            IReadOnlyList<string> inputFiles = Array.Empty<string>();
             IReadOnlyList<string> referenceFiles = Array.Empty<string>();
 
             AssemblyName name = typeof(Program).GetTypeInfo().Assembly.GetName();
-            ArgumentSyntax.Parse(args, syntax =>
+            ArgumentSyntax argSyntax = ArgumentSyntax.Parse(args, syntax =>
             {
-                syntax.ApplicationName = name.Name + " " + name.Version.ToString();
+                syntax.ApplicationName = name.Name.ToString();
 
+                // HandleHelp writes to error, fails fast with crash dialog and lacks custom formatting.
                 syntax.HandleHelp = false;
-                syntax.HandleErrors = false;
+                syntax.HandleErrors = true;
             
                 syntax.DefineOption("h|help", ref _help, "Help message for ILC");
-                syntax.DefineOptionList("i|in", ref explicitInputFiles, "Input file(s) to compile");
                 syntax.DefineOptionList("r|reference", ref referenceFiles, "Reference file(s) for compilation");
-                syntax.DefineOption("o|out", ref _options.OutputFilePath, "Output file for compilation");
+                syntax.DefineOption("o|out", ref _options.OutputFilePath, "Output file path");
                 syntax.DefineOption("cpp", ref _options.IsCppCodeGen, "Compile for C++ code-generation");
                 syntax.DefineOption("nolinenumbers", ref _options.NoLineNumbers, "Debug line numbers for C++ code-generation");
-                syntax.DefineOption("dgmllog", ref _options.DgmlLog, "Write DGML log");
-                syntax.DefineOption("fulllog", ref _options.FullLog, "Write full log");
-                syntax.DefineOption("verbose", ref _options.Verbose, "Verbosity level for compilation");
-                syntax.DefineOption("systemmodule", ref _options.SystemModuleName, "Custom system library implementation for ILC");
-                syntax.DefineParameterList("in", ref implicitInputFiles, "Input file(s) to compile");
-
-                _helpText = syntax.GetHelpText(Console.WindowWidth - 2);
+                syntax.DefineOption("dgmllog", ref _options.DgmlLog, "Save result of dependency analysis as DGML");
+                syntax.DefineOption("fulllog", ref _options.FullLog, "Save detailed log of dependency analysis");
+                syntax.DefineOption("verbose", ref _options.Verbose, "Enable verbose logging");
+                syntax.DefineOption("systemmodule", ref _options.SystemModuleName, "System module name (default: System.Private.CoreLib)");
+                syntax.DefineParameterList("in", ref inputFiles, "Input file(s) to compile");
             });
-            foreach (var input in explicitInputFiles.Concat(implicitInputFiles))
+            foreach (var input in inputFiles)
                 Helpers.AppendExpandedPaths(_inputFilePaths, input, true);
 
             foreach (var reference in referenceFiles)
                 Helpers.AppendExpandedPaths(_referenceFilePaths, reference, true);
+
+            return argSyntax;
         }
 
         private void SingleFileCompilation()
@@ -113,10 +115,10 @@ namespace ILCompiler
         {
             InitializeDefaultOptions();
 
-            ParseCommandLine(args);
+            ArgumentSyntax syntax = ParseCommandLine(args);
             if (_help)
             {
-                Help();
+                Help(syntax.GetHelpText());
                 return 1;
             }
 
@@ -145,6 +147,7 @@ namespace ILCompiler
             catch (Exception e)
             {
                 Console.Error.WriteLine("Error: " + e.Message);
+                Console.Error.WriteLine(e.ToString());
                 return 1;
             }
 #endif
