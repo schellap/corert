@@ -650,6 +650,14 @@ namespace System.Runtime
         [RuntimeImport(RuntimeLibrary, "RhpMemoryBarrier")]
         internal extern static void MemoryBarrier();
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhpRequestWorkerThread")]
+        internal static unsafe extern int RequestWorkerThread(IntPtr fnCallback);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhpRequestDedicatedThread")]
+        internal static unsafe extern int RequestDedicatedThread(IntPtr fnCallback, object state);
+
         [Intrinsic]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "fabs")]

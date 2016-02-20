@@ -16,6 +16,7 @@
 #include "RuntimeInstance.h"
 #include "event.h"
 #include "threadstore.h"
+#include "threadpool.h"
 #include "gcrhinterface.h"
 #include "shash.h"
 #include "module.h"
@@ -73,6 +74,11 @@ PTR_Module RuntimeInstance::ModuleIterator::GetNext()
 ThreadStore *   RuntimeInstance::GetThreadStore()
 {
     return m_pThreadStore;
+}
+
+ThreadPool *   RuntimeInstance::GetThreadPool()
+{
+    return m_pThreadPool;
 }
 
 Module * RuntimeInstance::FindModuleByAddress(PTR_VOID pvAddress)
@@ -363,6 +369,7 @@ Module * RuntimeInstance::FindModuleByOsHandle(HANDLE hOsHandle)
 
 RuntimeInstance::RuntimeInstance() : 
     m_pThreadStore(NULL),
+    m_pThreadPool(NULL),
     m_fStandaloneExeMode(false),
     m_pStandaloneExeModule(NULL),
     m_pGenericTypeHashTable(NULL),
@@ -382,6 +389,12 @@ RuntimeInstance::~RuntimeInstance()
     {
         delete m_pThreadStore;
         m_pThreadStore = NULL;
+    }
+
+    if (NULL != m_pThreadPool)
+    {
+        m_pThreadPool->Destroy();
+        m_pThreadPool = NULL;
     }
 }
 
@@ -552,8 +565,13 @@ RuntimeInstance * RuntimeInstance::Create(HANDLE hPalInstance)
     if (NULL == pThreadStore)
         return NULL;
 
+    CreateHolder<ThreadPool>  pThreadPool = ThreadPool::Create(pRuntimeInstance);
+    if (NULL == pThreadPool)
+        return NULL;
+
     pThreadStore.SuppressRelease();
     pRuntimeInstance->m_pThreadStore = pThreadStore;
+    pRuntimeInstance->m_pThreadPool = pThreadPool;
     pRuntimeInstance->m_hPalInstance = hPalInstance;
 
     pRuntimeInstance->m_genericInstReportList = NULL;

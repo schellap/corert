@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 class ThreadStore;
 typedef DPTR(ThreadStore) PTR_ThreadStore;
+class ThreadPool;
+typedef DPTR(ThreadPool) PTR_ThreadPool;
 class Module;
 typedef DPTR(Module) PTR_Module;
 class ICodeManager;
@@ -24,6 +26,7 @@ class RuntimeInstance
 
     PTR_RuntimeInstance         m_pNext;
     PTR_ThreadStore             m_pThreadStore;
+    PTR_ThreadPool              m_pThreadPool;
     HANDLE                      m_hPalInstance; // this is the HANDLE passed into DllMain
     SList<Module>               m_ModuleList;
     ReaderWriterLock            m_ModuleListLock;
@@ -92,6 +95,7 @@ public:
 
     ~RuntimeInstance();
     ThreadStore *   GetThreadStore();
+    ThreadPool  *   GetThreadPool();
     HANDLE          GetPalInstance();
 
     bool RegisterModule(ModuleHeader *pModuleHeader);

@@ -44,18 +44,18 @@ namespace System.Threading.Tasks
         [SecurityCritical]
         protected internal override void QueueTask(Task task)
         {
-#if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
-            var etwLog = TplEtwProvider.Log;
-            if (etwLog.IsEnabled(EventLevel.Verbose, ((EventKeywords)(-1))))
-            {
-                Task currentTask = Task.InternalCurrent;
-                Task creatingTask = task.m_parent;
+//#if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
+//            var etwLog = TplEtwProvider.Log;
+//            if (etwLog.IsEnabled(EventLevel.Verbose, ((EventKeywords)(-1))))
+//            {
+//                Task currentTask = Task.InternalCurrent;
+//                Task creatingTask = task.m_parent;
 
-                etwLog.TaskScheduled(this.Id, currentTask == null ? 0 : currentTask.Id,
-                                                 task.Id, creatingTask == null ? 0 : creatingTask.Id,
-                                                 (int)task.Options);
-            }
-#endif
+//                etwLog.TaskScheduled(this.Id, currentTask == null ? 0 : currentTask.Id,
+//                                                 task.Id, creatingTask == null ? 0 : creatingTask.Id,
+//                                                 (int)task.Options);
+//            }
+//#endif
 
             if ((task.Options & TaskCreationOptions.LongRunning) != 0)
             {

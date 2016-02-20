@@ -319,10 +319,10 @@ int main(int argc, char* argv[])
 		assert(argc > 0);
 		retval = __managed__Main(argc, argv);
     }
-    catch (const char* &e)
+    catch (...)
     {
         printf("Call to an unimplemented runtime method; execution cannot continue.\n");
-        printf("Method: %s\n", e);
+        // printf("Method: %s\n", e);
         retval = -1;
     }
 

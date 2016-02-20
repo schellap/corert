@@ -36,6 +36,7 @@ set(COMMON_RUNTIME_SOURCES
     SyncClean.cpp
     thread.cpp
     threadstore.cpp
+    threadpool.cpp
     UniversalTransitionHelpers.cpp
     
     ../gc/gccommon.cpp

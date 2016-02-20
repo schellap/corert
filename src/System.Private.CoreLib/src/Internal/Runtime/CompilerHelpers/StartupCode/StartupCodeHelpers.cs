@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System;
 using System.Runtime;
+using Internal.Runtime.Augments;
 
 namespace Internal.Runtime.CompilerHelpers
 {
@@ -19,6 +20,7 @@ namespace Internal.Runtime.CompilerHelpers
         {
             InitializeStringTable();
             RuntimeImports.RhEnableShutdownFinalization(0xffffffffu);
+            WinRTInterop.Initialize(Interop.WinRTInteropCallback);
         }
 
         internal static void Shutdown()

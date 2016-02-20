@@ -2389,16 +2389,16 @@ namespace System.Threading.Tasks
 
 #if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
             // ETW event for Task Started
-            var etwLog = TplEtwProvider.Log;
-            bool etwIsEnabled = etwLog.IsEnabled(EventLevel.Verbose, ((EventKeywords)(-1)));
-            if (etwIsEnabled)
-            {
-                // previousTask holds the actual "current task" we want to report in the event
-                if (previousTask != null)
-                    etwLog.TaskStarted(previousTask.m_taskScheduler.Id, previousTask.Id, this.Id);
-                else
-                    etwLog.TaskStarted(TaskScheduler.Current.Id, 0, this.Id);
-            }
+            //var etwLog = TplEtwProvider.Log;
+            //bool etwIsEnabled = etwLog.IsEnabled(EventLevel.Verbose, ((EventKeywords)(-1)));
+            //if (etwIsEnabled)
+            //{
+            //    // previousTask holds the actual "current task" we want to report in the event
+            //    if (previousTask != null)
+            //        etwLog.TaskStarted(previousTask.m_taskScheduler.Id, previousTask.Id, this.Id);
+            //    else
+            //        etwLog.TaskStarted(TaskScheduler.Current.Id, 0, this.Id);
+            //}
 #endif
             if (DebuggerSupport.LoggingOn)
                 DebuggerSupport.TraceSynchronousWorkStart(CausalityTraceLevel.Required, this, CausalitySynchronousWork.Execution);
@@ -2430,14 +2430,14 @@ namespace System.Threading.Tasks
 
 #if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
             // ETW event for Task Completed
-            if (etwIsEnabled)
-            {
-                // previousTask holds the actual "current task" we want to report in the event
-                if (previousTask != null)
-                    etwLog.TaskCompleted(previousTask.m_taskScheduler.Id, previousTask.Id, this.Id, IsFaulted);
-                else
-                    etwLog.TaskCompleted(TaskScheduler.Current.Id, 0, this.Id, IsFaulted);
-            }
+            //if (etwIsEnabled)
+            //{
+            //    // previousTask holds the actual "current task" we want to report in the event
+            //    if (previousTask != null)
+            //        etwLog.TaskCompleted(previousTask.m_taskScheduler.Id, previousTask.Id, this.Id, IsFaulted);
+            //    else
+            //        etwLog.TaskCompleted(TaskScheduler.Current.Id, 0, this.Id, IsFaulted);
+            //}
 #endif
         }
 
@@ -2791,18 +2791,18 @@ namespace System.Threading.Tasks
         [MethodImpl(MethodImplOptions.NoOptimization)]  // this is needed for the parallel debugger
         internal bool InternalWait(int millisecondsTimeout, CancellationToken cancellationToken)
         {
-#if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
-            // ETW event for Task Wait Begin
-            var etwLog = TplEtwProvider.Log;
-            bool etwIsEnabled = etwLog.IsEnabled(EventLevel.Verbose, ((EventKeywords)(-1)));
-            if (etwIsEnabled)
-            {
-                Task currentTask = Task.InternalCurrent;
-                etwLog.TaskWaitBegin(
-                    (currentTask != null ? currentTask.m_taskScheduler.Id : TaskScheduler.Default.Id), (currentTask != null ? currentTask.Id : 0),
-                    this.Id, TplEtwProvider.TaskWaitBehavior.Synchronous);
-            }
-#endif
+//#if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
+//            // ETW event for Task Wait Begin
+//            var etwLog = TplEtwProvider.Log;
+//            bool etwIsEnabled = etwLog.IsEnabled(EventLevel.Verbose, ((EventKeywords)(-1)));
+//            if (etwIsEnabled)
+//            {
+//                Task currentTask = Task.InternalCurrent;
+//                etwLog.TaskWaitBegin(
+//                    (currentTask != null ? currentTask.m_taskScheduler.Id : TaskScheduler.Default.Id), (currentTask != null ? currentTask.Id : 0),
+//                    this.Id, TplEtwProvider.TaskWaitBehavior.Synchronous);
+//            }
+//#endif
 
             bool returnValue = IsCompleted;
 
@@ -2832,21 +2832,21 @@ namespace System.Threading.Tasks
 
             Contract.Assert(IsCompleted || millisecondsTimeout != Timeout.Infinite);
 
-#if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
-            // ETW event for Task Wait End
-            if (etwIsEnabled)
-            {
-                Task currentTask = Task.InternalCurrent;
-                if (currentTask != null)
-                {
-                    etwLog.TaskWaitEnd(currentTask.m_taskScheduler.Id, currentTask.Id, this.Id);
-                }
-                else
-                {
-                    etwLog.TaskWaitEnd(TaskScheduler.Default.Id, 0, this.Id);
-                }
-            }
-#endif
+//#if !FEATURE_PAL && !FEATURE_CORECLR    // PAL and CoreClr don't support  eventing
+//            // ETW event for Task Wait End
+//            if (etwIsEnabled)
+//            {
+//                Task currentTask = Task.InternalCurrent;
+//                if (currentTask != null)
+//                {
+//                    etwLog.TaskWaitEnd(currentTask.m_taskScheduler.Id, currentTask.Id, this.Id);
+//                }
+//                else
+//                {
+//                    etwLog.TaskWaitEnd(TaskScheduler.Default.Id, 0, this.Id);
+//                }
+//            }
+//#endif
 
             return returnValue;
         }
