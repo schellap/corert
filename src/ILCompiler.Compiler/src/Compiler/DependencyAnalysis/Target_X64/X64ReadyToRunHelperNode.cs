@@ -77,7 +77,7 @@ namespace ILCompiler.DependencyAnalysis
                 case ReadyToRunHelperId.GetNonGCStaticBase:
                     {
                         MetadataType target = (MetadataType)Target;
-                        if (!target.HasStaticConstructor)
+                        if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
                         {
                             Debug.Assert(Id == ReadyToRunHelperId.GetNonGCStaticBase);
                             encoder.EmitLEAQ(encoder.TargetRegister.Result, factory.TypeNonGCStaticsSymbol(target));
@@ -86,6 +86,7 @@ namespace ILCompiler.DependencyAnalysis
                         else
                         {
                             // We need to trigger the cctor before returning the base
+                            // TODO: Inline the fast path ("class constructor already ran, nothing to do")
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg1, factory.TypeNonGCStaticsSymbol(target));
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.EnsureClassConstructorRunAndReturnNonGCStaticBase));
@@ -100,7 +101,7 @@ namespace ILCompiler.DependencyAnalysis
                 case ReadyToRunHelperId.GetGCStaticBase:
                     {
                         MetadataType target = (MetadataType)Target;
-                        if (!target.HasStaticConstructor)
+                        if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
                         {
                             encoder.EmitLEAQ(encoder.TargetRegister.Result, factory.TypeGCStaticsSymbol(target));
                             AddrMode loadFromRax = new AddrMode(encoder.TargetRegister.Result, null, 0, 0, AddrModeSize.Int64);
@@ -111,6 +112,7 @@ namespace ILCompiler.DependencyAnalysis
                         else
                         {
                             // We need to trigger the cctor before returning the base
+                            // TODO: Inline the fast path ("class constructor already ran, nothing to do")
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg1, factory.TypeGCStaticsSymbol(target));
                             AddrMode loadFromRdx = new AddrMode(encoder.TargetRegister.Arg1, null, 0, 0, AddrModeSize.Int64);

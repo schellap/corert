@@ -12,6 +12,8 @@ using System;
 using System.Runtime;
 using Internal.Runtime.Augments;
 
+using Debug = System.Diagnostics.Debug;
+
 namespace Internal.Runtime.CompilerHelpers
 {
     internal static class StartupCodeHelpers
@@ -19,8 +21,8 @@ namespace Internal.Runtime.CompilerHelpers
         internal static void Initialize()
         {
             InitializeStringTable();
-            RuntimeImports.RhEnableShutdownFinalization(0xffffffffu);
             WinRTInterop.Initialize(Interop.WinRTInteropCallback);
+            RunEagerClassConstructors();
         }
 
         internal static void Shutdown()
@@ -78,6 +80,20 @@ namespace Internal.Runtime.CompilerHelpers
             }
         }
 
+        private static unsafe void RunEagerClassConstructors()
+        {
+            int length = 0;
+            IntPtr cctorTableStart = GetModuleSection((int)ModuleSectionIds.EagerCctorStart, out length);
+            Debug.Assert(length % IntPtr.Size == 0);
+
+            IntPtr cctorTableEnd = (IntPtr)((byte*)cctorTableStart + length);
+
+            for (IntPtr* tab = (IntPtr*)cctorTableStart; tab < (IntPtr*)cctorTableEnd; tab++)
+            {
+                CalliIntrinsics.Call<int>(*tab);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static unsafe int CStrLen(byte* str)
         {
@@ -90,7 +106,8 @@ namespace Internal.Runtime.CompilerHelpers
         internal enum ModuleSectionIds
         {
             StringEETypePtr,
-            StringFixupStart
+            StringFixupStart,
+            EagerCctorStart,
         };
 
         [RuntimeImport(".", "GetModuleSection")]
