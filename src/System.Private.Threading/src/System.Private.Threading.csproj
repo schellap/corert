@@ -105,7 +105,7 @@
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="BinPlace">
-      <Copy SourceFiles="E:\clr\git\corert\bin/obj/Windows_NT.x64.Debug\System.Private.Threading\System.Private.Threading.dll"
-            DestinationFiles="E:\clr\git\corert\bin\Windows_NT.x64.Debug\.nuget\publish1\sdk\System.Private.Threading.dll"></Copy>      
+      <Copy SourceFiles="$(ProjectDir)\bin\obj\Windows_NT.x64.Debug\System.Private.Threading\System.Private.Threading.dll"
+            DestinationFiles="$(ProjectDir)\bin\Product\Windows_NT.x64.Debug\.nuget\publish1\sdk\System.Private.Threading.dll"></Copy>      
   </Target>
 </Project>

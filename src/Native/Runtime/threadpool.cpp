@@ -34,6 +34,7 @@
 
 extern "C" void RhpReversePInvoke2(ReversePInvokeFrame* pRevFrame);
 extern "C" void RhpReversePInvokeReturn(ReversePInvokeFrame* pRevFrame);
+extern "C" int32_t RhpEnableConservativeStackReporting();
 
 namespace
 {
@@ -102,6 +103,7 @@ unsigned long __stdcall ThreadPool::DedicatedThreadProc(void* pParameter)
 {
     ReversePInvokeFrame frame;
     RhpReversePInvoke2(&frame);
+    RhpEnableConservativeStackReporting();
 
     typedef void (* ActionTPtr) (void*);
 
