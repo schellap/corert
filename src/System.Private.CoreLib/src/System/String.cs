@@ -1898,7 +1898,7 @@ namespace System
         // if this is equal to value, or a value greater than 0 if this is greater than value.
         //
 
-        private int CompareTo(Object value)
+        int IComparable.CompareTo(Object value)
         {
             if (value == null)
             {
@@ -1911,11 +1911,6 @@ namespace System
             }
 
             return String.Compare(this, (String)value, StringComparison.CurrentCulture);
-        }
-
-        int IComparable.CompareTo(Object value)
-        {
-            return this.CompareTo(value);
         }
 
         // Determines the sorting relation of StrB to the current instance.
@@ -2688,6 +2683,12 @@ namespace System
 
             int oldLength = Length;
             int insertLength = value.Length;
+            
+            if (oldLength == 0)
+                return value;
+            if (insertLength == 0)
+                return this;
+            
             int newLength = oldLength + insertLength;
             if (newLength < 0)
                 throw new OutOfMemoryException();
@@ -2712,46 +2713,47 @@ namespace System
 
         // Replaces all instances of oldChar with newChar.
         //
-        private unsafe String ReplaceInternal(char oldChar, char newChar)
+        public String Replace(char oldChar, char newChar)
         {
             if (oldChar == newChar)
                 return this;
             
-            int firstFoundIndex = -1;
-
-            fixed (char* pChars = &_firstChar)
+            unsafe
             {
-                for (int i = 0; i < Length; i++)
+                int firstFoundIndex = -1;
+
+                fixed (char* pChars = &_firstChar)
                 {
-                    if (oldChar == pChars[i])
+                    for (int i = 0; i < Length; i++)
                     {
-                        firstFoundIndex = i;
-                        break;
+                        if (oldChar == pChars[i])
+                        {
+                            firstFoundIndex = i;
+                            break;
+                        }
                     }
                 }
+
+                if (-1 == firstFoundIndex)
+                    return this;
+
+                String result = FastAllocateString(Length);
+
+                fixed (char* pChars = &_firstChar)
+                {
+                    fixed (char* pResult = &result._firstChar)
+                    {
+                        //Copy the characters, doing the replacement as we go.
+                        for (int i = 0; i < firstFoundIndex; i++)
+                            pResult[i] = pChars[i];
+
+                        for (int i = firstFoundIndex; i < Length; i++)
+                            pResult[i] = (pChars[i] == oldChar) ? newChar : pChars[i];
+                    }
+                }
+
+                return result;
             }
-
-            if (-1 == firstFoundIndex)
-                return this;
-
-            char[] newChars = new char[Length];
-
-            fixed (char* pChars = &_firstChar)
-            {
-                //Copy the characters, doing the replacement as we go.
-                for (int i = 0; i < firstFoundIndex; i++)
-                    newChars[i] = pChars[i];
-
-                for (int i = firstFoundIndex; i < Length; i++)
-                    newChars[i] = (pChars[i] == oldChar) ? newChar : pChars[i];
-            }
-
-            return new string(newChars);
-        }
-
-        public String Replace(char oldChar, char newChar)
-        {
-            return ReplaceInternal(oldChar, newChar);
         }
 
         public String Replace(String oldValue, String newValue)
@@ -2866,7 +2868,13 @@ namespace System
             int oldLength = this.Length;
             if (count > oldLength - startIndex)
                 throw new ArgumentOutOfRangeException("count", SR.ArgumentOutOfRange_IndexCount);
+            
+            if (count == 0)
+                return this;
             int newLength = oldLength - count;
+            if (newLength == 0)
+                return string.Empty;
+            
             String result = FastAllocateString(newLength);
             unsafe
             {
