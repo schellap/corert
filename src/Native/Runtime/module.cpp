@@ -287,6 +287,7 @@ bool Module::ContainsCodeAddress(PTR_VOID pvAddr)
     // We explicitly omit the stub code from this check. Use ContainsStubAddress to determine if
     // an address belongs to the stub portion of the module's TEXT_REGION.
     TADDR pAddr = dac_cast<TADDR>(pvAddr);
+
     TADDR pSectionStart = dac_cast<TADDR>(m_pModuleHeader->RegionPtr[ModuleHeader::TEXT_REGION]);
     TADDR pSectionLimit = pSectionStart + m_pModuleHeader->RegionSize[ModuleHeader::TEXT_REGION]
                                         - m_pModuleHeader->SizeStubCode;

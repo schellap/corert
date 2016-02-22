@@ -55,6 +55,14 @@ ThreadPool* GetThreadPool()
     return GetRuntimeInstance()->GetThreadPool();
 }
 
+COOP_PINVOKE_HELPER(void, RhpPrintf, (char* chars, int id))
+{
+    printf("%d", id);
+    printf(": ");
+    printf(chars);
+    printf("\n");
+}
+
 COOP_PINVOKE_HELPER(bool, RhpRequestWorkerThread, (void* pCallback))
 {
     return GetThreadPool()->RequestWorkerThread(pCallback);

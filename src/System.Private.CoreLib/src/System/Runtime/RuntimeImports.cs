@@ -651,6 +651,10 @@ namespace System.Runtime
         internal extern static void MemoryBarrier();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhpPrintf")]
+        internal static unsafe extern void RhpPrintf(byte* chars, int id);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhpRequestWorkerThread")]
         internal static unsafe extern int RequestWorkerThread(IntPtr fnCallback);
 

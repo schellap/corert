@@ -21,8 +21,8 @@ namespace Internal.Runtime.CompilerHelpers
         internal static void Initialize()
         {
             InitializeStringTable();
-            WinRTInterop.Initialize(Interop.WinRTInteropCallback);
             RunEagerClassConstructors();
+            WinRTInterop.Initialize(Interop.WinRTInteropCallback);
         }
 
         internal static void Shutdown()
