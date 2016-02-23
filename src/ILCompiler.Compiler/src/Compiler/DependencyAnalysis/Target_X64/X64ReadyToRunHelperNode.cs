@@ -16,6 +16,39 @@ namespace ILCompiler.DependencyAnalysis
     /// </summary>
     public partial class ReadyToRunHelperNode
     {
+        private void EmitGetStaticBase(NodeFactory factory, ref X64Emitter encoder, HelperEntrypoint getBaseHelper, int numIndirections, Func<MetadataType, ISymbolNode> targetSymbol)
+        {
+            MetadataType target = (MetadataType)Target;
+
+            encoder.EmitLEAQ(encoder.TargetRegister.Result, targetSymbol(target));
+
+            if (numIndirections > 0)
+            {
+                AddrMode loadFromRax = new AddrMode(encoder.TargetRegister.Result, null, 0, 0, AddrModeSize.Int64);
+                for (int i = 0; i < numIndirections; ++i)
+                {
+                    encoder.EmitMOV(encoder.TargetRegister.Result, ref loadFromRax);
+                }
+            }
+
+            if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
+            {
+                encoder.EmitRET();
+            }
+            else
+            {
+                // We need to trigger the cctor before returning the base
+                encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
+
+                AddrMode initialized = new AddrMode(encoder.TargetRegister.Arg0, null, factory.Target.PointerSize, 0, AddrModeSize.Int32);
+                encoder.EmitCMP(ref initialized, 1);
+                encoder.EmitRETIfEqual();
+
+                encoder.EmitMOV(encoder.TargetRegister.Arg1, encoder.TargetRegister.Result);
+
+                encoder.EmitJMP(factory.HelperEntrypoint(getBaseHelper));
+            }
+        }
         protected override void EmitCode(NodeFactory factory, ref X64Emitter encoder, bool relocsOnly)
         {
             switch (Id)
@@ -71,61 +104,21 @@ namespace ILCompiler.DependencyAnalysis
                     break;
 
                 case ReadyToRunHelperId.GetNonGCStaticBase:
-                    {
-                        MetadataType target = (MetadataType)Target;
-
-                        encoder.EmitLEAQ(encoder.TargetRegister.Result, factory.TypeNonGCStaticsSymbol(target));
-
-                        if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
-                        {
-                            encoder.EmitRET();
-                        }
-                        else
-                        {
-                            // We need to trigger the cctor before returning the base
-                            encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
-
-                            AddrMode initialized = new AddrMode(encoder.TargetRegister.Arg0, null, factory.Target.PointerSize, 0, AddrModeSize.Int32);
-                            encoder.EmitCMP(ref initialized, 1);
-                            encoder.EmitRETIfEqual();
-
-                            encoder.EmitMOV(encoder.TargetRegister.Arg1, encoder.TargetRegister.Result);
-                            encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.EnsureClassConstructorRunAndReturnNonGCStaticBase));
-                        }
-                    }
+                    EmitGetStaticBase(factory, ref encoder, HelperEntrypoint.EnsureClassConstructorRunAndReturnNonGCStaticBase, 0, (target) => {
+                        return factory.TypeNonGCStaticsSymbol(target);
+                    });
                     break;
 
                 case ReadyToRunHelperId.GetThreadStaticBase:
-                    encoder.EmitINT3();
+                    EmitGetStaticBase(factory, ref encoder, HelperEntrypoint.EnsureClassConstructorRunAndReturnThreadStaticBase, 2, (target) => {
+                        return factory.TypeThreadStaticsSymbol(target);
+                    });
                     break;
 
                 case ReadyToRunHelperId.GetGCStaticBase:
-                    {
-                        MetadataType target = (MetadataType)Target;
-
-                        encoder.EmitLEAQ(encoder.TargetRegister.Result, factory.TypeGCStaticsSymbol(target));
-                        AddrMode loadFromRax = new AddrMode(encoder.TargetRegister.Result, null, 0, 0, AddrModeSize.Int64);
-                        encoder.EmitMOV(encoder.TargetRegister.Result, ref loadFromRax);
-                        encoder.EmitMOV(encoder.TargetRegister.Result, ref loadFromRax);
-
-                        if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
-                        {
-                            encoder.EmitRET();
-                        }
-                        else
-                        {
-                            // We need to trigger the cctor before returning the base
-                            encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
-
-                            AddrMode initialized = new AddrMode(encoder.TargetRegister.Arg0, null, factory.Target.PointerSize, 0, AddrModeSize.Int32);
-                            encoder.EmitCMP(ref initialized, 1);
-                            encoder.EmitRETIfEqual();
-
-                            encoder.EmitMOV(encoder.TargetRegister.Arg1, encoder.TargetRegister.Result);
-
-                            encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.EnsureClassConstructorRunAndReturnGCStaticBase));
-                        }
-                    }
+                    EmitGetStaticBase(factory, ref encoder, HelperEntrypoint.EnsureClassConstructorRunAndReturnGCStaticBase, 2, (target) => {
+                        return factory.TypeGCStaticsSymbol(target);
+                    });
                     break;
 
                 case ReadyToRunHelperId.DelegateCtor:
