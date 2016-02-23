@@ -293,6 +293,11 @@ SimpleModuleHeader __module = { NULL, NULL /* &__gcStatics, &__gcStaticsDescs */
 extern "C" void* __InterfaceDispatchMapTable;
 extern "C" void* __GCStaticRegionStart;
 extern "C" void* __GCStaticRegionEnd;
+extern "C" void* __ThreadStaticRegionStart;
+extern "C" void* __ThreadStaticRegionEnd;
+
+__declspec(thread) void** t_pThreadStaticBase = nullptr;
+
 int __statics_fixup()
 {
     for (void** currentBlock = &__GCStaticRegionStart; currentBlock < &__GCStaticRegionEnd; currentBlock++)
@@ -301,6 +306,19 @@ int __statics_fixup()
         // TODO: OOM handling
         *currentBlock = RhpHandleAlloc(gcBlock, 2 /* Normal */);
     }
+
+    assert(t_pThreadStaticBase == nullptr);
+
+    int count = (&__ThreadStaticRegionEnd - &__ThreadStaticRegionStart) / sizeof(void*);
+    void** pThreadStaticBase = new (nothrow) void*[count];
+
+    void** pThreadStatic = pThreadStaticBase;
+    for (void** currentBlock = &__ThreadStaticRegionStart; currentBlock < &__ThreadStaticRegionEnd; currentBlock++)
+    {
+        Object* gcBlock = RhNewObject((MethodTable*)*currentBlock);
+        *pThreadStatic++ = RhpHandleAlloc(gcBlock, 2 /* Normal */);
+    }
+    t_pThreadStaticBase = pThreadStaticBase;
 
     return 0;
 }
