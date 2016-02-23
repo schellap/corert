@@ -36,6 +36,10 @@ extern "C" void _ReadWriteBarrier(void);
 #endif // _MSC_VER
 #endif //!DACCESS_COMPILE
 
+#if defined(CORERT)
+extern "C" GetModuleSection(int id, int* length);
+#endif
+
 PTR_VOID Thread::GetTransitionFrame()
 {
     if (ThreadStore::GetSuspendingThread() == this)
@@ -274,6 +278,44 @@ PTR_ExInfo Thread::GetCurExInfo()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef DACCESS_COMPILE
+#if defined(CORERT)
+COOP_PINVOKE_HELPER(void*, RhGetThreadStaticBase, ())
+{
+    return RhpGetThread()->m_pThreadStaticBase;
+}
+
+void Thread::ConstructThreadStatics()
+{
+    C_ASSERT(m_pThreadStaticBase == NULL);
+
+    // TODO: Iterate on the module list or use GetModule-s-Section.
+    void** start = (void**) GetModuleSection(3 /* ThreadStaticRegionStart */, &length);
+
+    void** pThreadStaticBase = new (nothrow) void*[length];
+    for (int i = 0; i < length; ++i)
+    {
+        Object* gcBlock = RhNewObject((MethodTable*)start[i]);
+        pThreadStaticBase[i] = RhpHandleAlloc(gcBlock, 2 /* Normal */);
+    }
+    m_pThreadStaticBase = pThreadStaticBase;
+}
+
+void Thread::DestroyThreadStatics()
+{
+    if (m_pThreadStaticBase == NULL)
+    {
+        return;
+    }
+    // TODO: Iterate on the module list or use GetModule-s-Section.
+    void** start = (void**) GetModuleSection(3 /* ThreadStaticRegionStart */, &length);
+
+    for (int i = 0; i < length; ++i)
+    {
+        RhpHandleFree(m_pThreadStaticBase[i]);
+    }
+    delete[] m_pThreadStaticBase;
+}
+#endif
 
 void Thread::Construct()
 {
@@ -284,6 +326,11 @@ void Thread::Construct()
 
     m_numDynamicTypesTlsCells = 0;
     m_pDynamicTypesTlsCells = NULL;
+
+#if defined(CORERT)
+    m_pThreadStaticBase = NULL;
+    ConstructThreadStatics();
+#endif
 
     // NOTE: We do not explicitly defer to the GC implementation to initialize the alloc_context.  The 
     // alloc_context will be initialized to 0 via the static initialization of tls_CurrentThread. If the
@@ -396,6 +443,10 @@ void Thread::Destroy()
         }
         delete[] m_pDynamicTypesTlsCells;
     }
+
+#if defined(CORERT)
+    DestroyThreadStatics();
+#endif
 
     RedhawkGCInterface::ReleaseAllocContext(GetAllocContext());
 

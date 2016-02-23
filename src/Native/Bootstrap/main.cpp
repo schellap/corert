@@ -69,6 +69,7 @@ extern "C" void RhpReversePInvokeReturn(ReversePInvokeFrame* pRevFrame);
 extern "C" int32_t RhpEnableConservativeStackReporting();
 extern "C" void RhpRegisterSimpleModule(SimpleModuleHeader* pModule);
 extern "C" void * RhpHandleAlloc(void * pObject, int handleType);
+extern "C" void * RhpSetThreadStaticBase(void* pBase);
 
 #define DLL_PROCESS_ATTACH      1
 extern "C" BOOL WINAPI RtuDllMain(HANDLE hPalInstance, DWORD dwReason, void* pvReserved);
@@ -261,6 +262,9 @@ extern "C" void* __StringTableStart;
 extern "C" void* __StringTableEnd;
 extern "C" void* __EagerCctorStart;
 extern "C" void* __EagerCctorEnd;
+extern "C" void* __ThreadStaticRegionStart;
+extern "C" void* __ThreadStaticRegionEnd;
+
 extern "C" void* GetModuleSection(int id, int* length)
 {
     struct ModuleSectionSymbol
@@ -276,10 +280,12 @@ extern "C" void* GetModuleSection(int id, int* length)
         { System::String::__getMethodTable(), sizeof(void*) },
         { nullptr, 0 },
         { nullptr, 0 },
+        { nullptr, 0 },
 #else
         { &__EEType_System_Private_CoreLib_System_String, sizeof(void*) },
         { &__StringTableStart, (size_t)((uint8_t*)&__StringTableEnd - (uint8_t*)&__StringTableStart) },
         { &__EagerCctorStart, (size_t)((uint8_t*)&__EagerCctorEnd - (uint8_t*)&__EagerCctorStart) },
+        { &__ThreadStaticRegionStart, (size_t)((uint8_t*)&__ThreadStaticRegionEnd - (uint8_t*)&__ThreadStaticRegionStart) },
 #endif
     };
 
@@ -293,10 +299,6 @@ SimpleModuleHeader __module = { NULL, NULL /* &__gcStatics, &__gcStaticsDescs */
 extern "C" void* __InterfaceDispatchMapTable;
 extern "C" void* __GCStaticRegionStart;
 extern "C" void* __GCStaticRegionEnd;
-extern "C" void* __ThreadStaticRegionStart;
-extern "C" void* __ThreadStaticRegionEnd;
-
-__declspec(thread) void** t_pThreadStaticBase = nullptr;
 
 int __statics_fixup()
 {
@@ -306,20 +308,6 @@ int __statics_fixup()
         // TODO: OOM handling
         *currentBlock = RhpHandleAlloc(gcBlock, 2 /* Normal */);
     }
-
-    assert(t_pThreadStaticBase == nullptr);
-
-    int count = (&__ThreadStaticRegionEnd - &__ThreadStaticRegionStart) / sizeof(void*);
-    void** pThreadStaticBase = new (nothrow) void*[count];
-
-    void** pThreadStatic = pThreadStaticBase;
-    for (void** currentBlock = &__ThreadStaticRegionStart; currentBlock < &__ThreadStaticRegionEnd; currentBlock++)
-    {
-        Object* gcBlock = RhNewObject((MethodTable*)*currentBlock);
-        *pThreadStatic++ = RhpHandleAlloc(gcBlock, 2 /* Normal */);
-    }
-    t_pThreadStaticBase = pThreadStaticBase;
-
     return 0;
 }
 
