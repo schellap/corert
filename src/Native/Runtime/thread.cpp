@@ -274,6 +274,64 @@ PTR_ExInfo Thread::GetCurExInfo()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef DACCESS_COMPILE
+#if defined(CORERT)
+EXTERN_C REDHAWK_API void* REDHAWK_CALLCONV RhpHandleAlloc(void* pObject, int type);
+EXTERN_C REDHAWK_API void REDHAWK_CALLCONV RhHandleFree(void*);
+EXTERN_C void* GetModuleSection(int id, int* length);
+EXTERN_C Object* RhNewObject(PTR_EEType);
+
+COOP_PINVOKE_HELPER(Object*, RhGetThreadStaticField, (void* pModuleFieldTypePtr))
+{
+    int length = 0;
+    void* start = GetModuleSection(3 /* ThreadStaticRegionStart */, &length);
+    return ThreadStore::RawGetCurrentThread()->GetThreadStaticField((void**) pModuleFieldTypePtr - (void**) start);
+}
+
+Object* Thread::GetThreadStaticField(int offset)
+{
+    return *((Object**) m_pThreadStaticBase[offset]);
+}
+
+void Thread::ConstructThreadStatics()
+{
+    if (m_pThreadStaticBase != NULL)
+    {
+        return;
+    }
+
+    int byteLength = 0;
+    PTR_EEType* start = (PTR_EEType*) GetModuleSection(3 /* ThreadStaticRegionStart */, &byteLength);
+    
+    int length = byteLength / sizeof(void*);
+    void** pThreadStaticBase = new (nothrow) void*[length];
+    for (int i = 0; i < length; ++i)
+    {
+        Object* gcBlock = RhNewObject(start[i]);
+        pThreadStaticBase[i] = RhpHandleAlloc(gcBlock, 2 /* Normal */);
+    }
+
+    m_pThreadStaticBase = pThreadStaticBase;
+}
+
+void Thread::DestroyThreadStatics()
+{
+    if (m_pThreadStaticBase == NULL)
+    {
+        return;
+    }
+
+    int byteLength = 0;
+    (void) GetModuleSection(3 /* ThreadStaticRegionStart */, &byteLength);
+
+    int length = byteLength / sizeof(void*);
+    for (int i = 0; i < length; ++i)
+    {
+        RhHandleFree(m_pThreadStaticBase[i]);
+    }
+
+    delete[] m_pThreadStaticBase;
+}
+#endif // CORERT
 
 void Thread::Construct()
 {
@@ -284,6 +342,10 @@ void Thread::Construct()
 
     m_numDynamicTypesTlsCells = 0;
     m_pDynamicTypesTlsCells = NULL;
+
+#if defined(CORERT)
+    m_pThreadStaticBase = NULL;
+#endif
 
     // NOTE: We do not explicitly defer to the GC implementation to initialize the alloc_context.  The 
     // alloc_context will be initialized to 0 via the static initialization of tls_CurrentThread. If the
@@ -396,6 +458,10 @@ void Thread::Destroy()
         }
         delete[] m_pDynamicTypesTlsCells;
     }
+
+#if defined(CORERT)
+    DestroyThreadStatics();
+#endif
 
     RedhawkGCInterface::ReleaseAllocContext(GetAllocContext());
 

@@ -141,15 +141,21 @@ void ThreadStore::AttachCurrentThread(bool fAcquireThreadStoreLock)
     ASSERT(pAttachingThread->m_ThreadStateFlags == Thread::TSF_Unknown);
 
     ThreadStore* pTS = GetThreadStore();
-    ReaderWriterLock::WriteHolder write(&pTS->m_Lock, fAcquireThreadStoreLock);
+    {
+        ReaderWriterLock::WriteHolder write(&pTS->m_Lock, fAcquireThreadStoreLock);
+        //
+        // Set thread state to be attached
+        //
+        ASSERT(pAttachingThread->m_ThreadStateFlags == Thread::TSF_Unknown);
+        pAttachingThread->m_ThreadStateFlags = Thread::TSF_Attached;
 
-    //
-    // Set thread state to be attached
-    //
-    ASSERT(pAttachingThread->m_ThreadStateFlags == Thread::TSF_Unknown);
-    pAttachingThread->m_ThreadStateFlags = Thread::TSF_Attached;
-
-    pTS->m_ThreadList.PushHead(pAttachingThread);
+        pTS->m_ThreadList.PushHead(pAttachingThread);
+    }
+#if defined(CORERT)
+    // REVIEW: should this be done prior to pushing into the thread list.
+    // Eager construction under the lock might hold it too long?
+    pAttachingThread->ConstructThreadStatics();
+#endif
 }
 
 // static 
