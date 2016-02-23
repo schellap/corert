@@ -43,6 +43,7 @@ namespace System.Runtime.CompilerServices
             EnsureClassConstructorRun(context);
             return gcStaticBase;
         }
+
         private unsafe static object CheckStaticClassConstructionReturnThreadStaticBase(StaticClassConstructionContext* context, object threadStaticBase)
         {
             EnsureClassConstructorRun(context);
