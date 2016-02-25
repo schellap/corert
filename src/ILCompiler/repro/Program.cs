@@ -20,16 +20,13 @@ class Example
         Task[] tasks = new Task[3];
         for (int i = 0; i < tasks.Length; ++i)
         {
-            tasks[i] = Task.Factory.StartNew(() =>
+            tasks[i] = Task.Factory.StartNew((pos) =>
             {
                 lock (locker)
                 {
-                    while (true)
-                    {
-                        Debugger.Break();
-                    }
+                    Console.WriteLine(pos);
                 }
-            });
+            }, i);
         }
         for (int i = 0; i < tasks.Length; ++i)
         {

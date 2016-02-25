@@ -1342,7 +1342,7 @@ namespace System.Threading.Tasks
             }
         }
 
-        [ThreadStatic]
+        //[ThreadStatic]
         internal static Task t_currentTask;
 
         /// <summary>
