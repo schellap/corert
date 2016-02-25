@@ -216,7 +216,7 @@ namespace ILCompiler.DependencyAnalysis
                     MethodDesc impl = VirtualFunctionResolution.FindVirtualFunctionTargetMethodOnObjectType(decl, (MetadataType)_type);
                     if (impl.OwningType == _type && !impl.IsAbstract)
                     {
-                        yield return new DependencyNodeCore<NodeFactory>.CombinedDependencyListEntry(factory.MethodEntrypoint(impl), factory.VirtualMethodUse(decl), "Virtual method");
+                        yield return new CombinedDependencyListEntry(factory.MethodEntrypoint(impl, _type.IsValueType), factory.VirtualMethodUse(decl), "Virtual method");
                     }
                 }
 
@@ -229,6 +229,9 @@ namespace ILCompiler.DependencyAnalysis
 
                     foreach (MethodDesc interfaceMethod in interfaceType.GetMethods())
                     {
+                        if (interfaceMethod.Signature.IsStatic)
+                            continue;
+
                         Debug.Assert(interfaceMethod.IsVirtual);
                         MethodDesc implMethod = VirtualFunctionResolution.ResolveInterfaceMethodToVirtualMethodOnType(interfaceMethod, _type.GetClosestMetadataType());
                         if (implMethod != null)
@@ -295,10 +298,9 @@ namespace ILCompiler.DependencyAnalysis
             else if (_type is ArrayType)
             {
                 objectSize = 3 * pointerSize; // SyncBlock + EETypePtr + Length
-                int rank = ((ArrayType)_type).Rank;
-                if (rank > 1)
+                if (!_type.IsSzArray)
                     objectSize +=
-                        2 * _type.Context.GetWellKnownType(WellKnownType.Int32).GetElementSize() * rank;
+                        2 * _type.Context.GetWellKnownType(WellKnownType.Int32).GetElementSize() * ((ArrayType)_type).Rank;
             }
             else if (_type is PointerType)
             {
@@ -404,7 +406,7 @@ namespace ILCompiler.DependencyAnalysis
                     MethodDesc implMethod = VirtualFunctionResolution.FindVirtualFunctionTargetMethodOnObjectType(declMethod, implType.GetClosestMetadataType());
 
                     if (!implMethod.IsAbstract)
-                        objData.EmitPointerReloc(factory.MethodEntrypoint(implMethod));
+                        objData.EmitPointerReloc(factory.MethodEntrypoint(implMethod, implMethod.OwningType.IsValueType));
                     else
                         objData.EmitZeroPointer();
                 }
