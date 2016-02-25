@@ -342,14 +342,6 @@ namespace System.Runtime.CompilerServices
                 Contract.Assert(HasCapacity);
 
                 VerifyIntegrity();
-                unsafe
-                {
-                    string str = "_invalid=true";
-                    fixed (byte* dest = System.Text.Encoding.UTF8.GetBytes(str))
-                    {
-                        RuntimeImports.RhpPrintf(dest, Environment.CurrentManagedThreadId);
-                    }
-                }
                 _invalid = true;
 
                 int hashCode = RuntimeHelpers.GetHashCode(key) & Int32.MaxValue;
@@ -366,14 +358,6 @@ namespace System.Runtime.CompilerServices
                 Volatile.Write(ref _buckets[bucket], newEntry);
 
                 _invalid = false;
-                unsafe
-                {
-                    string str = "_invalid=false";
-                    fixed (byte* dest = System.Text.Encoding.UTF8.GetBytes(str))
-                    {
-                        RuntimeImports.RhpPrintf(dest, Environment.CurrentManagedThreadId);
-                    }
-                }
             }
 
             [System.Security.SecurityCritical]
@@ -608,15 +592,6 @@ namespace System.Runtime.CompilerServices
             //----------------------------------------------------------------------------------------
             private void VerifyIntegrity()
             {
-                unsafe
-                {
-                    string str = _invalid ? "if _invalid=true" : "if _invalid=false";
-                    fixed (byte* dest = System.Text.Encoding.UTF8.GetBytes(str))
-                    {
-                        RuntimeImports.RhpPrintf(dest, Environment.CurrentManagedThreadId);
-                    }
-                }
-
                 if (_invalid)
                 {
                     throw new InvalidOperationException(SR.CollectionCorrupted);

@@ -16,14 +16,17 @@ class Example
 
     static void Main(string[] args)
     {
-        //String taskData = "delta";
         Task[] tasks = new Task[3];
         for (int i = 0; i < tasks.Length; ++i)
         {
-            tasks[i] = Task.Factory.StartNew((pos) =>
+            tasks[i] = Task.Factory.StartNew((ipos) =>
             {
+                int pos = (int)ipos;
+                if (pos == 1) Delay(10000);
+                if (pos == 2) Delay(1000);
                 lock (locker)
                 {
+                    if (pos == 2) Delay(10000);
                     Console.WriteLine(pos);
                 }
             }, i);

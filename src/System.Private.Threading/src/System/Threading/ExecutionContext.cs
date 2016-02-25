@@ -73,7 +73,7 @@ namespace System.Threading
             ExecutionContextSwitcher ecsw = default(ExecutionContextSwitcher);
             try
             {
-                //EstablishCopyOnWriteScope(ref ecsw);
+                EstablishCopyOnWriteScope(ref ecsw);
 
                 ExecutionContext.Restore(executionContext);
                 callback(state);
