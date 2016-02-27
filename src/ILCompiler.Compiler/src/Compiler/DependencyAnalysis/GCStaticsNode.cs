@@ -29,6 +29,7 @@ namespace ILCompiler.DependencyAnalysis
         protected override void OnMarked(NodeFactory factory)
         {
             factory.GCStaticsRegion.AddEmbeddedObject(this);
+            factory.GCStaticEEType(_type);
         }
 
         string ISymbolNode.MangledName
@@ -37,13 +38,6 @@ namespace ILCompiler.DependencyAnalysis
             {
                 return "__GCStaticBase_" + NodeFactory.NameMangler.GetMangledTypeName(_type);
             }
-        }
-
-        public ISymbolNode GetGCStaticEETypeNode(NodeFactory context)
-        {
-            // TODO Replace with better gcDesc computation algorithm when we add gc handling to the type system
-            bool[] gcDesc = new bool[_type.GCStaticFieldSize / context.Target.PointerSize + 1];
-            return context.GCStaticEEType(gcDesc);
         }
 
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory context)
@@ -58,7 +52,7 @@ namespace ILCompiler.DependencyAnalysis
                 result = new DependencyListEntry[2];
 
             result[0] = new DependencyListEntry(context.GCStaticsRegion, "GCStatics Region");
-            result[1] = new DependencyListEntry(GetGCStaticEETypeNode(context), "GCStatic EEType");
+            result[1] = new DependencyListEntry(context.GCStaticBase, "GCStatic Base");
             return result;
         }
 

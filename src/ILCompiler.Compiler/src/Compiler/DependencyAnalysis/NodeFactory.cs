@@ -83,7 +83,7 @@ namespace ILCompiler.DependencyAnalysis
             {
                 return new EETypeNode(type, true);
             });
-            
+
             _nonGCStatics = new NodeCache<MetadataType, NonGCStaticsNode>((MetadataType type) =>
             {
                 return new NonGCStaticsNode(type, this);
@@ -98,11 +98,6 @@ namespace ILCompiler.DependencyAnalysis
             {
                 return new ThreadStaticsNode(type, this);
             });
-
-            _GCStaticEETypes = new NodeCache<bool[], GCStaticEETypeNode>((bool[] gcdesc) =>
-            {
-                return new GCStaticEETypeNode(gcdesc, this);
-            }, new BoolArrayEqualityComparer());
 
             _readOnlyDataBlobs = new NodeCache<Tuple<string, byte[], int>, BlobNode>((Tuple<string, byte[], int> key) =>
             {
@@ -123,7 +118,7 @@ namespace ILCompiler.DependencyAnalysis
             _methodCode = new NodeCache<MethodDesc, ISymbolNode>((MethodDesc method) =>
             {
                 if (_cppCodeGen)
-                   return new CppMethodCodeNode(method);
+                    return new CppMethodCodeNode(method);
                 else
                     return new MethodCodeNode(method);
             });
@@ -143,7 +138,7 @@ namespace ILCompiler.DependencyAnalysis
                 return new VirtualMethodUseNode(method);
             });
 
-            _readyToRunHelpers = new NodeCache<Tuple<ReadyToRunHelperId, Object>, ReadyToRunHelperNode>((Tuple < ReadyToRunHelperId, Object > helper) =>
+            _readyToRunHelpers = new NodeCache<Tuple<ReadyToRunHelperId, Object>, ReadyToRunHelperNode>((Tuple<ReadyToRunHelperId, Object> helper) =>
             {
                 return new ReadyToRunHelperNode(helper.Item1, helper.Item2);
             });
@@ -298,11 +293,18 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
-        private NodeCache<bool[], GCStaticEETypeNode> _GCStaticEETypes;
-
-        public ISymbolNode GCStaticEEType(bool[] gcdesc)
+        public ISymbolNode GCStaticEEType(MetadataType type)
         {
-            return _GCStaticEETypes.GetOrAdd(gcdesc);
+            bool[] gcDesc = new bool[type.GCStaticFieldSize / Target.PointerSize + 1];
+            GCStaticBase.AddGCDesc(gcDesc);
+            return GCStaticBase;
+        }
+
+        public ISymbolNode ThreadStaticEEType(MetadataType type)
+        {
+            bool[] gcDesc = new bool[type.ThreadStaticFieldSize / Target.PointerSize + 1];
+            ThreadStaticBase.AddGCDesc(gcDesc);
+            return ThreadStaticBase;
         }
 
         private NodeCache<Tuple<string, byte[], int>, BlobNode> _readOnlyDataBlobs;
@@ -372,7 +374,7 @@ namespace ILCompiler.DependencyAnalysis
                     return _unboxingStubs.GetOrAdd(method);
                 }
             }
-            
+
             if (_compilationModuleGroup.IsMethodInCompilationGroup(method))
             {
                 return _methodCode.GetOrAdd(method);
@@ -476,16 +478,16 @@ namespace ILCompiler.DependencyAnalysis
         }
 
         public ArrayOfEmbeddedDataNode GCStaticsRegion = new ArrayOfEmbeddedDataNode(
-            NameMangler.CompilationUnitPrefix + "__GCStaticRegionStart", 
-            NameMangler.CompilationUnitPrefix + "__GCStaticRegionEnd", 
+            NameMangler.CompilationUnitPrefix + "__GCStaticRegionStart",
+            NameMangler.CompilationUnitPrefix + "__GCStaticRegionEnd",
             null);
         public ArrayOfEmbeddedDataNode ThreadStaticsRegion = new ArrayOfEmbeddedDataNode(
             NameMangler.CompilationUnitPrefix + "__ThreadStaticRegionStart",
-            NameMangler.CompilationUnitPrefix + "__ThreadStaticRegionEnd", 
+            NameMangler.CompilationUnitPrefix + "__ThreadStaticRegionEnd",
             null);
         public ArrayOfEmbeddedDataNode StringTable = new ArrayOfEmbeddedDataNode(
             NameMangler.CompilationUnitPrefix + "__StringTableStart",
-            NameMangler.CompilationUnitPrefix + "__StringTableEnd", 
+            NameMangler.CompilationUnitPrefix + "__StringTableEnd",
             null);
 
         public ArrayOfEmbeddedPointersNode<IMethodNode> EagerCctorTable = new ArrayOfEmbeddedPointersNode<IMethodNode>(
@@ -504,12 +506,33 @@ namespace ILCompiler.DependencyAnalysis
             null);
 
         public ModuleHeaderNode ModuleHeader = new ModuleHeaderNode();
-        
+
         public Dictionary<TypeDesc, List<MethodDesc>> VirtualSlots = new Dictionary<TypeDesc, List<MethodDesc>>();
 
         public Dictionary<ISymbolNode, string> NodeAliases = new Dictionary<ISymbolNode, string>();
 
         internal ModuleIndirectionCell ModuleIndirectionCell = new ModuleIndirectionCell();
+
+        private GCStaticEETypeNode _gcStaticBase;
+        internal GCStaticEETypeNode GCStaticBase
+        {
+            get
+            {
+                if (_gcStaticBase == null)
+                    _gcStaticBase = new GCStaticEETypeNode(this);
+                return _gcStaticBase;
+            }
+        }
+        private GCStaticEETypeNode _threadStaticBase;
+        internal GCStaticEETypeNode ThreadStaticBase
+        {
+            get
+            {
+                if (_threadStaticBase == null)
+                    _threadStaticBase = new GCStaticEETypeNode(this);
+                return _threadStaticBase;
+            }
+        }
 
         public static NameMangler NameMangler;
 

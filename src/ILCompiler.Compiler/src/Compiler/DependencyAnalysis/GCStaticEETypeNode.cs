@@ -9,18 +9,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Internal.TypeSystem;
+using System.Diagnostics;
 
 namespace ILCompiler.DependencyAnalysis
 {
     internal class GCStaticEETypeNode : ObjectNode, ISymbolNode
     {
-        private int[] _runLengths; // First is offset to first gc field, second is length of gc static run, third is length of non-gc data, etc
+        private List<int> _runLengths = new List<int>(); // First is offset to first gc field, second is length of gc static run, third is length of non-gc data, etc
         private int _targetPointerSize;
         private TargetDetails _target;
 
-        public GCStaticEETypeNode(bool[] gcDesc, NodeFactory factory)
+        public GCStaticEETypeNode(NodeFactory factory)
         {
-            List<int> runLengths = new List<int>();
+            _targetPointerSize = factory.Target.PointerSize;
+            _target = factory.Target;
+        }
+
+        public void AddGCDesc(bool[] gcDesc)
+        {
             bool encodingGCPointers = false;
             int currentPointerCount = 0;
             foreach (bool pointerIsGC in gcDesc)
@@ -31,14 +37,11 @@ namespace ILCompiler.DependencyAnalysis
                 }
                 else
                 {
-                    runLengths.Add(currentPointerCount * factory.Target.PointerSize);
+                    _runLengths.Add(currentPointerCount * _target.PointerSize);
                     encodingGCPointers = pointerIsGC;
                 }
             }
-            runLengths.Add(currentPointerCount);
-            _runLengths = runLengths.ToArray();
-            _targetPointerSize = factory.Target.PointerSize;
-            _target = factory.Target;
+            _runLengths.Add(currentPointerCount);
         }
 
         public override string GetName()
@@ -104,7 +107,7 @@ namespace ILCompiler.DependencyAnalysis
         {
             get
             {
-                return (_runLengths.Length - 1) / 2;
+                return (_runLengths.Count - 1) / 2;
             }
         }
 
@@ -117,7 +120,7 @@ namespace ILCompiler.DependencyAnalysis
             bool hasPointers = NumSeries > 0;
             if (hasPointers)
             {
-                for (int i = ((_runLengths.Length / 2) * 2) - 1; i >= 0; i--)
+                for (int i = ((_runLengths.Count / 2) * 2) - 1; i >= 0; i--)
                 {
                     if (_targetPointerSize == 4)
                     {
