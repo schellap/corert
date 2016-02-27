@@ -73,10 +73,11 @@ namespace ILCompiler.DependencyAnalysis
                 case ReadyToRunHelperId.GetNonGCStaticBase:
                     {
                         MetadataType target = (MetadataType)Target;
-
+                        GCStaticsNode node = factory.TypeGCStaticsSymbol(target);
                         if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
                         {
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.NecessaryTypeSymbol(target));
+                            encoder.EmitMOV(encoder.TargetRegister.Arg1, node.GCStaticBaseOffset);
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.RhGetGCStaticField));
                         }
                         else
@@ -84,6 +85,7 @@ namespace ILCompiler.DependencyAnalysis
                             // We need to trigger the cctor before returning the base
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg1, factory.NecessaryTypeSymbol(target));
+                            encoder.EmitMOV(encoder.TargetRegister.Arg2, node.GCStaticBaseOffset);
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.EnsureClassConstructorRunAndReturnGCStaticBase));
                         }
                     }
@@ -93,16 +95,19 @@ namespace ILCompiler.DependencyAnalysis
                     {
                         MetadataType target = (MetadataType)Target;
 
+                        ThreadStaticsNode node = factory.TypeThreadStaticsSymbol(target);
                         if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
                         {
-                            encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeThreadStaticsSymbol(target));
+                            encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.NecessaryTypeSymbol(target));
+                            encoder.EmitMOV(encoder.TargetRegister.Arg1, node.ThreadStaticBaseOffset);
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.RhGetThreadStaticField));
                         }
                         else
                         {
                             // We need to trigger the cctor before returning the base
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
-                            encoder.EmitLEAQ(encoder.TargetRegister.Arg1, factory.TypeThreadStaticsSymbol(target));
+                            encoder.EmitLEAQ(encoder.TargetRegister.Arg1, factory.NecessaryTypeSymbol(target));
+                            encoder.EmitMOV(encoder.TargetRegister.Arg2, node.ThreadStaticBaseOffset);
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.EnsureClassConstructorRunAndReturnThreadStaticBase));
                         }
                     }

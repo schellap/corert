@@ -125,14 +125,6 @@ namespace Internal.Runtime.CompilerHelpers
                 Contract.Assert(length % IntPtr.Size == 0);
                 InitializeStringTable(stringSection, length);
             }
-
-            // Initialize statics if any are present
-            IntPtr staticsSection = GetModuleSection(moduleManager, ModuleHeaderSection.GCStaticRegion, out length);
-            if (staticsSection != IntPtr.Zero)
-            {
-                Contract.Assert(length % IntPtr.Size == 0);
-                InitializeStatics(staticsSection, length);
-            }
         }
 
         private static unsafe void InitializeEagerClassConstructorsForModule(IntPtr moduleManager)
@@ -180,16 +172,6 @@ namespace Internal.Runtime.CompilerHelpers
             for (IntPtr* tab = (IntPtr*)cctorTableStart; tab < (IntPtr*)cctorTableEnd; tab++)
             {
                 Call(*tab);
-            }
-        }
-
-        private static unsafe void InitializeStatics(IntPtr gcStaticRegionStart, int length)
-        {
-            IntPtr gcStaticRegionEnd = (IntPtr)((byte*)gcStaticRegionStart + length);
-            for (IntPtr* block = (IntPtr*)gcStaticRegionStart; block < (IntPtr*)gcStaticRegionEnd; block++)
-            {
-                object obj = RuntimeImports.RhNewObject(new EETypePtr(*block));
-                *block = RuntimeImports.RhHandleAlloc(obj, GCHandleType.Normal);
             }
         }
 

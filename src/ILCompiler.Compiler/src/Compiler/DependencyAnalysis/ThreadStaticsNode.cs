@@ -14,6 +14,7 @@ namespace ILCompiler.DependencyAnalysis
     public class ThreadStaticsNode : EmbeddedObjectNode, ISymbolNode
     {
         private MetadataType _type;
+        public int ThreadStaticBaseOffset;
 
         public ThreadStaticsNode(MetadataType type, NodeFactory factory)
         {
@@ -28,7 +29,7 @@ namespace ILCompiler.DependencyAnalysis
         protected override void OnMarked(NodeFactory factory)
         {
             factory.ThreadStaticsRegion.AddEmbeddedObject(this);
-            factory.ThreadStaticEEType(_type);
+            factory.ThreadStaticEEType(_type, out ThreadStaticBaseOffset);
         }
 
         string ISymbolNode.MangledName

@@ -15,6 +15,7 @@ namespace ILCompiler.DependencyAnalysis
     public class GCStaticsNode : EmbeddedObjectNode, ISymbolNode
     {
         private MetadataType _type;
+        public int GCStaticBaseOffset;
 
         public GCStaticsNode(MetadataType type)
         {
@@ -29,7 +30,7 @@ namespace ILCompiler.DependencyAnalysis
         protected override void OnMarked(NodeFactory factory)
         {
             factory.GCStaticsRegion.AddEmbeddedObject(this);
-            factory.GCStaticEEType(_type);
+            factory.GCStaticEEType(_type, out GCStaticBaseOffset);
         }
 
         string ISymbolNode.MangledName

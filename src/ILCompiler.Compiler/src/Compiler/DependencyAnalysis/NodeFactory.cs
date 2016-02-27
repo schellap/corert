@@ -293,19 +293,17 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
-        public ISymbolNode GCStaticEEType(MetadataType type)
+        public ISymbolNode GCStaticEEType(MetadataType type, out int offset)
         {
             bool[] gcDesc = new bool[type.GCStaticFieldSize / Target.PointerSize + 1];
-            int offset = GCStaticBase.AddGCDesc(gcDesc);
-            ((EETypeNode)NecessaryTypeSymbol(type)).SetGCStaticOffset(offset);
+            offset = GCStaticBase.AddGCDesc(gcDesc);
             return GCStaticBase;
         }
 
-        public ISymbolNode ThreadStaticEEType(MetadataType type)
+        public ISymbolNode ThreadStaticEEType(MetadataType type, out int offset)
         {
             bool[] gcDesc = new bool[type.ThreadStaticFieldSize / Target.PointerSize + 1];
-            int offset = ThreadStaticBase.AddGCDesc(gcDesc);
-            ((EETypeNode)NecessaryTypeSymbol(type)).SetThreadStaticOffset(offset);
+            offset = ThreadStaticBase.AddGCDesc(gcDesc);
             return ThreadStaticBase;
         }
 
