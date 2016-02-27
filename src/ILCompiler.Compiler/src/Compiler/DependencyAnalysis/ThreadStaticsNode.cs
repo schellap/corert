@@ -28,6 +28,7 @@ namespace ILCompiler.DependencyAnalysis
         protected override void OnMarked(NodeFactory factory)
         {
             factory.ThreadStaticsRegion.AddEmbeddedObject(this);
+            factory.ThreadStaticEEType(_type);
         }
 
         string ISymbolNode.MangledName
@@ -36,14 +37,6 @@ namespace ILCompiler.DependencyAnalysis
             {
                 return "__ThreadStaticBase_" + NodeFactory.NameMangler.GetMangledTypeName(_type);
             }
-        }
-
-        public ISymbolNode GetGCStaticEETypeNode(NodeFactory context)
-        {
-            // TODO Replace with better gcDesc computation algorithm when we add gc handling to the type system
-            // TODO This logic should be shared with GCStaticsNode.
-            bool[] gcDesc = new bool[_type.ThreadStaticFieldSize / context.Target.PointerSize + 1];
-            return context.GCStaticEEType(gcDesc);
         }
 
         public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory context)
@@ -58,7 +51,7 @@ namespace ILCompiler.DependencyAnalysis
                 result = new DependencyListEntry[2];
 
             result[0] = new DependencyListEntry(context.ThreadStaticsRegion, "ThreadStatics Region");
-            result[1] = new DependencyListEntry(GetGCStaticEETypeNode(context), "ThreadStatic EEType");
+            result[1] = new DependencyListEntry(context.ThreadStaticBase, "ThreadStatic EEType");
             return result;
         }
 
@@ -81,10 +74,7 @@ namespace ILCompiler.DependencyAnalysis
         public override void EncodeData(ref ObjectDataBuilder builder, NodeFactory factory, bool relocsOnly)
         {
             builder.RequirePointerAlignment();
-
-            // At runtime, an instance of the GCStaticEEType will be created and a GCHandle to it
-            // will be written in this location.
-            builder.EmitPointerReloc(GetGCStaticEETypeNode(factory));
+            builder.EmitPointerReloc(factory.NecessaryTypeSymbol(_type));
         }
     }
 }

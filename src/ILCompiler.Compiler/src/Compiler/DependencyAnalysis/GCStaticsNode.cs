@@ -75,7 +75,7 @@ namespace ILCompiler.DependencyAnalysis
         public override void EncodeData(ref ObjectDataBuilder builder, NodeFactory factory, bool relocsOnly)
         {
             builder.RequirePointerAlignment();
-            builder.EmitPointerReloc(GetGCStaticEETypeNode(factory));
+            builder.EmitPointerReloc(factory.NecessaryTypeSymbol(_type));
         }
     }
 }
