@@ -296,14 +296,16 @@ namespace ILCompiler.DependencyAnalysis
         public ISymbolNode GCStaticEEType(MetadataType type)
         {
             bool[] gcDesc = new bool[type.GCStaticFieldSize / Target.PointerSize + 1];
-            GCStaticBase.AddGCDesc(gcDesc);
+            int offset = GCStaticBase.AddGCDesc(gcDesc);
+            ((EETypeNode)NecessaryTypeSymbol(type)).SetGCStaticOffset(offset);
             return GCStaticBase;
         }
 
         public ISymbolNode ThreadStaticEEType(MetadataType type)
         {
             bool[] gcDesc = new bool[type.ThreadStaticFieldSize / Target.PointerSize + 1];
-            ThreadStaticBase.AddGCDesc(gcDesc);
+            int offset = ThreadStaticBase.AddGCDesc(gcDesc);
+            ((EETypeNode)NecessaryTypeSymbol(type)).SetThreadStaticOffset(offset);
             return ThreadStaticBase;
         }
 
@@ -389,6 +391,7 @@ namespace ILCompiler.DependencyAnalysis
             new string[] { "System.Runtime.CompilerServices", "ClassConstructorRunner", "CheckStaticClassConstructionReturnGCStaticBase" },
             new string[] { "System.Runtime.CompilerServices", "ClassConstructorRunner", "CheckStaticClassConstructionReturnNonGCStaticBase" },
             new string[] { "System.Runtime.CompilerServices", "ClassConstructorRunner", "CheckStaticClassConstructionReturnThreadStaticBase" },
+            new string[] { "System.Runtime", "RuntimeImports", "RhGetGCStaticField" },
             new string[] { "System.Runtime", "RuntimeImports", "RhGetThreadStaticField" },
         };
 
@@ -561,6 +564,7 @@ namespace ILCompiler.DependencyAnalysis
         EnsureClassConstructorRunAndReturnGCStaticBase,
         EnsureClassConstructorRunAndReturnNonGCStaticBase,
         EnsureClassConstructorRunAndReturnThreadStaticBase,
+        RhGetGCStaticField,
         RhGetThreadStaticField,
     }
 }

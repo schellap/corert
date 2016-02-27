@@ -520,8 +520,12 @@ namespace System.Runtime
         internal static extern IntPtr RhGetModuleFromEEType(IntPtr pEEType);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhGetGCStaticField")]
+        internal static extern object RhGetGCStaticField(IntPtr pEEType);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhGetThreadStaticField")]
-        internal static extern object RhGetThreadStaticField(IntPtr pModuleFieldTypePtr);
+        internal static extern object RhGetThreadStaticField(IntPtr pEEType);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhGetThreadStaticFieldAddress")]

@@ -119,6 +119,16 @@ namespace ILCompiler.DependencyAnalysis
             _optionalFieldsBuilder.SetFieldValue(EETypeOptionalFieldsElement.DispatchMap, checked((uint)index));
         }
 
+        public void SetThreadStaticOffset(int offset)
+        {
+            _optionalFieldsBuilder.SetFieldValue(EETypeOptionalFieldsElement.ThreadStaticOffset, checked((uint)offset));
+        }
+
+        public void SetGCStaticOffset(int offset)
+        {
+            _optionalFieldsBuilder.SetFieldValue(EETypeOptionalFieldsElement.GCStaticOffset, checked((uint)offset));
+        }
+
         int ISymbolNode.Offset
         {
             get

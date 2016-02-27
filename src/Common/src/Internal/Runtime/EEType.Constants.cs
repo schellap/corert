@@ -191,6 +191,16 @@ namespace Internal.Runtime
         /// </summary>
         NullableValueOffset,
 
+        /// <summary>
+        /// The offset from the ThreadStaticBase where its fields are allocated.
+        /// </summary>
+        ThreadStaticOffset,
+
+        /// <summary>
+        /// The offset from the GCStaticBase where its fields are allocated.
+        /// </summary>
+        GCStaticOffset,
+
         // Number of field types we support
         Count
     }

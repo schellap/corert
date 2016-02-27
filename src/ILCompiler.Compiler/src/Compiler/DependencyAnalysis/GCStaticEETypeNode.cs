@@ -18,6 +18,7 @@ namespace ILCompiler.DependencyAnalysis
         private List<int> _runLengths = new List<int>(); // First is offset to first gc field, second is length of gc static run, third is length of non-gc data, etc
         private int _targetPointerSize;
         private TargetDetails _target;
+        private int _currentOffsetFromBase;
 
         public GCStaticEETypeNode(NodeFactory factory)
         {
@@ -25,7 +26,7 @@ namespace ILCompiler.DependencyAnalysis
             _target = factory.Target;
         }
 
-        public void AddGCDesc(bool[] gcDesc)
+        public int AddGCDesc(bool[] gcDesc)
         {
             bool encodingGCPointers = false;
             int currentPointerCount = 0;
@@ -42,6 +43,9 @@ namespace ILCompiler.DependencyAnalysis
                 }
             }
             _runLengths.Add(currentPointerCount);
+            int previousOffset = _currentOffsetFromBase;
+            _currentOffsetFromBase += gcDesc.Length;
+            return previousOffset;
         }
 
         public override string GetName()
