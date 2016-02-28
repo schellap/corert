@@ -28,7 +28,6 @@ namespace ILCompiler.DependencyAnalysis
 
         protected override void OnMarked(NodeFactory factory)
         {
-            factory.ThreadStaticsRegion.AddEmbeddedObject(this);
             factory.ThreadStaticEEType(_type, out ThreadStaticBaseOffset);
         }
 
@@ -45,14 +44,13 @@ namespace ILCompiler.DependencyAnalysis
             DependencyListEntry[] result;
             if (context.TypeInitializationManager.HasEagerStaticConstructor(_type))
             {
-                result = new DependencyListEntry[3];
-                result[2] = new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor");
+                result = new DependencyListEntry[2];
+                result[1] = new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor");
             }
             else
-                result = new DependencyListEntry[2];
+                result = new DependencyListEntry[1];
 
-            result[0] = new DependencyListEntry(context.ThreadStaticsRegion, "ThreadStatics Region");
-            result[1] = new DependencyListEntry(context.ThreadStaticBase, "ThreadStatic EEType");
+            result[0] = new DependencyListEntry(context.ThreadStaticBase, "ThreadStatic EEType");
             return result;
         }
 

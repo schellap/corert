@@ -249,6 +249,42 @@ COOP_PINVOKE_HELPER(PTR_Code, RhpGetSealedVirtualSlot, (EEType * pEEType, UInt16
     return pEEType->get_SealedVirtualSlot(slot);
 }
 
+#include "ModuleManager.h"
+EXTERN_C REDHAWK_API void* REDHAWK_CALLCONV RhpHandleAlloc(void* pObject, int type);
+EXTERN_C REDHAWK_API void REDHAWK_CALLCONV RhHandleFree(void*);
+EXTERN_C Object* RhNewObject(PTR_EEType);
+
+// TODO: Move this into module manager.
+volatile void* volatile* pGCStaticBase = nullptr;
+
+COOP_PINVOKE_HELPER(Object*, RhGetGCStaticField, (EEType* pEEType, int offset))
+{
+    ASSERT(pEEType->GetModuleManager() != NULL);
+    ModuleManager* pModuleManager = *pEEType->GetModuleManager();
+    if (pGCStaticBase == nullptr)
+    {
+        int nLength = 0;
+        void* pStart = pModuleManager->GetModuleSection(ModuleHeaderSection::GCStaticRegion, &nLength);
+        ASSERT(nLength == 1);
+        Object* gcBlock = RhNewObject((PTR_EEType) pStart);
+        void* pHandle = RhpHandleAlloc(gcBlock, 2 /* Normal */);
+        if (PalInterlockedCompareExchangePointer((void* volatile*)&pGCStaticBase, pHandle, NULL) != NULL)
+        {
+            RhHandleFree(pHandle);
+        }
+    }
+    if (pGCStaticBase[offset] == nullptr)
+    {
+        Object* gcBlock = RhNewObject(pEEType);
+        void* pHandle = RhpHandleAlloc(gcBlock, 2 /* Normal */);
+        if (PalInterlockedCompareExchangePointer((void* volatile*)&pGCStaticBase[offset], pHandle, NULL) != NULL)
+        {
+            RhHandleFree(pHandle);
+        }
+    }
+    return *((Object**) pGCStaticBase[offset]);
+}
+
 // Obtain the address of a thread static field for the current thread given the enclosing type and a field cookie
 // obtained from a fixed up binder blob field record.
 COOP_PINVOKE_HELPER(UInt8 *, RhGetThreadStaticFieldAddress, (EEType * pEEType, ThreadStaticFieldOffsets* pFieldCookie))

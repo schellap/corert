@@ -29,7 +29,6 @@ namespace ILCompiler.DependencyAnalysis
 
         protected override void OnMarked(NodeFactory factory)
         {
-            factory.GCStaticsRegion.AddEmbeddedObject(this);
             factory.GCStaticEEType(_type, out GCStaticBaseOffset);
         }
 
@@ -46,14 +45,12 @@ namespace ILCompiler.DependencyAnalysis
             DependencyListEntry[] result;
             if (context.TypeInitializationManager.HasEagerStaticConstructor(_type))
             {
-                result = new DependencyListEntry[3];
-                result[2] = new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor");
+                result = new DependencyListEntry[2];
+                result[1] = new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor");
             }
             else
-                result = new DependencyListEntry[2];
-
-            result[0] = new DependencyListEntry(context.GCStaticsRegion, "GCStatics Region");
-            result[1] = new DependencyListEntry(context.GCStaticBase, "GCStatic Base");
+                result = new DependencyListEntry[1];
+            result[0] = new DependencyListEntry(context.GCStaticBase, "GCStatic Base");
             return result;
         }
 

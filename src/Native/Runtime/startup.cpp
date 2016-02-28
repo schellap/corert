@@ -373,12 +373,4 @@ COOP_PINVOKE_HELPER(void, RhpGetModulesSection, (void** ppStart, void** ppEnd))
     *ppStart = &__modules_a;
     *ppEnd = &__modules_z;
 }
-
-COOP_PINVOKE_HELPER(Object*, RhGetGCStaticField, (EEType* pEEType, int offset))
-{
-    ASSERT(pEEType->GetModuleManager() != NULL);
-    ModuleManager* pModuleManager = pEEType->GetModuleManager();
-    pModuleManager->GetModuleSection(ModuleHeaderSection::GCStaticRegion,   );
-
-}
 #endif
