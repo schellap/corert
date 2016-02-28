@@ -24,6 +24,7 @@ class RuntimeInstance
 
     PTR_RuntimeInstance         m_pNext;
     PTR_ThreadStore             m_pThreadStore;
+    OBJECTREF                   m_pGCStaticBase;
     HANDLE                      m_hPalInstance; // this is the HANDLE passed into DllMain
     SList<Module>               m_ModuleList;
     ReaderWriterLock            m_ModuleListLock;

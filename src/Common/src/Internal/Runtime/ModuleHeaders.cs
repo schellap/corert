@@ -21,8 +21,8 @@ namespace Internal.Runtime
     enum ModuleHeaderSection
     {
         StringTable                 = 200,
-        GCStaticRegion              = 201,
-        ThreadStaticRegion          = 202,
+        GCStaticBaseEEType          = 201,
+        ThreadStaticBaseEEType      = 202,
         InterfaceDispatchTable      = 203,
         ModuleIndirectionCell       = 204,
         EagerCctor                  = 205,

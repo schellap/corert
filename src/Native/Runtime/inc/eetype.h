@@ -216,6 +216,9 @@ private:
     UInt32              m_uHashCode;
 #if defined(CORERT)
     ModuleManager**     m_ppModuleManager;
+public:
+    ModuleManager**     GetModuleManager() { return m_ppModuleManager; }
+private:
 #endif
 
     TgtPTR_Void         m_VTable[];  // make this explicit so the binder gets the right alignment

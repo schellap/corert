@@ -478,14 +478,6 @@ namespace ILCompiler.DependencyAnalysis
             return value;
         }
 
-        public ArrayOfEmbeddedDataNode GCStaticsRegion = new ArrayOfEmbeddedDataNode(
-            NameMangler.CompilationUnitPrefix + "__GCStaticRegionStart",
-            NameMangler.CompilationUnitPrefix + "__GCStaticRegionEnd",
-            null);
-        public ArrayOfEmbeddedDataNode ThreadStaticsRegion = new ArrayOfEmbeddedDataNode(
-            NameMangler.CompilationUnitPrefix + "__ThreadStaticRegionStart",
-            NameMangler.CompilationUnitPrefix + "__ThreadStaticRegionEnd",
-            null);
         public ArrayOfEmbeddedDataNode StringTable = new ArrayOfEmbeddedDataNode(
             NameMangler.CompilationUnitPrefix + "__StringTableStart",
             NameMangler.CompilationUnitPrefix + "__StringTableEnd",
@@ -539,8 +531,6 @@ namespace ILCompiler.DependencyAnalysis
 
         public void AttachToDependencyGraph(DependencyAnalysisFramework.DependencyAnalyzerBase<NodeFactory> graph)
         {
-            graph.AddRoot(GCStaticsRegion, "GC StaticsRegion is always generated");
-            graph.AddRoot(ThreadStaticsRegion, "ThreadStaticsRegion is always generated");
             graph.AddRoot(StringTable, "StringTable is always generated");
             graph.AddRoot(DispatchMapTable, "DispatchMapTable is always generated");
             graph.AddRoot(EagerCctorTable, "EagerCctorTable is always generated");
@@ -549,11 +539,14 @@ namespace ILCompiler.DependencyAnalysis
             graph.AddRoot(ModuleIndirectionCell, "ModuleIndirectionCell is always generated");
             
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.StringTable, StringTable.StartSymbol, StringTable.EndSymbol));
-            ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.GCStaticRegion, GCStaticsRegion.StartSymbol, GCStaticsRegion.EndSymbol));
-            ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ThreadStaticRegion, ThreadStaticsRegion.StartSymbol, ThreadStaticsRegion.EndSymbol));
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.InterfaceDispatchTable, DispatchMapTable.StartSymbol));
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ModuleIndirectionCell, ModuleIndirectionCell));
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.EagerCctor, EagerCctorTable.StartSymbol, EagerCctorTable.EndSymbol));
+
+            if (_gcStaticBase != null)
+                ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.GCStaticBaseEEType, _gcStaticBase));
+            if (_threadStaticBase != null)
+                ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ThreadStaticBaseEEType, _threadStaticBase));
         }
     }
 

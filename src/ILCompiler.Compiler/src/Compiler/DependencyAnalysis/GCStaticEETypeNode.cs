@@ -77,17 +77,7 @@ namespace ILCompiler.DependencyAnalysis
             get
             {
                 StringBuilder nameBuilder = new StringBuilder();
-                nameBuilder.Append(NodeFactory.NameMangler.CompilationUnitPrefix + "__GCStaticEEType_");
-                int totalSize = 0;
-                foreach (int run in _runLengths)
-                {
-                    nameBuilder.Append(run.ToString(CultureInfo.InvariantCulture));
-                    nameBuilder.Append("_");
-                    totalSize += run;
-                }
-                nameBuilder.Append(totalSize.ToString(CultureInfo.InvariantCulture));
-                nameBuilder.Append("_");
-
+                nameBuilder.Append(NodeFactory.NameMangler.CompilationUnitPrefix + "__GCStaticBaseEEType");
                 return nameBuilder.ToString();
             }
         }
