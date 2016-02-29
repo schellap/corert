@@ -72,8 +72,7 @@ namespace ILCompiler.DependencyAnalysis
 
         public override void EncodeData(ref ObjectDataBuilder builder, NodeFactory factory, bool relocsOnly)
         {
-            builder.RequirePointerAlignment();
-            builder.EmitPointerReloc(factory.NecessaryTypeSymbol(_type));
+            builder.EmitInt(ThreadStaticBaseOffset);
         }
     }
 }

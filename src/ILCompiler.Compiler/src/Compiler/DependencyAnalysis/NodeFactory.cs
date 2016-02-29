@@ -512,7 +512,10 @@ namespace ILCompiler.DependencyAnalysis
             get
             {
                 if (_gcStaticBase == null)
+                {
                     _gcStaticBase = new GCStaticEETypeNode(this);
+                    ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.GCStaticBaseEEType, _gcStaticBase));
+                }
                 return _gcStaticBase;
             }
         }
@@ -522,7 +525,10 @@ namespace ILCompiler.DependencyAnalysis
             get
             {
                 if (_threadStaticBase == null)
+                {
                     _threadStaticBase = new GCStaticEETypeNode(this);
+                    ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ThreadStaticBaseEEType, _threadStaticBase));
+                }
                 return _threadStaticBase;
             }
         }
@@ -542,11 +548,6 @@ namespace ILCompiler.DependencyAnalysis
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.InterfaceDispatchTable, DispatchMapTable.StartSymbol));
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ModuleIndirectionCell, ModuleIndirectionCell));
             ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.EagerCctor, EagerCctorTable.StartSymbol, EagerCctorTable.EndSymbol));
-
-            if (_gcStaticBase != null)
-                ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.GCStaticBaseEEType, _gcStaticBase));
-            if (_threadStaticBase != null)
-                ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ThreadStaticBaseEEType, _threadStaticBase));
         }
     }
 

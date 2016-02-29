@@ -10,6 +10,8 @@
 #include "holder.h"
 #include "ModuleManager.h"
 
+DECLSPEC_THREAD void* ModuleManager::m_pThreadStaticBase = nullptr;
+
 /* static */
 ModuleManager * ModuleManager::Create(void * pHeaderStart, void * pHeaderEnd)
 {
@@ -54,6 +56,30 @@ DispatchMap** ModuleManager::GetDispatchMapLookupTable()
     }
 
     return m_pDispatchMapTable;
+}
+
+bool ModuleManager::SetGCStaticBaseInterlocked(void* pBase)
+{
+    if (m_pGCStaticBase != nullptr)
+    {
+        return false;
+    }
+    return PalInterlockedCompareExchangePointer((void* volatile*)&m_pGCStaticBase, pBase, nullptr) == nullptr;
+}
+
+volatile void* volatile* ModuleManager::GetGCStaticBase()
+{
+    return m_pGCStaticBase;
+}
+
+void ModuleManager::SetThreadStaticBase(void* pBase)
+{
+    m_pThreadStaticBase = pBase;
+}
+
+void* ModuleManager::GetThreadStaticBase()
+{
+    return m_pThreadStaticBase;
 }
 
 bool ModuleManager::ModuleInfoRow::HasEndPointer()

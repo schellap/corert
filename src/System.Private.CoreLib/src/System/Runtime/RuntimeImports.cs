@@ -521,11 +521,11 @@ namespace System.Runtime
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhGetGCStaticField")]
-        internal static extern object RhGetGCStaticField(IntPtr pEEType, int offset);
+        internal static extern object RhGetGCStaticField(IntPtr pEEType, IntPtr offset);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhGetThreadStaticField")]
-        internal static extern object RhGetThreadStaticField(IntPtr pEEType, int offset);
+        internal static extern object RhGetThreadStaticField(IntPtr pEEType, IntPtr offset);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhGetThreadStaticFieldAddress")]

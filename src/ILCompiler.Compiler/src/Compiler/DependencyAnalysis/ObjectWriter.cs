@@ -399,10 +399,13 @@ namespace ILCompiler.DependencyAnalysis
                 }
             }
 
-            // First entry is the node (entry point) name.
-            _currentNodeName = _offsetToDefName[0][0];
-            // Publish it first.
-            EmitSymbolDef(_currentNodeName);
+            if (_offsetToDefName.ContainsKey(0))
+            {
+                // First entry is the node (entry point) name.
+                _currentNodeName = _offsetToDefName[0][0];
+                // Publish it first.
+                EmitSymbolDef(_currentNodeName);
+            }
         }
 
         private string GetSymbolToEmitForTargetPlatform(string symbol)

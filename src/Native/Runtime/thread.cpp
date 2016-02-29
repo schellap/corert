@@ -25,6 +25,7 @@
 #include "rhbinder.h"
 #include "stressLog.h"
 #include "RhConfig.h"
+#include "eetype.h"
 
 #ifndef DACCESS_COMPILE
 
@@ -277,71 +278,42 @@ PTR_ExInfo Thread::GetCurExInfo()
 #if defined(CORERT)
 EXTERN_C REDHAWK_API void* REDHAWK_CALLCONV RhpHandleAlloc(void* pObject, int type);
 EXTERN_C REDHAWK_API void REDHAWK_CALLCONV RhHandleFree(void*);
-EXTERN_C void* GetModuleSection(int id, int* length);
 EXTERN_C Object* RhNewObject(PTR_EEType);
 
 // API to obtain the thread static field
-COOP_PINVOKE_HELPER(Object*, RhGetThreadStaticField, (void** pModuleFieldTypePtr))
+COOP_PINVOKE_HELPER(Object*, RhGetThreadStaticField, (EEType* pEEType, int* pOffset))
 {
-    int nByteLength = 0;
-    void** pModuleStart = (void**) GetModuleSection(3 /* ThreadStaticRegionStart */, &nByteLength);
-    if (nByteLength == 0)
-    {
-        return NULL;
-    }
-
-    int nIndex = pModuleFieldTypePtr - pModuleStart;
-    return ThreadStore::RawGetCurrentThread()->GetThreadStaticField(pModuleStart, nIndex, nByteLength);
+    int offset = *pOffset;
+    return ThreadStore::RawGetCurrentThread()->GetThreadStaticField(pEEType, offset);
 }
 
 // Allocate and construct a thread static field on demand.
-Object* Thread::GetThreadStaticField(void** pModuleStart, Int32 nIndex, Int32 nByteLength)
+Object* Thread::GetThreadStaticField(EEType* pEEType, int offset)
 {
-    EnsureThreadStaticStorage(nByteLength);
-
-    ASSERT(nByteLength == m_uThreadStaticLength * sizeof(void*));
-
-    if (m_pThreadStaticBase[nIndex] == NULL)
+    ASSERT(pEEType->GetModuleManager() != nullptr);
+    ModuleManager* pModuleManager = *pEEType->GetModuleManager();
+    Object*** pThreadStaticBase = (Object***) pModuleManager->GetThreadStaticBase();
+    if (pThreadStaticBase == nullptr)
     {
-        Object* gcBlock = RhNewObject((PTR_EEType) pModuleStart[nIndex]);
-        m_pThreadStaticBase[nIndex] = RhpHandleAlloc(gcBlock, 2 /* Normal */);
+        int nLength = 0;
+        void* pStart = pModuleManager->GetModuleSection(ModuleHeaderSection::GCStaticRegion, &nLength);
+        ASSERT(nLength == 1);
+        Object* gcBlock = RhNewObject((PTR_EEType) pStart);
+
+        pThreadStaticBase = (Object***) RhpHandleAlloc(gcBlock, 2 /* Normal */);
+        pModuleManager->SetThreadStaticBase(pThreadStaticBase);
+    }
+    if ((*pThreadStaticBase)[offset] == nullptr)
+    {
+        (*pThreadStaticBase)[offset] = RhNewObject(pEEType);
     }
 
-    return *((Object**) m_pThreadStaticBase[nIndex]);
-}
-
-// Create storage for thread statics in the base array.
-void Thread::EnsureThreadStaticStorage(Int32 nByteLength)
-{
-    if (m_pThreadStaticBase != NULL)
-    {
-        return;
-    }
-
-    ASSERT(nByteLength > 0)
-    
-    int nCount = nByteLength / sizeof(void*);
-    m_pThreadStaticBase = new (nothrow) void*[nCount](); // zero-init ctor.
-    m_uThreadStaticLength = nCount;
+    return (*pThreadStaticBase)[offset];
 }
 
 // When the thread is destroyed, destroy its thread statics as well.
 void Thread::DestroyThreadStatics()
 {
-    if (m_uThreadStaticLength == 0)
-    {
-        return;
-    }
-
-    for (int i = 0; i < m_uThreadStaticLength; ++i)
-    {
-        if (m_pThreadStaticBase[i] != NULL)
-        {
-            RhHandleFree(m_pThreadStaticBase[i]);
-        }
-    }
-
-    delete[] m_pThreadStaticBase;
 }
 #endif // CORERT
 
@@ -354,11 +326,6 @@ void Thread::Construct()
 
     m_numDynamicTypesTlsCells = 0;
     m_pDynamicTypesTlsCells = NULL;
-
-#if defined(CORERT)
-    m_pThreadStaticBase = NULL;
-    m_uThreadStaticLength = 0;
-#endif
 
     // NOTE: We do not explicitly defer to the GC implementation to initialize the alloc_context.  The 
     // alloc_context will be initialized to 0 via the static initialization of tls_CurrentThread. If the

@@ -38,16 +38,16 @@ namespace System.Runtime.CompilerServices
             return returnValue;
         }
 #else
-        private unsafe static object CheckStaticClassConstructionReturnGCStaticBase(StaticClassConstructionContext* context, IntPtr eeTypePtr, int offset)
+        private unsafe static object CheckStaticClassConstructionReturnGCStaticBase(StaticClassConstructionContext* context, IntPtr eeTypePtr, IntPtr offsetPtr)
         {
             EnsureClassConstructorRun(context);
-            return RuntimeImports.RhGetGCStaticField(eeTypePtr, offset);
+            return RuntimeImports.RhGetGCStaticField(eeTypePtr, offsetPtr);
         }
 
-        private unsafe static object CheckStaticClassConstructionReturnThreadStaticBase(StaticClassConstructionContext* context, IntPtr eeTypePtr, int offset)
+        private unsafe static object CheckStaticClassConstructionReturnThreadStaticBase(StaticClassConstructionContext* context, IntPtr eeTypePtr, IntPtr offsetPtr)
         {
             EnsureClassConstructorRun(context);
-            return RuntimeImports.RhGetThreadStaticField(eeTypePtr, offset);
+            return RuntimeImports.RhGetThreadStaticField(eeTypePtr, offsetPtr);
         }
 
         private unsafe static IntPtr CheckStaticClassConstructionReturnNonGCStaticBase(StaticClassConstructionContext* context, IntPtr nonGcStaticBase)

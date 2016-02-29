@@ -129,9 +129,8 @@ private:
     void Construct();
 #if defined(CORERT)
 public:
-    Object* GetThreadStaticField(void** pModuleStart, Int32 nIndex, Int32 nByteLength);
+    Object* GetThreadStaticField(EEType* pEEType, Int32 nOffset);
 private:
-    void EnsureThreadStaticStorage(Int32 nByteLength);
     void DestroyThreadStatics();
 #endif
 

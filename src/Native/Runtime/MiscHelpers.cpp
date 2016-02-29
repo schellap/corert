@@ -255,12 +255,13 @@ EXTERN_C REDHAWK_API void REDHAWK_CALLCONV RhHandleFree(void*);
 EXTERN_C Object* RhNewObject(PTR_EEType);
 
 // TODO: Move this into module manager.
-volatile void* volatile* pGCStaticBase = nullptr;
 
-COOP_PINVOKE_HELPER(Object*, RhGetGCStaticField, (EEType* pEEType, int offset))
+COOP_PINVOKE_HELPER(Object*, RhGetGCStaticField, (EEType* pEEType, int* pOffset))
 {
+    int offset = *pOffset;
     ASSERT(pEEType->GetModuleManager() != NULL);
     ModuleManager* pModuleManager = *pEEType->GetModuleManager();
+    Object*** pGCStaticBase = (Object***) pModuleManager->GetGCStaticBase();
     if (pGCStaticBase == nullptr)
     {
         int nLength = 0;
@@ -268,21 +269,18 @@ COOP_PINVOKE_HELPER(Object*, RhGetGCStaticField, (EEType* pEEType, int offset))
         ASSERT(nLength == 1);
         Object* gcBlock = RhNewObject((PTR_EEType) pStart);
         void* pHandle = RhpHandleAlloc(gcBlock, 2 /* Normal */);
-        if (PalInterlockedCompareExchangePointer((void* volatile*)&pGCStaticBase, pHandle, NULL) != NULL)
+        if (!pModuleManager->SetGCStaticBaseInterlocked(pHandle))
         {
             RhHandleFree(pHandle);
+            pGCStaticBase = (Object***) pModuleManager->GetGCStaticBase();
         }
     }
-    if (pGCStaticBase[offset] == nullptr)
+    if ((*pGCStaticBase)[offset] == nullptr)
     {
-        Object* gcBlock = RhNewObject(pEEType);
-        void* pHandle = RhpHandleAlloc(gcBlock, 2 /* Normal */);
-        if (PalInterlockedCompareExchangePointer((void* volatile*)&pGCStaticBase[offset], pHandle, NULL) != NULL)
-        {
-            RhHandleFree(pHandle);
-        }
+        // No thread safety, let GC deal with any object that gets in.
+        (*pGCStaticBase)[offset] = (Object*) RhNewObject(pEEType);
     }
-    return *((Object**) pGCStaticBase[offset]);
+    return (*pGCStaticBase)[offset];
 }
 
 // Obtain the address of a thread static field for the current thread given the enclosing type and a field cookie

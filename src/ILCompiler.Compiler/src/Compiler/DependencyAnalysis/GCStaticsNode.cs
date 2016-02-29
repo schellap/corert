@@ -12,14 +12,16 @@ using ILCompiler.DependencyAnalysisFramework;
 
 namespace ILCompiler.DependencyAnalysis
 {
-    public class GCStaticsNode : EmbeddedObjectNode, ISymbolNode
+    public class GCStaticsNode : ObjectNode, ISymbolNode
     {
         private MetadataType _type;
         public int GCStaticBaseOffset;
+        private TargetDetails _target;
 
-        public GCStaticsNode(MetadataType type)
+        public GCStaticsNode(NodeFactory factory, MetadataType type)
         {
             _type = type;
+            _target = factory.Target;
         }
 
         public override string GetName()
@@ -54,14 +56,6 @@ namespace ILCompiler.DependencyAnalysis
             return result;
         }
 
-        int ISymbolNode.Offset
-        {
-            get
-            {
-                return Offset;
-            }
-        }
-
         public override bool StaticDependenciesAreComputed
         {
             get
@@ -70,10 +64,31 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
-        public override void EncodeData(ref ObjectDataBuilder builder, NodeFactory factory, bool relocsOnly)
+        public override string Section
         {
-            builder.RequirePointerAlignment();
-            builder.EmitPointerReloc(factory.NecessaryTypeSymbol(_type));
+            get
+            {
+                if (_target.IsWindows)
+                    return "rdata";
+                else
+                    return "data";
+            }
+        }
+
+        public int Offset
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        public override ObjectData GetData(NodeFactory factory, bool relocsOnly)
+        {
+            // TODO: Artificial. Not actually needed.
+            ObjectDataBuilder builder = new ObjectDataBuilder(factory);
+            builder.EmitInt(GCStaticBaseOffset);
+            return builder.ToObjectData();
         }
     }
 }

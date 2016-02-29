@@ -8,17 +8,29 @@ class DispatchMap;
 
 class ModuleManager
 {
-    void *                      m_pHeaderStart;
-    void *                      m_pHeaderEnd;
+    void *                       m_pHeaderStart;
+    void *                       m_pHeaderEnd;
 
-    DispatchMap**               m_pDispatchMapTable;
+    DispatchMap**                m_pDispatchMapTable;
+    volatile void* volatile*     m_pGCStaticBase;
+    static DECLSPEC_THREAD void* m_pThreadStaticBase;
 
-    ModuleManager(void * pHeaderStart, void * pHeaderEnd) : m_pHeaderStart(pHeaderStart), m_pHeaderEnd(pHeaderEnd), m_pDispatchMapTable(nullptr) {}
+    ModuleManager(void * pHeaderStart, void * pHeaderEnd)
+        : m_pHeaderStart(pHeaderStart)
+        , m_pHeaderEnd(pHeaderEnd)
+        , m_pDispatchMapTable(nullptr)
+        , m_pGCStaticBase(nullptr)
+    { }
 
 public:
     static ModuleManager * Create(void * pHeaderStart, void * pHeaderEnd);
     void * GetModuleSection(ModuleHeaderSection sectionId, int * length);
     DispatchMap ** GetDispatchMapLookupTable();
+
+    void SetThreadStaticBase(void* pBase);
+    bool SetGCStaticBaseInterlocked(void* pBase);
+    void * GetThreadStaticBase();
+    volatile void* volatile* GetGCStaticBase();
 
 private:
     

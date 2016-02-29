@@ -26,6 +26,13 @@ namespace ILCompiler.DependencyAnalysis
             _target = factory.Target;
         }
 
+        //public int Add(MetadataType type)
+        //{
+        //    _types.Add(type);
+        //    int previousOffset = _currentOffsetFromBase;
+        //    _currentOffsetFromBase += _fieldSizeGetter(type);
+        //    return previousOffset;
+        //}
         public int AddGCDesc(bool[] gcDesc)
         {
             bool encodingGCPointers = false;
