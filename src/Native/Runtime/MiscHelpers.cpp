@@ -261,26 +261,20 @@ COOP_PINVOKE_HELPER(Object*, RhGetGCStaticField, (EEType* pEEType, int* pOffset)
     int offset = *pOffset;
     ASSERT(pEEType->GetModuleManager() != NULL);
     ModuleManager* pModuleManager = *pEEType->GetModuleManager();
-    Object*** pGCStaticBase = (Object***) pModuleManager->GetGCStaticBase();
+    void** pGCStaticBase = (void**) pModuleManager->GetGCStaticBase();
     if (pGCStaticBase == nullptr)
     {
         int nLength = 0;
         void* pStart = pModuleManager->GetModuleSection(ModuleHeaderSection::GCStaticRegion, &nLength);
-        ASSERT(nLength == 1);
+        ASSERT(nLength == sizeof(void*));
         Object* gcBlock = RhNewObject((PTR_EEType) pStart);
-        void* pHandle = RhpHandleAlloc(gcBlock, 2 /* Normal */);
-        if (!pModuleManager->SetGCStaticBaseInterlocked(pHandle))
+        pGCStaticBase = (void**) RhpHandleAlloc(gcBlock, 2 /* Normal */);
+        if (!pModuleManager->SetGCStaticBaseInterlocked(pGCStaticBase))
         {
-            RhHandleFree(pHandle);
-            pGCStaticBase = (Object***) pModuleManager->GetGCStaticBase();
+            RhHandleFree(pGCStaticBase);
         }
     }
-    if ((*pGCStaticBase)[offset] == nullptr)
-    {
-        // No thread safety, let GC deal with any object that gets in.
-        (*pGCStaticBase)[offset] = (Object*) RhNewObject(pEEType);
-    }
-    return (*pGCStaticBase)[offset];
+    return (Object*)((char*) *pGCStaticBase + offset);
 }
 
 // Obtain the address of a thread static field for the current thread given the enclosing type and a field cookie

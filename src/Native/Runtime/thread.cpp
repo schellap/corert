@@ -292,23 +292,18 @@ Object* Thread::GetThreadStaticField(EEType* pEEType, int offset)
 {
     ASSERT(pEEType->GetModuleManager() != nullptr);
     ModuleManager* pModuleManager = *pEEType->GetModuleManager();
-    Object*** pThreadStaticBase = (Object***) pModuleManager->GetThreadStaticBase();
+    void** pThreadStaticBase = (void**) pModuleManager->GetThreadStaticBase();
     if (pThreadStaticBase == nullptr)
     {
         int nLength = 0;
         void* pStart = pModuleManager->GetModuleSection(ModuleHeaderSection::GCStaticRegion, &nLength);
-        ASSERT(nLength == 1);
+        ASSERT(nLength == sizeof(void*));
         Object* gcBlock = RhNewObject((PTR_EEType) pStart);
 
-        pThreadStaticBase = (Object***) RhpHandleAlloc(gcBlock, 2 /* Normal */);
+        pThreadStaticBase = (void**) RhpHandleAlloc(gcBlock, 2 /* Normal */);
         pModuleManager->SetThreadStaticBase(pThreadStaticBase);
     }
-    if ((*pThreadStaticBase)[offset] == nullptr)
-    {
-        (*pThreadStaticBase)[offset] = RhNewObject(pEEType);
-    }
-
-    return (*pThreadStaticBase)[offset];
+    return (Object*)((char*) *pThreadStaticBase + offset);
 }
 
 // When the thread is destroyed, destroy its thread statics as well.

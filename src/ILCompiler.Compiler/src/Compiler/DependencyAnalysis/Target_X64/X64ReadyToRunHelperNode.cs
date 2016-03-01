@@ -101,7 +101,7 @@ namespace ILCompiler.DependencyAnalysis
                         if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
                         {
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.NecessaryTypeSymbol(target));
-                            encoder.EmitMOV(encoder.TargetRegister.Arg1, node.ThreadStaticBaseOffset);
+                            encoder.EmitLEAQ(encoder.TargetRegister.Arg1, node);
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.RhGetThreadStaticField));
                         }
                         else
@@ -109,7 +109,7 @@ namespace ILCompiler.DependencyAnalysis
                             // We need to trigger the cctor before returning the base
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.TypeCctorContextSymbol(target));
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg1, factory.NecessaryTypeSymbol(target));
-                            encoder.EmitMOV(encoder.TargetRegister.Arg2, node.ThreadStaticBaseOffset);
+                            encoder.EmitLEAQ(encoder.TargetRegister.Arg2, node);
                             encoder.EmitJMP(factory.HelperEntrypoint(HelperEntrypoint.EnsureClassConstructorRunAndReturnThreadStaticBase));
                         }
                     }
@@ -119,7 +119,7 @@ namespace ILCompiler.DependencyAnalysis
                     {
                         MetadataType target = (MetadataType)Target;
 
-                        GCStaticsNode node = factory.TypeGCStaticsSymbol(target); // Artificial dependency.
+                        GCStaticsNode node = factory.TypeGCStaticsSymbol(target);
                         if (!factory.TypeInitializationManager.HasLazyStaticConstructor(target))
                         {
                             encoder.EmitLEAQ(encoder.TargetRegister.Arg0, factory.NecessaryTypeSymbol(target));

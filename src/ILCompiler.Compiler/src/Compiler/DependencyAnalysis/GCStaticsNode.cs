@@ -18,7 +18,7 @@ namespace ILCompiler.DependencyAnalysis
         public int GCStaticBaseOffset;
         private TargetDetails _target;
 
-        public GCStaticsNode(NodeFactory factory, MetadataType type)
+        public GCStaticsNode(MetadataType type, NodeFactory factory)
         {
             _type = type;
             _target = factory.Target;
@@ -42,26 +42,15 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
-        public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory context)
+        protected override DependencyList ComputeNonRelocationBasedDependencies(NodeFactory context)
         {
-            DependencyListEntry[] result;
+            DependencyList result = new DependencyList();
             if (context.TypeInitializationManager.HasEagerStaticConstructor(_type))
             {
-                result = new DependencyListEntry[2];
-                result[1] = new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor");
+                result.Add(new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor"));
             }
-            else
-                result = new DependencyListEntry[1];
-            result[0] = new DependencyListEntry(context.GCStaticBase, "GCStatic Base");
+            result.Add(new DependencyListEntry(context.GCStaticBase, "GCStatic Base"));
             return result;
-        }
-
-        public override bool StaticDependenciesAreComputed
-        {
-            get
-            {
-                return true;
-            }
         }
 
         public override string Section
@@ -75,20 +64,29 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
+        public override ObjectData GetData(NodeFactory factory, bool relocsOnly = false)
+        {
+            ObjectDataBuilder builder = new ObjectDataBuilder(factory);
+            builder.RequirePointerAlignment();
+            builder.DefinedSymbols.Add(this);
+            builder.EmitInt(GCStaticBaseOffset);
+            return builder.ToObjectData();
+        }
+
+        public override bool StaticDependenciesAreComputed
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public int Offset
         {
             get
             {
                 return 0;
             }
-        }
-
-        public override ObjectData GetData(NodeFactory factory, bool relocsOnly)
-        {
-            // TODO: Artificial. Not actually needed.
-            ObjectDataBuilder builder = new ObjectDataBuilder(factory);
-            builder.EmitInt(GCStaticBaseOffset);
-            return builder.ToObjectData();
         }
     }
 }

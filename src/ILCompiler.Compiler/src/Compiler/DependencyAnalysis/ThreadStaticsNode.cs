@@ -4,6 +4,7 @@
 
 using Internal.TypeSystem;
 using System.Collections.Generic;
+using System;
 
 namespace ILCompiler.DependencyAnalysis
 {
@@ -11,14 +12,16 @@ namespace ILCompiler.DependencyAnalysis
     /// Represents the thread static region of a given type. This is very similar to <see cref="GCStaticsNode"/>,
     /// since the actual storage will be allocated on the GC heap at runtime and is allowed to contain GC pointers.
     /// </summary>
-    public class ThreadStaticsNode : EmbeddedObjectNode, ISymbolNode
+    public class ThreadStaticsNode : ObjectNode, ISymbolNode
     {
         private MetadataType _type;
         public int ThreadStaticBaseOffset;
+        private TargetDetails _target;
 
         public ThreadStaticsNode(MetadataType type, NodeFactory factory)
         {
             _type = type;
+            _target = factory.Target;
         }
 
         public override string GetName()
@@ -39,18 +42,14 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
-        public override IEnumerable<DependencyListEntry> GetStaticDependencies(NodeFactory context)
+        protected override DependencyList ComputeNonRelocationBasedDependencies(NodeFactory context)
         {
-            DependencyListEntry[] result;
+            DependencyList result = new DependencyList();
             if (context.TypeInitializationManager.HasEagerStaticConstructor(_type))
             {
-                result = new DependencyListEntry[2];
-                result[1] = new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor");
+                result.Add(new DependencyListEntry(context.EagerCctorIndirection(_type.GetStaticConstructor()), "Eager .cctor"));
             }
-            else
-                result = new DependencyListEntry[1];
-
-            result[0] = new DependencyListEntry(context.ThreadStaticBase, "ThreadStatic EEType");
+            result.Add(new DependencyListEntry(context.ThreadStaticBase, "ThreadStatic Base"));
             return result;
         }
 
@@ -58,7 +57,7 @@ namespace ILCompiler.DependencyAnalysis
         {
             get
             {
-                return Offset;
+                return 0;
             }
         }
 
@@ -70,9 +69,25 @@ namespace ILCompiler.DependencyAnalysis
             }
         }
 
-        public override void EncodeData(ref ObjectDataBuilder builder, NodeFactory factory, bool relocsOnly)
+
+        public override string Section
         {
+            get
+            {
+                if (_target.IsWindows)
+                    return "rdata";
+                else
+                    return "data";
+            }
+        }
+
+        public override ObjectData GetData(NodeFactory factory, bool relocsOnly = false)
+        {
+            ObjectDataBuilder builder = new ObjectDataBuilder(factory);
+            builder.RequirePointerAlignment();
+            builder.DefinedSymbols.Add(this);
             builder.EmitInt(ThreadStaticBaseOffset);
+            return builder.ToObjectData();
         }
     }
 }

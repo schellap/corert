@@ -18,12 +18,14 @@ namespace ILCompiler.DependencyAnalysis
         private List<int> _runLengths = new List<int>(); // First is offset to first gc field, second is length of gc static run, third is length of non-gc data, etc
         private int _targetPointerSize;
         private TargetDetails _target;
-        private int _currentOffsetFromBase;
+        private int _currentOffsetFromBase = IntPtr.Size;
+        private string _name;
 
-        public GCStaticEETypeNode(NodeFactory factory)
+        public GCStaticEETypeNode(string name, NodeFactory factory)
         {
             _targetPointerSize = factory.Target.PointerSize;
             _target = factory.Target;
+            _name = name;
         }
 
         //public int Add(MetadataType type)
@@ -84,7 +86,7 @@ namespace ILCompiler.DependencyAnalysis
             get
             {
                 StringBuilder nameBuilder = new StringBuilder();
-                nameBuilder.Append(NodeFactory.NameMangler.CompilationUnitPrefix + "__GCStaticBaseEEType");
+                nameBuilder.Append(NodeFactory.NameMangler.CompilationUnitPrefix + "__" + _name);
                 return nameBuilder.ToString();
             }
         }
@@ -119,6 +121,7 @@ namespace ILCompiler.DependencyAnalysis
             dataBuilder.DefinedSymbols.Add(this);
 
             bool hasPointers = NumSeries > 0;
+            int count = 0;
             if (hasPointers)
             {
                 for (int i = ((_runLengths.Count / 2) * 2) - 1; i >= 0; i--)
@@ -126,22 +129,26 @@ namespace ILCompiler.DependencyAnalysis
                     if (_targetPointerSize == 4)
                     {
                         dataBuilder.EmitInt(_runLengths[i]);
+                        count += 4;
                     }
                     else
                     {
                         dataBuilder.EmitLong(_runLengths[i]);
+                        count += 8;
                     }
                 }
                 if (_targetPointerSize == 4)
                 {
                     dataBuilder.EmitInt(NumSeries);
+                    count += 4;
                 }
                 else
                 {
                     dataBuilder.EmitLong(NumSeries);
+                    count += 8;
                 }
             }
-
+            Debug.Assert(((ISymbolNode)this).Offset == count);
             int totalSize = 0;
             foreach (int run in _runLengths)
             {

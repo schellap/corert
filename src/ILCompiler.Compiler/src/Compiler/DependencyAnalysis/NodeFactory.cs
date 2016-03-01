@@ -91,7 +91,7 @@ namespace ILCompiler.DependencyAnalysis
 
             _GCStatics = new NodeCache<MetadataType, GCStaticsNode>((MetadataType type) =>
             {
-                return new GCStaticsNode(type);
+                return new GCStaticsNode(type, this);
             });
 
             _threadStatics = new NodeCache<MetadataType, ThreadStaticsNode>((MetadataType type) =>
@@ -513,7 +513,7 @@ namespace ILCompiler.DependencyAnalysis
             {
                 if (_gcStaticBase == null)
                 {
-                    _gcStaticBase = new GCStaticEETypeNode(this);
+                    _gcStaticBase = new GCStaticEETypeNode("GCStaticBase", this);
                     ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.GCStaticBaseEEType, _gcStaticBase));
                 }
                 return _gcStaticBase;
@@ -526,7 +526,7 @@ namespace ILCompiler.DependencyAnalysis
             {
                 if (_threadStaticBase == null)
                 {
-                    _threadStaticBase = new GCStaticEETypeNode(this);
+                    _threadStaticBase = new GCStaticEETypeNode("ThreadStaticBase", this);
                     ModuleGlobalData.AddEmbeddedObject(new ModuleHeaderItemNode(ModuleHeaderSection.ThreadStaticBaseEEType, _threadStaticBase));
                 }
                 return _threadStaticBase;
